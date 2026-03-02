@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../../core/network/download_manager.dart';
 
 class Viewer3DScreen extends StatefulWidget {
@@ -49,9 +50,11 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
     if (mounted) {
       if (path != null) {
         setState(() {
-          _localModelPath = path.startsWith('http')
-              ? path
-              : Uri.file(path).toString();
+          // 🔥 AR FIX: Aunque descargamos para validar/progreso, para el visor usamos
+          // la URL remota para que el intent de AR (Scene Viewer) sea capaz de alcanzar el archivo.
+          // Android no tiene permiso para leer archivos locales de la app desde AR.
+          final baseUrl = dotenv.env['GITHUB_RAW_URL'] ?? '';
+          _localModelPath = '$baseUrl/${Uri.encodeComponent(_modelFileName)}';
           _isLoading = false;
         });
         FirebaseAnalytics.instance.logEvent(
