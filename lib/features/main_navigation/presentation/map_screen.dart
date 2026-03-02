@@ -1,122 +1,125 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../core/providers/locale_provider.dart';
 
-class MapScreen extends StatelessWidget {
+class MapScreen extends ConsumerWidget {
   const MapScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Escuchar cambios de idioma para refrescar tr()
+    ref.watch(localeProvider);
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('app_title'.tr()),
+        title: Text(
+          'app_title'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline),
+            icon: const Icon(Icons.info_outline, color: Colors.blue),
             onPressed: () => _showMuseumInfo(context),
           ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return InteractiveViewer(
-            maxScale: 3.0,
-            child: Stack(
-              children: [
-                // Fondo: Plano Estilizado del Instituto Histórico
-                Container(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight,
-                  decoration: BoxDecoration(color: Colors.blueGrey.shade900),
-                  child: CustomPaint(painter: MuseumFloorPainter()),
-                ),
-
-                // Sala I: Paleontología
-                _buildRoomPin(
-                  context,
-                  top: 0.25,
-                  left: 0.2,
-                  label: 'map_paleo'.tr(),
-                  icon: Icons.pest_control_rodent_outlined, // Fósil simulado
-                  color: Colors.orange,
-                  info: 'Fósiles, minerales y restos prehistóricos.',
-                ),
-
-                // Sala II: Zoología
-                _buildRoomPin(
-                  context,
-                  top: 0.25,
-                  left: 0.5,
-                  label: 'map_zoo'.tr(),
-                  icon: Icons.pets,
-                  color: Colors.green,
-                  info: 'Colección masiva de animales disecados y taxidermia.',
-                ),
-
-                // Sala III: Arqueología
-                _buildRoomPin(
-                  context,
-                  top: 0.25,
-                  left: 0.8,
-                  label: 'map_archaeo'.tr(),
-                  icon: Icons.account_balance,
-                  color: Colors.brown,
-                  info: 'Piezas antiguas y restos de excavaciones científicas.',
-                ),
-
-                // Sala VI: Modelos Dr. Auzoux
-                _buildRoomPin(
-                  context,
-                  top: 0.65,
-                  left: 0.25,
-                  label: 'map_anatomy'.tr(),
-                  icon: Icons.accessibility_new,
-                  color: Colors.redAccent,
-                  info: 'Modelos clásticos del Dr. Auzoux (siglo XIX).',
-                ),
-
-                // Sala VII: Física y Química
-                _buildRoomPin(
-                  context,
-                  top: 0.65,
-                  left: 0.75,
-                  label: 'map_instruments'.tr(),
-                  icon: Icons.science,
-                  color: Colors.blue,
-                  info: 'Gabinete de Física y Química Martínez Aguirre.',
-                ),
-
-                // Pasillo Central: Invertebrados
-                Positioned(
-                  top: 0.45,
-                  left: 0.4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'map_corridor'.tr(),
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 10,
-                      ),
-                    ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.5,
+            colors: [const Color(0xFF0D1B2A), const Color(0xFF000814)],
+          ),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return InteractiveViewer(
+              maxScale: 4.0,
+              minScale: 0.5,
+              boundaryMargin: const EdgeInsets.all(200),
+              child: Stack(
+                children: [
+                  // Capa Blueprint
+                  SizedBox(
+                    width: constraints.maxWidth * 2,
+                    height: constraints.maxHeight * 2,
+                    child: CustomPaint(painter: MuseumBlueprintPainter()),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+
+                  // Sala I: Paleontología
+                  _buildPremiumPin(
+                    context,
+                    top: 0.35,
+                    left: 0.3,
+                    label: 'map_paleo'.tr(),
+                    icon: Icons.pest_control_rodent_outlined,
+                    color: Colors.amber,
+                    info:
+                        'Fósiles de pterodáctilos, mamuts y minerales únicos.',
+                  ),
+
+                  // Sala II: Zoología
+                  _buildPremiumPin(
+                    context,
+                    top: 0.35,
+                    left: 1.0,
+                    label: 'map_zoo'.tr(),
+                    icon: Icons.pets,
+                    color: Colors.greenAccent,
+                    info:
+                        'Espectacular colección de taxidermia y esqueletos reales.',
+                  ),
+
+                  // Sala III: Arqueología
+                  _buildPremiumPin(
+                    context,
+                    top: 0.35,
+                    left: 1.6,
+                    label: 'map_archaeo'.tr(),
+                    icon: Icons.account_balance,
+                    color: Colors.orangeAccent,
+                    info:
+                        'Vasijas griegas, romanas y tesoros de excavaciones granadinas.',
+                  ),
+
+                  // Sala VI: Modelos Dr. Auzoux
+                  _buildPremiumPin(
+                    context,
+                    top: 1.25,
+                    left: 0.45,
+                    label: 'map_anatomy'.tr(),
+                    icon: Icons.accessibility_new,
+                    color: Colors.redAccent,
+                    info:
+                        'Anatomía clástica del siglo XIX de valor incalculable.',
+                  ),
+
+                  // Sala VII: Física y Química
+                  _buildPremiumPin(
+                    context,
+                    top: 1.25,
+                    left: 1.45,
+                    label: 'map_instruments'.tr(),
+                    icon: Icons.science,
+                    color: Colors.cyanAccent,
+                    info:
+                        'Gabinete histórico con instrumentos científicos originales.',
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildRoomPin(
+  Widget _buildPremiumPin(
     BuildContext context, {
     required double top,
     required double left,
@@ -132,30 +135,43 @@ class MapScreen extends StatelessWidget {
         onTap: () => _showRoomDetails(context, label, info, color),
         child: Column(
           children: [
+            // Icono con efecto de pulso / brillo
             Container(
-              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color,
                 shape: BoxShape.circle,
-                boxShadow: const [
-                  BoxShadow(blurRadius: 10, color: Colors.black45),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.5),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                  ),
                 ],
               ),
-              child: Icon(icon, color: Colors.white, size: 28),
+              child: CircleAvatar(
+                backgroundColor: const Color(0xFF1B263B),
+                radius: 24,
+                child: Icon(icon, color: color, size: 28),
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
+            // Etiqueta estilizada
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(4),
+                color: const Color(0xFF1B263B).withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.5),
+                  width: 1,
+                ),
               ),
               child: Text(
                 label,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
@@ -174,48 +190,80 @@ class MapScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1B263B), Color(0xFF0D1B2A)],
+          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             Row(
               children: [
-                CircleAvatar(backgroundColor: color, radius: 8),
+                Icon(Icons.location_on, color: color, size: 30),
                 const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Text(info, style: const TextStyle(fontSize: 16, height: 1.5)),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            Text(
+              info,
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white.withValues(alpha: 0.8),
+                height: 1.6,
+              ),
+            ),
+            const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.pop(context); // Cerrar panel
-                  context.go('/collection?room=$title'); // Navegar con filtro
+                  Navigator.pop(context);
+                  context.go('/collection?room=$title');
                 },
-                icon: const Icon(Icons.explore),
+                icon: const Icon(Icons.explore_outlined),
                 label: Text('map_explore_objects'.tr()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: color,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 8,
+                  shadowColor: color.withValues(alpha: 0.4),
                 ),
               ),
             ),
+            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -226,12 +274,22 @@ class MapScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('map_museum_title'.tr()),
-        content: Text('map_museum_desc'.tr()),
+        backgroundColor: const Color(0xFF1B263B),
+        title: Text(
+          'map_museum_title'.tr(),
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'map_museum_desc'.tr(),
+          style: const TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('map_close'.tr()),
+            child: Text(
+              'map_close'.tr(),
+              style: const TextStyle(color: Colors.blueAccent),
+            ),
           ),
         ],
       ),
@@ -239,51 +297,84 @@ class MapScreen extends StatelessWidget {
   }
 }
 
-class MuseumFloorPainter extends CustomPainter {
+class MuseumBlueprintPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white10
-      ..strokeWidth = 2.0
+    final blueprintPaint = Paint()
+      ..color = Colors.blueAccent.withValues(alpha: 0.4)
+      ..strokeWidth = 3.0
       ..style = PaintingStyle.stroke;
 
-    // Dibujamos una estructura simétrica simplificada del Instituto
-    final path = Path();
+    final wallFillPaint = Paint()
+      ..color = Colors.blueAccent.withValues(alpha: 0.05)
+      ..style = PaintingStyle.fill;
 
-    // Ala Oeste (Donde está el museo)
-    path.addRect(
-      Rect.fromLTWH(
-        size.width * 0.1,
-        size.height * 0.2,
-        size.width * 0.8,
-        size.height * 0.2,
-      ),
-    );
-
-    // Ala Este
-    path.addRect(
-      Rect.fromLTWH(
-        size.width * 0.1,
-        size.height * 0.6,
-        size.width * 0.8,
-        size.height * 0.2,
-      ),
-    );
-
-    // Cuerpo Central (Pasillo)
-    path.moveTo(size.width * 0.5, size.height * 0.4);
-    path.lineTo(size.width * 0.5, size.height * 0.6);
-
-    canvas.drawPath(path, paint);
-
-    // Cuadrícula de fondo para el "feeling" técnico
+    // 1. Cuadrícula Técnica
     final gridPaint = Paint()..color = Colors.white.withValues(alpha: 0.05);
-    for (double i = 0; i < size.width; i += 20) {
+    for (double i = 0; i < size.width; i += 40) {
       canvas.drawLine(Offset(i, 0), Offset(i, size.height), gridPaint);
     }
-    for (double i = 0; i < size.height; i += 20) {
+    for (double i = 0; i < size.height; i += 40) {
       canvas.drawLine(Offset(0, i), Offset(size.width, i), gridPaint);
     }
+
+    // 2. Dibujo Estructural del Plano
+    final path = Path();
+
+    // Ala Norte (Sección Principal)
+    double northY = size.height * 0.15;
+    double northH = size.height * 0.25;
+    Rect northRect = Rect.fromLTWH(
+      size.width * 0.1,
+      northY,
+      size.width * 1.8,
+      northH,
+    );
+    path.addRect(northRect);
+    canvas.drawRect(northRect, wallFillPaint);
+
+    // Ala Sur
+    double southY = size.height * 0.6;
+    double southH = size.height * 0.25;
+    Rect southRect = Rect.fromLTWH(
+      size.width * 0.1,
+      southY,
+      size.width * 1.8,
+      southH,
+    );
+    path.addRect(southRect);
+    canvas.drawRect(southRect, wallFillPaint);
+
+    // Conexiones de Pasillos
+    path.moveTo(size.width * 0.5, northY + northH);
+    path.lineTo(size.width * 0.5, southY);
+
+    path.moveTo(size.width * 1.5, northY + northH);
+    path.lineTo(size.width * 1.5, southY);
+
+    canvas.drawPath(path, blueprintPaint);
+
+    // 3. Detalles de "Arquitecto"
+    final detailPaint = Paint()
+      ..color = Colors.white24
+      ..strokeWidth = 1.0;
+
+    // Cotas / Medidas ficticias
+    canvas.drawLine(
+      Offset(size.width * 0.05, northY),
+      Offset(size.width * 0.05, northY + northH),
+      detailPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.04, northY),
+      Offset(size.width * 0.06, northY),
+      detailPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.04, northY + northH),
+      Offset(size.width * 0.06, northY + northH),
+      detailPaint,
+    );
   }
 
   @override
