@@ -1,6 +1,6 @@
 {
-    "name": "flutter_application_museo",
-    "short_name": "flutter_application_museo",
+    "name": "Museo Padre Suárez",
+    "short_name": "Museo Padre Suárez",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
