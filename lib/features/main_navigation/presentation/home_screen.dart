@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../authentication/providers/auth_provider.dart';
 import 'widgets/rank_badge_widget.dart';
+import '../../../core/providers/locale_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -11,6 +12,9 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
+    // Suscribirse al localeProvider para que Riverpod invalide este widget
+    // cuando cambie el idioma y los tr() se reevalúen con el locale correcto.
+    ref.watch(localeProvider);
 
     return Scaffold(
       appBar: AppBar(

@@ -22,9 +22,10 @@ Este documento explica paso a paso cómo configurar este proyecto desde cero, in
 ## 1. Requisitos Previos
 
 Para ejecutar este proyecto en tu ordenador, necesitas instalar:
-* **[Flutter SDK](https://docs.flutter.dev/get-started/install):** El motor sobre el que está construida la app.
-* **[Android Studio](https://developer.android.com/studio) / [Visual Studio Code](https://code.visualstudio.com/):** Para abrir el código, conectar un simulador de teléfono o tu móvil real por cable.
-* **Git:** Para descargar el repositorio (si no lo tienes ya descargado).
+* **[Flutter SDK](https://docs.flutter.dev/get-started/install):** El motor sobre el que está construida la app (Versión 3.24+ recomendada).
+* **[Android Studio](https://developer.android.com/studio) / [Visual Studio Code](https://code.visualstudio.com/):** Para abrir el código y compilar la app.
+* **Java 17+:** Necesario para las versiones modernas de Gradle y AndroidX que utiliza el proyecto.
+* **Git:** Para descargar el repositorio.
 
 ---
 
@@ -232,7 +233,10 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 
 * **📖 Onboarding (Tutorial de Bienvenida):** Los nuevos usuarios son recibidos con un tutorial de bienvenida (deslizable) que explica las funciones principales del museo (AR, 3D, Gamificación). Este progreso se guarda en el teléfono para que solo aparezca la primera vez.
 
-* **🌍 Multidioma Automático (i18n):** La interfaz completa está traducida a Español e Inglés. El usuario elige idioma la primera vez y puede cambiarlo desde Ajustes. El cambio es **instantáneo** sin reiniciar la app, gracias a la combinación de `easy_localization` y un `localeProvider` Riverpod que rebuilda el árbol de widgets completo al vuelo. Los archivos de traducción (`assets/translations/en.json` y `es.json`) contienen ~150 claves cada uno.
+* **🌍 Multidioma Reactivo (i18n):** La interfaz completa está traducida a Español e Inglés con un sistema de alta fidelidad. 
+  * **Persistencia Real:** La app recuerda el idioma incluso antes de mostrar la primera pantalla, leyendo directamente de las preferencias del sistema antes del arranque (`runApp`).
+  * **Cambio en Caliente:** El usuario puede cambiar de idioma desde Ajustes y toda la aplicación se redibuja al instante sin parpadeos ni errores de navegación, gracias a una arquitectura reactiva con `riverpod` y `easy_localization`.
+  * **Cobertura:** Los archivos `en.json` y `es.json` cubren más de 150 etiquetas, asegurando que no queden textos sin traducir.
 
 * **💰 Gamificación — Sistema de Rangos:** A medida que el usuario desbloquea piezas escaneando, sube de rango:
   | Rango            | Piezas | Color |
@@ -250,3 +254,13 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 * **💳 Pagos Híbridos Universales (Stripe + RevenueCat):** Implementa lógica responsiva de pasarela de pagos. Los usuarios en ecosistemas móviles cerrados pagarán por Google/Apple Pay usando RevenueCat, mientras que los visitantes desde ordenador o web tendrán acceso a URLs dinámicas (Checkout Sessions) de Stripe.
 
 * **📈 Analíticas Multiplataforma (Firebase):** Seguimiento del comportamiento de los usuarios (visitas a pantallas, compras de entradas en Stripe, donaciones simuladas o reales) con soporte total para Android, iOS y Web.
+
+---
+
+### 🛠️ Nota Técnica: Entorno de Compilación
+Este proyecto ha sido actualizado para cumplir con los estándares de seguridad y rendimiento de 2024/2025:
+* **Gradle:** 8.11.1
+* **Android Gradle Plugin (AGP):** 8.9.1
+* **Kotlin:** 2.1.0
+* **Seguridad:** El archivo `.env` está estrictamente ignorado por Git. Se incluye un `.env.example` como plantilla.
+* **Optimizaciones:** Se han eliminado dependencias obsoletas como `arcore_flutter_plugin` para garantizar la compatibilidad con las últimas versiones de AndroidX y Gradle, delegando la AR de forma más eficiente al visor nativo.
