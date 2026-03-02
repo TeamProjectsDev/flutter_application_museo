@@ -11,7 +11,8 @@
 # Miscellaneous
 *.class
 *.lock
-!pubspec.lock  # Necesario para versiones de dependencias consistentes entre desarrolladores
+# Excepción: pubspec.lock SÍ debe estar en el repo para versiones consistentes
+!pubspec.lock
 *.log
 *.pyc
 *.swp
