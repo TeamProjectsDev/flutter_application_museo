@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'core/routes/app_router.dart';
@@ -17,6 +18,15 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await EasyLocalization.ensureInitialized();
 
+  // Leer el locale guardado por EasyLocalization en SharedPreferences
+  // para inicializar localeProvider con el valor correcto desde el primer frame.
+  // EasyLocalization guarda el código de idioma bajo la clave 'selectedLocale'.
+  final prefs = await SharedPreferences.getInstance();
+  final savedCode = prefs.getString('selectedLocale');
+  final initialLocale = savedCode != null
+      ? Locale(savedCode)
+      : const Locale('en');
+
   // Inicialización de Firebase detectando la plataforma
   await Firebase.initializeApp(options: _getFirebaseOptions());
 
@@ -27,7 +37,12 @@ void main() async {
       fallbackLocale: const Locale('en'),
       startLocale: const Locale('en'),
       useOnlyLangCode: true,
-      child: const ProviderScope(child: MuseoApp()),
+      child: ProviderScope(
+        // Sobrescribir el valor inicial del localeProvider con el locale guardado
+        // para que MaterialApp nunca arranque con 'en' si el usuario eligió 'es'.
+        overrides: [localeProvider.overrideWith((ref) => initialLocale)],
+        child: const MuseoApp(),
+      ),
     ),
   );
 }
@@ -79,7 +94,7 @@ class MuseoApp extends ConsumerWidget {
     }
 
     return MaterialApp.router(
-      title: 'app_title'.tr(),
+      onGenerateTitle: (ctx) => 'app_title'.tr(),
       debugShowCheckedModeBanner: false,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,

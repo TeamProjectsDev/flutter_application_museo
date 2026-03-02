@@ -1,20 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../core/providers/locale_provider.dart';
 
-class LanguageScreen extends StatelessWidget {
+class LanguageScreen extends ConsumerWidget {
   const LanguageScreen({super.key});
 
-  Future<void> _selectLanguage(BuildContext context, String langCode) async {
-    // 1. Cambiar el idioma nativamente
+  Future<void> _selectLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    String langCode,
+  ) async {
+    // 1. Cambiar el idioma en EasyLocalization (persiste en SharedPreferences)
     await context.setLocale(Locale(langCode));
 
-    // 2. Guardar preferencia para saltarse esta pantalla la próxima vez
+    // 2. Actualizar localeProvider para que MaterialApp rebuilde al instante
+    ref.read(localeProvider.notifier).state = Locale(langCode);
+
+    // 3. Guardar preferencia para saltarse esta pantalla la próxima vez
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('has_selected_language', true);
 
-    // 3. Decidir a dónde ir: Onboarding o Home (por defecto al elegir idioma por 1ª vez, va al Onboarding)
+    // 4. Decidir a dónde ir
     final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
 
     if (!context.mounted) return;
@@ -27,7 +36,7 @@ class LanguageScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -62,7 +71,7 @@ class LanguageScreen extends StatelessWidget {
               _LanguageButton(
                 title: 'English',
                 subtitle: 'Inglés',
-                onTap: () => _selectLanguage(context, 'en'),
+                onTap: () => _selectLanguage(context, ref, 'en'),
                 color: isDark ? Colors.amber.shade700 : Colors.deepPurple,
               ),
               const SizedBox(height: 16),
@@ -71,7 +80,7 @@ class LanguageScreen extends StatelessWidget {
               _LanguageButton(
                 title: 'Español',
                 subtitle: 'Spanish',
-                onTap: () => _selectLanguage(context, 'es'),
+                onTap: () => _selectLanguage(context, ref, 'es'),
                 color: isDark ? Colors.amber.shade700 : Colors.deepPurple,
               ),
 
