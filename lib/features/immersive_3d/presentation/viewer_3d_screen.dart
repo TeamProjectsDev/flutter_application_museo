@@ -33,10 +33,10 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
       _downloadProgress = 0.0;
     });
 
-    // Pasamos solo el nombre del archivo, el DownloadManager usará la GITHUB_RAW_URL
+    // Pasamos el nombre original para la URL, pero sanitizado para el archivo local
     final String? path = await _downloadManager.downloadAndCacheFile(
       _modelFileName,
-      _modelFileName,
+      _modelFileName.replaceAll(' ', '_'),
       onReceiveProgress: (received, total) {
         if (total != -1) {
           setState(() {
@@ -49,7 +49,9 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
     if (mounted) {
       if (path != null) {
         setState(() {
-          _localModelPath = path.startsWith('http') ? path : 'file://$path';
+          _localModelPath = path.startsWith('http')
+              ? path
+              : Uri.file(path).toString();
           _isLoading = false;
         });
         FirebaseAnalytics.instance.logEvent(

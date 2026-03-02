@@ -27,7 +27,7 @@ class DownloadManager {
   }) async {
     final String url = urlOrFileName.startsWith('http')
         ? urlOrFileName
-        : Uri.encodeFull('$_baseUrl/$urlOrFileName');
+        : '$_baseUrl/${Uri.encodeComponent(urlOrFileName)}';
     // Si estamos en la web, no gestionamos caché pesada localmente
     // debido a las restricciones de dart:io en navegadores web.
     // Simplemente devolvemos la misma URL para que el visor cargue en red.

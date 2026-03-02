@@ -68,6 +68,9 @@ FirebaseOptions _getFirebaseOptions() {
         messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
         projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
         storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+        measurementId:
+            dotenv.env['FIREBASE_MEASUREMENT_ID_WEB'] ??
+            '', // A veces ayuda al plugin de Flutter
       );
     default:
       throw UnsupportedError('Plataforma no soportada por el momento.');

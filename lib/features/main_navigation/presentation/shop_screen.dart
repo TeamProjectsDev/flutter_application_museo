@@ -52,6 +52,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       final serviceId = dotenv.env['EMAILJS_SERVICE_ID'] ?? '';
       final templateId = dotenv.env['EMAILJS_TEMPLATE_ID'] ?? '';
       final userId = dotenv.env['EMAILJS_USER_ID'] ?? '';
+      final privateKey = dotenv.env['EMAILJS_PRIVATE_KEY'] ?? '';
       final adminEmailsStr = dotenv.env['ADMIN_EMAIL'] ?? '';
 
       if (serviceId.isNotEmpty && serviceId != 'tu_service_id_aqui') {
@@ -63,13 +64,18 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
 
         for (final email in adminEmails) {
           try {
-            await http.post(
+            debugPrint('📧 Intentando enviar email a $email...');
+            final response = await http.post(
               Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
-              headers: {'Content-Type': 'application/json'},
+              headers: {
+                'Content-Type': 'application/json',
+                if (privateKey.isNotEmpty) 'Authorization': privateKey,
+              },
               body: json.encode({
                 'service_id': serviceId,
                 'template_id': templateId,
                 'user_id': userId,
+                'accessToken': privateKey,
                 'template_params': {
                   'to_email': email,
                   'item_name': widget.preselectedItemName,
@@ -77,8 +83,16 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 },
               }),
             );
+
+            if (response.statusCode == 200) {
+              debugPrint('✅ Email enviado con éxito a $email');
+            } else {
+              debugPrint(
+                '❌ Error de EmailJS (${response.statusCode}): ${response.body}',
+              );
+            }
           } catch (e) {
-            debugPrint('Error enviando email a $email: $e');
+            debugPrint('🚨 Error de red enviando email a $email: $e');
           }
         }
       }
