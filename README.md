@@ -301,6 +301,22 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 
 * **📈 Analíticas Multiplataforma (Firebase):** Seguimiento del comportamiento de los usuarios (visitas a pantallas, compras de entradas en Stripe, donaciones simuladas o reales) con soporte total para Android, iOS y Web.
 
+* **🔥 Firebase Crashlytics:** Todos los errores y crashes en producción se capturan automáticamente y se envían al panel de Crashlytics. Se integra mediante `runZonedGuarded`, `FlutterError.onError` y `PlatformDispatcher.onError` para no perder ningún error.
+
+* **📡 Modo Offline (Catálogo Cacheado):** El catálogo de piezas 3D se guarda en `SharedPreferences` tras cada carga exitosa. Si el usuario abre la app sin conexión, se muestra el último catálogo conocido con un aviso discreto de modo offline.
+
+* **🔍 Buscador en la Colección:** Campo de búsqueda en tiempo real en la galería que filtra piezas por nombre o sala. Compatible con los filtros de sala del mapa interactivo.
+
+* **❤️ Favoritos:** El usuario puede marcar piezas como favoritas pulsando ♥. Los favoritos se guardan en Firestore (usuario autenticado) o `SharedPreferences` (invitado) y se visualizan en una tercera tab dedicada en la Colección.
+
+* **🏟️ Mis Entradas (QR Digital In-App):** Pantalla dedicada dentro de la app donde se muestran todas las entradas digitales del usuario con su código QR generado en tiempo real mediante `qr_flutter`. El usuario puede mostrar el QR directamente desde el móvil en la puerta del museo o compartirlo.
+
+* **🔗 Deep Links:** Se puede abrir la app directamente en una pieza específica mediante el esquema personalizado `museo://pieza/[itemId]`. Así, un QR en el cartel físico de la vitrina puede lanzar la app y mostrar el modelo 3D de esa pieza al instante.
+
+* **♿ Accesibilidad (a11y):** Los elementos interactivos principales incluyen `Semantics` con etiquetas descriptivas y `ExcludeSemantics` en íconos y elementos decorativos. La app es compatible con lectores de pantalla TalkBack (Android) y VoiceOver (iOS).
+
+* **⚙️ GitHub Actions (CI/CD):** Pipeline automático en `.github/workflows/flutter_ci.yml` que se ejecuta en cada push a `main` o `dev`. Pasos: `flutter analyze`, `flutter test`, `flutter build apk --debug`. El APK de debug se sube como artifact de 7 días.
+
 ---
 
 ### 🛠️ Nota Técnica: Entorno de Compilación
