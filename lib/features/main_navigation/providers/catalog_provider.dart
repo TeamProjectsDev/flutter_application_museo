@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _cacheKey = 'cached_catalog_v1';
 
 enum CatalogItemType { piece3D, environment360, unknown }
 
@@ -21,6 +25,31 @@ class CatalogItem {
     required this.type,
     required this.room,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'fileName': fileName,
+    'description': description,
+    'type': type.name,
+    'room': room,
+  };
+
+  factory CatalogItem.fromJson(Map<String, dynamic> json) {
+    final typeStr = json['type'] as String? ?? 'unknown';
+    final type = CatalogItemType.values.firstWhere(
+      (e) => e.name == typeStr,
+      orElse: () => CatalogItemType.unknown,
+    );
+    return CatalogItem(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      fileName: json['fileName'] as String,
+      description: json['description'] as String? ?? '',
+      type: type,
+      room: json['room'] as String? ?? 'General',
+    );
+  }
 
   /// Parsea un ítem desde el manifest.json de Cloudflare R2
   factory CatalogItem.fromR2Manifest(Map<String, dynamic> json) {
@@ -58,7 +87,6 @@ class CatalogItem {
       type = CatalogItemType.environment360;
     }
 
-    // Clasificación automática por sala según palabras clave
     String room = 'General';
     if (lower.contains('mandibula') ||
         lower.contains('fosil') ||
@@ -101,8 +129,14 @@ class CatalogState {
   final List<CatalogItem> items;
   final bool isLoading;
   final String? error;
+  final bool isFromCache;
 
-  CatalogState({this.items = const [], this.isLoading = false, this.error});
+  CatalogState({
+    this.items = const [],
+    this.isLoading = false,
+    this.error,
+    this.isFromCache = false,
+  });
 
   List<CatalogItem> get pieces3D =>
       items.where((i) => i.type == CatalogItemType.piece3D).toList();
@@ -113,7 +147,6 @@ class CatalogState {
 class CatalogNotifier extends StateNotifier<CatalogState> {
   final Dio _dio = Dio();
 
-  /// URL base de R2 (null si no está configurado → usa GitHub)
   final String? _r2BaseUrl = (dotenv.env['R2_PUBLIC_URL'] ?? '').isNotEmpty
       ? dotenv.env['R2_PUBLIC_URL']
       : null;
@@ -134,11 +167,11 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
         await _fetchFromGithub();
       }
     } catch (e) {
-      state = CatalogState(items: [], isLoading: false, error: e.toString());
+      debugPrint('[Catalog] Error de red: $e — intentando caché local');
+      await _loadFromCache();
     }
   }
 
-  /// Lee manifest.json del bucket R2 para construir el catálogo
   Future<void> _fetchFromR2() async {
     final manifestUrl = '$_r2BaseUrl/manifest.json';
     debugPrint('[Catalog] Fuente: R2 → $manifestUrl');
@@ -151,12 +184,9 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
             .map((e) => CatalogItem.fromR2Manifest(e as Map<String, dynamic>))
             .where((item) => item.type != CatalogItemType.unknown)
             .toList();
+        await _saveToCache(items);
         state = CatalogState(items: items, isLoading: false);
       } else {
-        // Si no existe el manifest, hacemos fallback a GitHub
-        debugPrint(
-          '[Catalog] manifest.json no encontrado (${response.statusCode}) — fallback a GitHub',
-        );
         await _fetchFromGithub();
       }
     } catch (e) {
@@ -165,22 +195,66 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
     }
   }
 
-  /// Consulta la API de GitHub para listar archivos reconocidos (.glb / .jpg / .png)
   Future<void> _fetchFromGithub() async {
     debugPrint('[Catalog] Fuente: GitHub API → $_githubApiUrl');
-    final response = await _dio.get(_githubApiUrl);
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data;
-      final items = data
-          .map((e) => CatalogItem.fromGithub(e as Map<String, dynamic>))
-          .where((item) => item.type != CatalogItemType.unknown)
-          .toList();
-      state = CatalogState(items: items, isLoading: false);
-    } else {
+    try {
+      final response = await _dio.get(_githubApiUrl);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        final items = data
+            .map((e) => CatalogItem.fromGithub(e as Map<String, dynamic>))
+            .where((item) => item.type != CatalogItemType.unknown)
+            .toList();
+        await _saveToCache(items);
+        state = CatalogState(items: items, isLoading: false);
+      } else {
+        await _loadFromCache();
+      }
+    } catch (e) {
+      debugPrint('[Catalog] Error GitHub: $e — cargando caché');
+      await _loadFromCache();
+    }
+  }
+
+  Future<void> _saveToCache(List<CatalogItem> items) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = items.map((i) => i.toJson()).toList();
+      await prefs.setString(_cacheKey, jsonEncode(jsonList));
+      debugPrint(
+        '[Catalog] Catálogo guardado en caché (${items.length} ítems)',
+      );
+    } catch (e) {
+      debugPrint('[Catalog] Error al guardar caché: $e');
+    }
+  }
+
+  Future<void> _loadFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(_cacheKey);
+      if (cached != null) {
+        final List<dynamic> jsonList = jsonDecode(cached);
+        final items = jsonList
+            .map((e) => CatalogItem.fromJson(e as Map<String, dynamic>))
+            .toList();
+        debugPrint(
+          '[Catalog] Catálogo cargado desde caché (${items.length} ítems)',
+        );
+        state = CatalogState(items: items, isLoading: false, isFromCache: true);
+      } else {
+        state = CatalogState(
+          items: [],
+          isLoading: false,
+          error: 'Sin conexión y sin catálogo guardado.',
+          isFromCache: true,
+        );
+      }
+    } catch (e) {
       state = CatalogState(
         items: [],
         isLoading: false,
-        error: 'Error al cargar catálogo: ${response.statusCode}',
+        error: 'Error al cargar catálogo: $e',
       );
     }
   }
