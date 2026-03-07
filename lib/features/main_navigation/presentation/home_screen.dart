@@ -91,6 +91,13 @@ class HomeScreen extends ConsumerWidget {
             route: '/auth',
             color: Colors.orangeAccent,
           ),
+          _buildMenuCard(
+            context,
+            title: 'Mis Entradas',
+            icon: Icons.confirmation_number_outlined,
+            route: '/my-tickets',
+            color: Colors.amber,
+          ),
         ],
       ),
     );
@@ -103,17 +110,28 @@ class HomeScreen extends ConsumerWidget {
     required String route,
     required Color color,
   }) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withValues(alpha: 0.2),
-          child: Icon(icon, color: color),
+    return Semantics(
+      label: title,
+      button: true,
+      child: Card(
+        elevation: 4,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: ListTile(
+          leading: ExcludeSemantics(
+            child: CircleAvatar(
+              backgroundColor: color.withValues(alpha: 0.2),
+              child: Icon(icon, color: color),
+            ),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          trailing: ExcludeSemantics(
+            child: const Icon(Icons.arrow_forward_ios),
+          ),
+          onTap: () => context.push(route),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: () => context.push(route),
       ),
     );
   }

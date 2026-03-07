@@ -1,0 +1,49 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze_and_build:
+    name: Analyze & Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          channel: 'stable'
+          cache: true
+
+      - name: 📦 Install dependencies
+        run: flutter pub get
+
+      # Genera un .env vacío para que la build no falle por claves ausentes
+      - name: 🔑 Create empty .env for CI
+        run: |
+          cp .env.example .env
+          # Sobreescribir todas las claves con valores vacíos seguros para CI
+          sed -i 's/=.*/=/' .env
+
+      - name: 🔍 Analyze code (lint)
+        run: flutter analyze --no-fatal-warnings
+
+      - name: 🧪 Run tests
+        run: flutter test
+
+      - name: 🔨 Build Android APK (debug)
+        run: flutter build apk --debug --no-pub
+
+      - name: 📤 Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7
