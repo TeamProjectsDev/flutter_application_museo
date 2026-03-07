@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'core/routes/app_router.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/providers/locale_provider.dart';
@@ -30,20 +32,35 @@ void main() async {
   // Inicialización de Firebase detectando la plataforma
   await Firebase.initializeApp(options: _getFirebaseOptions());
 
-  runApp(
-    EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('es')],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('en'),
-      startLocale: const Locale('en'),
-      useOnlyLangCode: true,
-      child: ProviderScope(
-        // Sobrescribir el valor inicial del localeProvider con el locale guardado
-        // para que MaterialApp nunca arranque con 'en' si el usuario eligió 'es'.
-        overrides: [localeProvider.overrideWith((ref) => initialLocale)],
-        child: const MuseoApp(),
+  // Crashlytics: capturar errores no manejados del framework Flutter
+  if (!kIsWeb) {
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    // Capturar errores asíncronos de la plataforma nativa
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  }
+
+  runZonedGuarded(
+    () => runApp(
+      EasyLocalization(
+        supportedLocales: const [Locale('en'), Locale('es')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en'),
+        startLocale: const Locale('en'),
+        useOnlyLangCode: true,
+        child: ProviderScope(
+          overrides: [localeProvider.overrideWith((ref) => initialLocale)],
+          child: const MuseoApp(),
+        ),
       ),
     ),
+    (error, stack) {
+      if (!kIsWeb) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      }
+    },
   );
 }
 
