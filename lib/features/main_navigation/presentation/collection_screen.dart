@@ -88,7 +88,7 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
                     onChanged: (v) => setState(() => _searchQuery = v),
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: 'Buscar pieza o sala...',
+                      hintText: 'collection_search_hint'.tr(),
                       hintStyle: const TextStyle(color: Colors.white54),
                       prefixIcon: const Icon(
                         Icons.search,
@@ -139,14 +139,14 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
           actions: [
             if (catalogState.isFromCache)
               Tooltip(
-                message: 'Mostrando catálogo offline (sin conexión)',
+                message: 'collection_offline_tooltip'.tr(),
                 child: const Icon(Icons.wifi_off, color: Colors.orange),
               ),
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: () =>
                   ref.read(catalogProvider.notifier).fetchCatalog(),
-              tooltip: 'Actualizar catálogo',
+              tooltip: 'collection_refresh'.tr(),
             ),
           ],
         ),
@@ -184,9 +184,7 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
   }) {
     if (items.isEmpty) {
       return Center(
-        child: Text(
-          is3D ? 'No hay piezas 3D disponibles.' : 'No hay entornos 360.',
-        ),
+        child: Text(is3D ? 'collection_no_3d'.tr() : 'collection_no_360'.tr()),
       );
     }
 
@@ -234,7 +232,9 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
                     isFav ? Icons.favorite : Icons.favorite_border,
                     color: isFav ? Colors.redAccent : Colors.grey,
                   ),
-                  tooltip: isFav ? 'Quitar favorito' : 'Añadir a favoritos',
+                  tooltip: isFav
+                      ? 'collection_fav_remove'.tr()
+                      : 'collection_fav_add'.tr(),
                   onPressed: () =>
                       ref.read(favoritesProvider.notifier).toggle(item.id),
                 ),
@@ -242,9 +242,9 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
                 if (isUnlocked)
                   IconButton(
                     icon: const Icon(Icons.share, color: Colors.deepPurple),
-                    tooltip: 'Compartir',
+                    tooltip: 'collection_share'.tr(),
                     onPressed: () => Share.share(
-                      '🏛️ Estoy explorando "${item.name}" en el Museo Padre Suárez. ¡Descarga la app!',
+                      'collection_share_msg'.tr(args: [item.name]),
                     ),
                   ),
                 // Botón Imprimir 3D
@@ -300,16 +300,16 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
     List<CatalogItem> items,
   ) {
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.favorite_border, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
+            const Icon(Icons.favorite_border, size: 64, color: Colors.grey),
+            const SizedBox(height: 16),
             Text(
-              'Todavía no tienes favoritos.\nPulsa ❤️ en cualquier pieza.',
+              'collection_no_favorites'.tr(),
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey),
             ),
           ],
         ),

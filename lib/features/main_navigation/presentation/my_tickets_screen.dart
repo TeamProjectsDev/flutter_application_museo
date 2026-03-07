@@ -13,17 +13,20 @@ class MyTicketsScreen extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Mis Entradas')),
-        body: const Center(child: Text('Inicia sesión para ver tus entradas.')),
+        appBar: AppBar(title: Text('tickets_title'.tr())),
+        body: Center(child: Text('tickets_login_required'.tr())),
       );
     }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          'Mis Entradas',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        title: Text(
+          'tickets_title'.tr(),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -48,20 +51,23 @@ class MyTicketsScreen extends StatelessWidget {
             }
 
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.confirmation_number_outlined,
                       size: 72,
                       color: Colors.white24,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
-                      'No tienes entradas todavía.\nCompra una en la tienda 🎟️',
+                      'tickets_empty'.tr(),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white54, fontSize: 16),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 16,
+                      ),
                     ),
                   ],
                 ),
@@ -99,7 +105,7 @@ class _TicketCard extends StatelessWidget {
     final timestamp = data['timestamp'] as Timestamp?;
     final purchaseDate = timestamp != null
         ? DateFormat('dd/MM/yyyy HH:mm').format(timestamp.toDate())
-        : 'Desconocido';
+        : '?';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
@@ -122,7 +128,7 @@ class _TicketCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Entrada Digital · $name',
+                    'tickets_digital'.tr(args: [name]),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -135,9 +141,15 @@ class _TicketCard extends StatelessWidget {
             const Divider(color: Colors.white12, height: 20),
 
             // Info
-            _infoRow(Icons.calendar_today, 'Fecha de visita: $visitDate'),
+            _infoRow(
+              Icons.calendar_today,
+              'tickets_visit_date'.tr(args: [visitDate]),
+            ),
             _infoRow(Icons.email_outlined, email),
-            _infoRow(Icons.receipt_long, 'Comprada: $purchaseDate'),
+            _infoRow(
+              Icons.receipt_long,
+              'tickets_purchase_date'.tr(args: [purchaseDate]),
+            ),
             const SizedBox(height: 16),
 
             // QR Code centrado
@@ -173,10 +185,10 @@ class _TicketCard extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => Share.share(
-                  '🎟️ Mi entrada para el Museo Padre Suárez\nFecha: $visitDate\nCódigo: $ticketCode',
+                  'tickets_share_msg'.tr(args: [visitDate, ticketCode]),
                 ),
                 icon: const Icon(Icons.share, size: 18),
-                label: const Text('Compartir entrada'),
+                label: Text('tickets_share'.tr()),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.amber,
                   side: const BorderSide(color: Colors.amber),

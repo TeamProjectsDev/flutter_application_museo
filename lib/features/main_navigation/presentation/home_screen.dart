@@ -93,7 +93,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           _buildMenuCard(
             context,
-            title: 'Mis Entradas',
+            title: 'home_my_tickets'.tr(),
             icon: Icons.confirmation_number_outlined,
             route: '/my-tickets',
             color: Colors.amber,
