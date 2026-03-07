@@ -12,7 +12,7 @@ Este documento explica paso a paso cómo configurar este proyecto desde cero, in
 3. [Configuración de Firebase (Base de Datos y Usuarios)](#3-configuración-de-firebase-base-de-datos-y-usuarios)
 4. [Configuración de EmailJS (Correos Automáticos)](#4-configuración-de-emailjs-correos-automáticos)
 5. [Configuración de Pagos Reales (RevenueCat y Stripe)](#5-configuración-de-pagos-reales-revenuecat-y-stripe)
-6. [Configuración de Modelos 3D (GitHub Raw)](#6-configuración-de-modelos-3d-github-raw)
+6. [Almacenamiento de Modelos 3D (Cloudflare R2 + GitHub)](#6-almacenamiento-de-modelos-3d-cloudflare-r2--github)
 7. [Lanzar la Aplicación](#7-lanzar-la-aplicación)
 8. [Modo Tester (Pruebas sin pagar)](#8--modo-tester-para-tribunal-y-exposiciones-sin-gasto)
 9. [✨ Características de Pulido Comercial](#9--características-de-pulido-comercial)
@@ -56,7 +56,8 @@ La app utiliza un archivo secreto llamado `.env` para almacenar contraseñas y c
 | `REVENUECAT_ANDROID_KEY`       | API Key RevenueCat para Android                   |
 | `REVENUECAT_IOS_KEY`           | API Key RevenueCat para iOS                       |
 | `STRIPE_SECRET_KEY`            | Clave secreta Stripe (formato `sk_test_...`)      |
-| `GITHUB_RAW_URL`               | URL raw de GitHub para modelos 3D e imágenes 360  |
+| `GITHUB_RAW_URL`               | URL raw de GitHub para modelos 3D (fallback)      |
+| `R2_PUBLIC_URL`                | URL pública del bucket Cloudflare R2 (opcional)   |
 | `TESTER`                       | `1` activa el Modo Tester (ver sección 8)         |
 
 ---
@@ -180,11 +181,54 @@ Si el museo se exporta a Web o se instala en el PC de la entrada, RevenueCat no 
 
 ---
 
-## 6. Configuración de Modelos 3D (GitHub Raw)
+## 6. Almacenamiento de Modelos 3D (Cloudflare R2 + GitHub)
 
-La app descarga los modelos 3D (`.glb`) en tiempo real desde un servidor externo para que tu móvil no pese gigabytes. Por defecto apuntará al repositorio central del museo en GitHub.
+La app descarga los modelos 3D (`.glb`) y entornos 360 (`.jpg`) de forma dinámica. El sistema elige la fuente automáticamente:
 
-* `GITHUB_RAW_URL`: Debe apuntar siempre a la rama *raw* de GitHub, por ejemplo: `https://raw.githubusercontent.com/TU_USUARIO/TU_REPOSITORIO/main`. Las carpetas deben contener las imágenes y fondos.
+| Condición | Fuente usada |
+|---|---|
+| `R2_PUBLIC_URL` relleno en `.env` | ☁️ **Cloudflare R2** (recomendado para producción) |
+| `R2_PUBLIC_URL` vacío | 🐙 **GitHub Raw** (comportamiento por defecto) |
+
+### Opción A: GitHub Raw (defecto, sin configuración extra)
+```env
+GITHUB_RAW_URL=https://raw.githubusercontent.com/TU_USUARIO/TU_REPOSITORIO/main
+R2_PUBLIC_URL=   # dejar vacío
+```
+Sube tus `.glb` e imágenes a la raíz del repositorio. El catálogo se construye automáticamente leyendo el índice de archivos de la API de GitHub.
+
+### Opción B: Cloudflare R2 (recomendado para producción)
+1. Crea un bucket en [Cloudflare R2](https://dash.cloudflare.com/) y activa el acceso público.
+2. Sube tus archivos `.glb` e imágenes 360 al bucket.
+3. Crea y sube un archivo `manifest.json` en la **raíz del bucket** con este formato:
+
+```json
+{
+  "items": [
+    {
+      "fileName": "mi_pieza.glb",
+      "name": "Nombre Bonito",
+      "room": "Paleontología",
+      "description": "Descripción de la pieza"
+    },
+    {
+      "fileName": "entorno.jpg",
+      "name": "Sala Principal 360°",
+      "room": "General",
+      "description": "Vista panorámica"
+    }
+  ]
+}
+```
+
+> Hay una plantilla de ejemplo en `assets/r2_manifest.example.json`.
+
+4. Rellena el `.env`:
+```env
+R2_PUBLIC_URL=https://pub-XXXXXXXXXXXXXXXX.r2.dev
+```
+
+**Para añadir una pieza nueva:** sube el archivo a R2 y añade una entrada en `manifest.json`. La app mostrará la nueva pieza automáticamente sin necesidad de actualizar el código.
 
 ---
 
@@ -249,9 +293,11 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 
 * **📰 Bio-Revista Científica:** Sección de noticias con feeds RSS en tiempo real de fuentes científicas (Agencia SINC y otras). Las imágenes se almacenan en caché local con `cached_network_image` — la segunda visita carga instantáneamente sin red.
 
-* **🗺️ Mapa Interactivo del Museo:** Plano de planta interactivo dibujado con `CustomPainter`. Cada sala tiene un hotspot pulsable que muestra su descripción y permite navegar directamente a las piezas de esa sala.
+* **🗺️ Mapa Interactivo del Museo:** Plano de planta interactivo de nivel técnico/arquitectónico dibujado con `CustomPainter`. Incluye muros, puertas, vitrinas internas, numeración de salas (S-I, S-II…), cotas de medida y anotaciones. Cada sala tiene un pin pulsable que muestra su descripción y permite navegar directamente a sus piezas. El mapa aparece centrado automáticamente al abrirse.
 
-* **💳 Pagos Híbridos Universales (Stripe + RevenueCat):** Implementa lógica responsiva de pasarela de pagos. Los usuarios en ecosistemas móviles cerrados pagarán por Google/Apple Pay usando RevenueCat, mientras que los visitantes desde ordenador o web tendrán acceso a URLs dinámicas (Checkout Sessions) de Stripe.
+* **📦 Catálogo Dinámico (R2 + GitHub):** El catálogo de la galería se descubre automáticamente desde el servidor de assets configurado. Si se usa Cloudflare R2, basta con actualizar `manifest.json` en el bucket para que la pieza aparezca en la app sin ninguna actualización de código.
+
+* **💳 Pagos Híbridos Universales (Stripe + RevenueCat):** Implementa lógica responsiva de pasarela de pagos. Los usuarios en ecosistemas móviles cerrados pagarán por Google/Apple Pay usando RevenueCat, mientras que los visitantes desde ordenador o web tendrán acceso a URLs dinámicas (Checkout Sessions) de Stripe. Si no hay claves configuradas, la app activa automáticamente un diálogo de prueba para demostrar el flujo completo.
 
 * **📈 Analíticas Multiplataforma (Firebase):** Seguimiento del comportamiento de los usuarios (visitas a pantallas, compras de entradas en Stripe, donaciones simuladas o reales) con soporte total para Android, iOS y Web.
 
