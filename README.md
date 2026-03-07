@@ -13,9 +13,10 @@ Este documento explica paso a paso cómo configurar este proyecto desde cero, in
 4. [Configuración de EmailJS (Correos Automáticos)](#4-configuración-de-emailjs-correos-automáticos)
 5. [Configuración de Pagos Reales (RevenueCat y Stripe)](#5-configuración-de-pagos-reales-revenuecat-y-stripe)
 6. [Almacenamiento de Modelos 3D (Cloudflare R2 + GitHub)](#6-almacenamiento-de-modelos-3d-cloudflare-r2--github)
-7. [Lanzar la Aplicación](#7-lanzar-la-aplicación)
-8. [Modo Tester (Pruebas sin pagar)](#8--modo-tester-para-tribunal-y-exposiciones-sin-gasto)
-9. [✨ Características de Pulido Comercial](#9--características-de-pulido-comercial)
+7. [Códigos QR para las Piezas del Museo](#7-códigos-qr-para-las-piezas-del-museo)
+8. [Lanzar la Aplicación](#8-lanzar-la-aplicación)
+9. [Modo Tester (Pruebas sin pagar)](#9--modo-tester-para-tribunal-y-exposiciones-sin-gasto)
+10. [✨ Características de Pulido Comercial](#10--características-de-pulido-comercial)
 
 ---
 
@@ -232,7 +233,95 @@ R2_PUBLIC_URL=https://pub-XXXXXXXXXXXXXXXX.r2.dev
 
 ---
 
-## 7. Lanzar la Aplicación
+## 7. Códigos QR para las Piezas del Museo
+
+Esta sección explica cómo crear los códigos QR físicos que se colocan en cada vitrina. Al escanearlos con la app, el visitante **desbloquea la pieza** y ve el modelo 3D o el entorno 360° en su móvil.
+
+---
+
+### ¿Qué texto debe contener el QR?
+
+El escáner de la app acepta **dos formatos** como contenido del QR:
+
+| Formato | Ejemplo | Cuándo usarlo |
+|---|---|---|
+| **ID de pieza** | `mandibula_hombre` | Recomendado — más corto |
+| **Nombre del fichero completo** | `mandibula_hombre.glb` | También válido |
+
+> ⚠️ El ID de pieza es el **nombre del fichero sin extensión**, con espacios convertidos en guiones bajos (`_`). Si el fichero se llama `mandibula hombre.glb`, el ID es `mandibula_hombre`.
+
+---
+
+### Ejemplos reales
+
+Supongamos que tienes estos archivos en tu repositorio o bucket R2:
+
+| Archivo | Texto del QR |
+|---|---|
+| `mandibula_hombre.glb` | `mandibula_hombre` |
+| `fosil_ammonite.glb` | `fosil_ammonite` |
+| `vasija_romana.glb` | `vasija_romana` |
+| `sala_paleontologia.jpg` | `sala_paleontologia` |
+| `modelo_auzoux.glb` | `modelo_auzoux` |
+
+El QR de la vitrina de la mandíbula humana debe contener **exclusivamente** el texto:
+```
+mandibula_hombre
+```
+Sin comillas, sin espacios extra, sin URL. Solo ese texto plano.
+
+---
+
+### Comportamiento en la app al escanear
+
+```
+QR escaneado
+     │
+     ├── ¿El texto coincide con alguna pieza del catálogo?
+     │        │
+     │        ├── ✅ SÍ → Pieza desbloqueada en la colección
+     │        │        │
+     │        │        ├── Es .glb / .gltf → Abre el visor 3D/AR in-app
+     │        │        └── Es .jpg / .png  → Abre el entorno VR 360°
+     │        │
+     │        └── ❌ NO → Mensaje de error: "QR no reconocido por el museo"
+```
+
+Una vez desbloqueada, la pieza queda disponible en la pestaña **Colección** para verla en cualquier momento sin necesidad de volver a escanear.
+
+---
+
+### Cómo generar los QR físicos (gratis)
+
+| Herramienta | URL | Notas |
+|---|---|---|
+| QR Code Generator | [qr-code-generator.com](https://www.qr-code-generator.com) | Más opciones de diseño |
+| GoQR | [goqr.me](https://goqr.me) | Simple y rápido |
+| QRCode Monkey | [qrcode-monkey.com](https://www.qrcode-monkey.com) | Permite logo / color personalizado |
+
+**Pasos:**
+1. Abre cualquiera de los generadores anteriores.
+2. Selecciona tipo **"Texto"** (no URL).
+3. Escribe el ID de la pieza, por ejemplo: `mandibula_hombre`
+4. Descarga en **PNG o SVG** (alta resolución para imprimir).
+5. Imprime, plastifica y coloca el cartel en la vitrina.
+
+> 💡 **Consejo:** Incluye en el cartel el nombre descriptivo de la pieza junto al QR para orientar al visitante aunque no use el móvil.
+
+---
+
+### Añadir una nueva pieza al museo (proceso completo)
+
+1. **Crea o exporta** el modelo 3D en formato `.glb` o la fotografía panorámica en `.jpg`.
+2. **Súbelo** a GitHub Raw o Cloudflare R2 con un nombre sin espacios (usa `_`). Ejemplo: `hacha_neolitica.glb`.
+3. **Si usas R2:** añade la entrada en `manifest.json` del bucket (ver sección 6).
+4. **Genera el QR** con el texto `hacha_neolitica` (nombre sin extensión).
+5. **Imprime el cartel** y colócalo en la vitrina.
+6. La app mostrará la pieza automáticamente en el próximo arranque, sin ninguna actualización de código.
+
+---
+
+## 8. Lanzar la Aplicación
 
 ¡Ya has rellenado todo! Es hora de abrir la app.
 
@@ -250,7 +339,7 @@ R2_PUBLIC_URL=https://pub-XXXXXXXXXXXXXXXX.r2.dev
 
 ---
 
-## 8. 🎮 MODO TESTER (Para Tribunal y Exposiciones sin Gasto)
+## 9. 🎮 MODO TESTER (Para Tribunal y Exposiciones sin Gasto)
 
 Si estás mostrando esta app a un tribunal, amigos o en una feria y **no quieres que salten pantallas de tarjetas de crédito reales** ni quieres caminar físicamente por un museo para escanear AR, tienes un "Modo Dios" que he programado.
 
@@ -269,7 +358,7 @@ Cuando vayas a subir la App a Google Play (Producción) para la gente real en la
 
 ---
 
-## 9. ✨ Características de Pulido Comercial
+## 10. ✨ Características de Pulido Comercial
 
 Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de producción comercial listas para distribuirse en las tiendas de apps:
 
