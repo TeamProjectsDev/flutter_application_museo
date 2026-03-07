@@ -4,22 +4,30 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 
-/// Gestor de descargas personalizado para "Museo Vivo 4.0".
-/// Se encarga de descargar de forma asíncrona archivos pesados (modelos 3D .glb/.gltf)
-/// desde Cloudflare R2 y almacenarlos localmente en la caché del dispositivo.
+/// Gestor de descargas para "Museo Padre Suárez".
+///
+/// Selecciona automáticamente la fuente de assets:
+///   - Cloudflare R2 si R2_PUBLIC_URL está definida en .env
+///   - GitHub Raw como fallback si R2_PUBLIC_URL está vacía o ausente
 class DownloadManager {
   final Dio _dio;
   final String _baseUrl;
+  final bool _usingR2;
 
   DownloadManager({Dio? dio})
     : _dio = dio ?? Dio(),
-      _baseUrl = dotenv.env['GITHUB_RAW_URL'] ?? '';
+      _usingR2 = (dotenv.env['R2_PUBLIC_URL'] ?? '').isNotEmpty,
+      _baseUrl = (dotenv.env['R2_PUBLIC_URL'] ?? '').isNotEmpty
+          ? dotenv.env['R2_PUBLIC_URL']!
+          : dotenv.env['GITHUB_RAW_URL'] ?? '' {
+    debugPrint(
+      '[DownloadManager] Fuente de assets: ${_usingR2 ? "☁️ Cloudflare R2 ($_baseUrl)" : "🐙 GitHub ($_baseUrl)"}',
+    );
+  }
 
-  /// Descarga un archivo desde una [urlOrFileName] y lo guarda en la caché.
-  /// Si solo se pasa un nombre de archivo, usará la [_baseUrl] de R2.
-  ///
-  /// Si el archivo ya existe en caché, retorna su ruta local sin volver a descargarlo.
-  /// [onReceiveProgress] es opcional y permite monitorear el progreso de descarga.
+  /// Descarga un archivo desde [urlOrFileName] y lo guarda en caché local.
+  /// Si solo se pasa un nombre de archivo, construye la URL completa usando [_baseUrl].
+  /// En Web, devuelve la URL directamente (sin caché local).
   Future<String?> downloadAndCacheFile(
     String urlOrFileName,
     String fileName, {
@@ -28,32 +36,29 @@ class DownloadManager {
     final String url = urlOrFileName.startsWith('http')
         ? urlOrFileName
         : '$_baseUrl/${Uri.encodeComponent(urlOrFileName)}';
-    // Si estamos en la web, no gestionamos caché pesada localmente
-    // debido a las restricciones de dart:io en navegadores web.
-    // Simplemente devolvemos la misma URL para que el visor cargue en red.
+
+    // En Web no hay acceso a dart:io, devolvemos la URL directamente
     if (kIsWeb) {
       return url;
     }
 
     try {
-      // 1. Obtener el directorio temporal (caché) del dispositivo
       final directory = await getTemporaryDirectory();
       final String savePath = '${directory.path}/$fileName';
-
       final File file = File(savePath);
 
-      // 2. Comprobar si el modelo ya está en caché para evitar redescargas
+      // Si ya existe en caché, no volvemos a descargar
       if (await file.exists()) {
+        debugPrint('[DownloadManager] Usando caché: $fileName');
         return savePath;
       }
 
-      // 3. Descargar el archivo desde R2 si no existe localmente
+      debugPrint('[DownloadManager] Descargando: $url');
       await _dio.download(url, savePath, onReceiveProgress: onReceiveProgress);
 
       return savePath;
     } catch (e) {
-      // Registrar error en caso de fallo u omitir según la lógica del proyecto
-      debugPrint('Error al descargar el archivo desde R2: $e');
+      debugPrint('[DownloadManager] Error al descargar "$fileName": $e');
       return null;
     }
   }
@@ -61,26 +66,17 @@ class DownloadManager {
   /// Elimina un archivo específico de la caché.
   Future<void> deleteFromCache(String fileName) async {
     if (kIsWeb) return;
-
     final directory = await getTemporaryDirectory();
-    final String path = '${directory.path}/$fileName';
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
+    final file = File('${directory.path}/$fileName');
+    if (await file.exists()) await file.delete();
   }
 
-  /// Limpia toda la caché de modelos descargados (opcional para liberar espacio).
+  /// Limpia toda la caché de modelos descargados.
   Future<void> clearCache() async {
     if (kIsWeb) return;
-
     final directory = await getTemporaryDirectory();
     if (await directory.exists()) {
-      directory.listSync().forEach((entity) {
-        if (entity is File) {
-          entity.deleteSync();
-        }
-      });
+      directory.listSync().whereType<File>().forEach((f) => f.deleteSync());
     }
   }
 }
