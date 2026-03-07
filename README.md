@@ -186,10 +186,10 @@ Si el museo se exporta a Web o se instala en el PC de la entrada, RevenueCat no 
 
 La app descarga los modelos 3D (`.glb`) y entornos 360 (`.jpg`) de forma dinámica. El sistema elige la fuente automáticamente:
 
-| Condición | Fuente usada |
-|---|---|
-| `R2_PUBLIC_URL` relleno en `.env` | ☁️ **Cloudflare R2** (recomendado para producción) |
-| `R2_PUBLIC_URL` vacío | 🐙 **GitHub Raw** (comportamiento por defecto) |
+| Condición                         | Fuente usada                                         |
+|-----------------------------------|------------------------------------------------------|
+| `R2_PUBLIC_URL` relleno en `.env` | ☁️ **Cloudflare R2** (recomendado para producción)   |
+| `R2_PUBLIC_URL` vacío             | 🐙 **GitHub Raw** (comportamiento por defecto)       |
 
 ### Opción A: GitHub Raw (defecto, sin configuración extra)
 ```env
@@ -243,10 +243,10 @@ Esta sección explica cómo crear los códigos QR físicos que se colocan en cad
 
 El escáner de la app acepta **dos formatos** como contenido del QR:
 
-| Formato | Ejemplo | Cuándo usarlo |
-|---|---|---|
-| **ID de pieza** | `mandibula_hombre` | Recomendado — más corto |
-| **Nombre del fichero completo** | `mandibula_hombre.glb` | También válido |
+| Formato                              | Ejemplo                 | Cuándo usarlo           |
+|--------------------------------------|-------------------------|-------------------------|
+| **ID de pieza**                      | `mandibula_hombre`      | Recomendado — más corto |
+| **Nombre del fichero completo**      | `mandibula_hombre.glb`  | También válido          |
 
 > ⚠️ El ID de pieza es el **nombre del fichero sin extensión**, con espacios convertidos en guiones bajos (`_`). Si el fichero se llama `mandibula hombre.glb`, el ID es `mandibula_hombre`.
 
@@ -256,13 +256,13 @@ El escáner de la app acepta **dos formatos** como contenido del QR:
 
 Supongamos que tienes estos archivos en tu repositorio o bucket R2:
 
-| Archivo | Texto del QR |
-|---|---|
-| `mandibula_hombre.glb` | `mandibula_hombre` |
-| `fosil_ammonite.glb` | `fosil_ammonite` |
-| `vasija_romana.glb` | `vasija_romana` |
-| `sala_paleontologia.jpg` | `sala_paleontologia` |
-| `modelo_auzoux.glb` | `modelo_auzoux` |
+| Archivo                           | Texto del QR                      |
+|-----------------------------------|-----------------------------------|
+| `mandibula_hombre.glb`            | `mandibula_hombre`                |
+| `fosil_ammonite.glb`              | `fosil_ammonite`                  |
+| `vasija_romana.glb`               | `vasija_romana`                   |
+| `sala_paleontologia.jpg`          | `sala_paleontologia`              |
+| `modelo_auzoux.glb`               | `modelo_auzoux`                   |
 
 El QR de la vitrina de la mandíbula humana debe contener **exclusivamente** el texto:
 ```
@@ -293,11 +293,11 @@ Una vez desbloqueada, la pieza queda disponible en la pestaña **Colección** pa
 
 ### Cómo generar los QR físicos (gratis)
 
-| Herramienta | URL | Notas |
-|---|---|---|
-| QR Code Generator | [qr-code-generator.com](https://www.qr-code-generator.com) | Más opciones de diseño |
-| GoQR | [goqr.me](https://goqr.me) | Simple y rápido |
-| QRCode Monkey | [qrcode-monkey.com](https://www.qrcode-monkey.com) | Permite logo / color personalizado |
+| Herramienta       | URL                                                        | Notas                          |
+|-------------------|------------------------------------------------------------|--------------------------------|
+| QR Code Generator | [qr-code-generator.com](https://www.qr-code-generator.com) | Más opciones de diseño         |
+| GoQR              | [goqr.me](https://goqr.me)                                 | Simple y rápido                |
+| QRCode Monkey     | [qrcode-monkey.com](https://www.qrcode-monkey.com)         | Permite logo / color personalizado |
 
 **Pasos:**
 1. Abre cualquiera de los generadores anteriores.
