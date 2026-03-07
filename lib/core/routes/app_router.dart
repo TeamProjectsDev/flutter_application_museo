@@ -19,6 +19,7 @@ import '../../features/main_navigation/presentation/payment_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/onboarding/presentation/language_screen.dart';
+import '../../features/main_navigation/presentation/my_tickets_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(
@@ -163,6 +164,20 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
         path: '/onboarding',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/my-tickets',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MyTicketsScreen(),
+      ),
+      // Deep link: museo://pieza/[itemId] abre el visor 3D directamente
+      GoRoute(
+        path: '/piece/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final modelFile = state.pathParameters['id'] ?? '';
+          return Viewer3DScreen(modelFileName: modelFile);
+        },
       ),
     ],
   );
