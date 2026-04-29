@@ -6,6 +6,17 @@ Este documento explica paso a paso cómo configurar este proyecto desde cero, in
 
 ---
 
+## 🌐 Enlaces del Proyecto
+
+Aquí puedes encontrar acceso directo a toda la infraestructura y documentación del proyecto:
+
+*   **🌍 Web de Documentación (GDD/TDD):** [museo-padre-suarez.infinityfreeapp.com](https://museo-padre-suarez.infinityfreeapp.com)
+*   **🚀 Prototipo Interactivo (Stitch):** [Ver Diseño en Stitch](https://stitch.withgoogle.com/projects/4937481282756923604)
+*   **📋 Gestión del Proyecto (Trello):** [Consultar Backlog en Trello](https://trello.com/invite/b/69f2388cbabd30ddc327ba4d/ATTIe3a67b5d853695cc29015db60479ce91566040F8/museo)
+*   **💻 Repositorio de Código:** [GitHub Repo](https://github.com/TeamProjectsDev/flutter_application_museo.git)
+
+---
+
 ## 📋 Índice
 1. [Requisitos Previos](#1-requisitos-previos)
 2. [Configuración del Archivo `.env`](#2-configuración-del-archivo-env)
