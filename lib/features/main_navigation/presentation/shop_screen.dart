@@ -97,9 +97,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         }
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('shop_success'.tr())));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('shop_success'.tr())),
+      );
       context.pop();
     }
   }
@@ -328,16 +329,19 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 name: 'donation_stripe_started',
                 parameters: {'tier': tier, 'amount': cents},
               );
+              if (!context.mounted) return;
               await launchUrlString(
                 stripeUrl,
                 mode: LaunchMode.externalApplication,
               );
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Error obteniendo enlace de Stripe.'),
-                ),
-              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Error obteniendo enlace de Stripe.'),
+                  ),
+                );
+              }
             }
           } catch (e) {
             if (context.mounted) {
@@ -395,11 +399,11 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 .purchaseSpecificProduct(productToBuy);
 
             if (success && context.mounted) {
-              Navigator.pop(context);
               await FirebaseAnalytics.instance.logEvent(
                 name: 'donation_revenuecat_success',
                 parameters: {'tier': tier},
               );
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
@@ -409,6 +413,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                   duration: const Duration(seconds: 4),
                 ),
               );
+              Navigator.pop(context);
             }
           } catch (e) {
             if (context.mounted) {
@@ -438,7 +443,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         width: 80,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
           border: Border.all(color: color, width: 2),
           borderRadius: BorderRadius.circular(16),
         ),
@@ -522,7 +527,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -530,7 +535,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
           decoration: BoxDecoration(
-            border: Border.all(color: color.withOpacity(0.3), width: 2),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -670,9 +675,9 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 32),
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.05),
+          color: Colors.grey.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         ),
         child: Column(
           children: [
@@ -710,7 +715,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         statusColor = Colors.orange;
         statusIcon = Icons.timer;
         break;
-      case PrintStatus.en_cura:
+      case PrintStatus.enCura:
         statusColor = Colors.blue;
         statusIcon = Icons.settings_suggest;
         break;
@@ -729,12 +734,12 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: statusColor.withOpacity(0.5), width: 1),
+        side: BorderSide(color: statusColor.withValues(alpha: 0.5), width: 1),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: statusColor.withOpacity(0.15),
+          backgroundColor: statusColor.withValues(alpha: 0.15),
           child: Icon(statusIcon, color: statusColor),
         ),
         title: Text(

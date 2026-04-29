@@ -103,7 +103,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       margin: const EdgeInsets.only(bottom: 24),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.2),
+                        color: Colors.red.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -332,8 +332,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                             'https://museo-padre-suarez.web.app/#/payment',
                                       );
 
-                                  if (context.mounted)
+                                  if (context.mounted) {
                                     Navigator.pop(context); // Cierra Loading
+                                  }
 
                                   if (stripeUrl != null &&
                                       stripeUrl.isNotEmpty) {
@@ -366,8 +367,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                   }
                                 } catch (e) {
                                   if (context.mounted) {
-                                    if (Navigator.canPop(context))
+                                    if (Navigator.canPop(context)) {
                                       Navigator.pop(context); // Cierra Loading
+                                    }
 
                                     String errorMessage =
                                         'Asegúrate de tener conexión a Internet.';
@@ -424,6 +426,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                   _emailController.text.trim(),
                                   _nameController.text.trim(),
                                 );
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(

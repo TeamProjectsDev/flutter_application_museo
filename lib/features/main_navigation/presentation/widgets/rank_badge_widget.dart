@@ -53,9 +53,9 @@ class RankBadgeWidget extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: rank.color.withOpacity(0.15),
+        color: rank.color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: rank.color.withOpacity(0.5), width: 1.5),
+        border: Border.all(color: rank.color.withValues(alpha: 0.5), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

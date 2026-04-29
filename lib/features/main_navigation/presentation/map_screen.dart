@@ -162,7 +162,7 @@ class MapScreen extends ConsumerWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.4),
+                      color: color.withValues(alpha: 0.4),
                       blurRadius: 12,
                       spreadRadius: 1,
                     ),
@@ -178,9 +178,9 @@ class MapScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1B263B).withOpacity(0.85),
+                  color: const Color(0xFF1B263B).withValues(alpha: 0.85),
                   borderRadius: BorderRadius.circular(5),
-                  border: Border.all(color: color.withOpacity(0.3), width: 0.8),
+                  border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8),
                 ),
                 child: Text(
                   label,
@@ -257,7 +257,7 @@ class MapScreen extends ConsumerWidget {
               info,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 height: 1.5,
               ),
             ),
@@ -323,21 +323,21 @@ class MuseumBlueprintPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final blueprintPaint = Paint()
-      ..color = Colors.blueAccent.withOpacity(0.2)
+      ..color = Colors.blueAccent.withValues(alpha: 0.2)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
     final wallPaint = Paint()
-      ..color = Colors.blueAccent.withOpacity(0.5)
+      ..color = Colors.blueAccent.withValues(alpha: 0.5)
       ..strokeWidth = 3.5
       ..style = PaintingStyle.stroke;
 
     final wallFillPaint = Paint()
-      ..color = Colors.blueAccent.withOpacity(0.04)
+      ..color = Colors.blueAccent.withValues(alpha: 0.04)
       ..style = PaintingStyle.fill;
 
     // 1. Dibujar Cuadrícula Técnica
-    final gridPaint = Paint()..color = Colors.white.withOpacity(0.04);
+    final gridPaint = Paint()..color = Colors.white.withValues(alpha: 0.04);
     for (double i = 0; i < size.width; i += 40) {
       canvas.drawLine(Offset(i, 0), Offset(i, size.height), gridPaint);
     }
@@ -468,7 +468,7 @@ class MuseumBlueprintPainter extends CustomPainter {
 
     // --- PASILLOS Y CONEXIONES ---
     final corridorPaint = Paint()
-      ..color = Colors.blueAccent.withOpacity(0.4)
+      ..color = Colors.blueAccent.withValues(alpha: 0.4)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
@@ -519,7 +519,7 @@ class MuseumBlueprintPainter extends CustomPainter {
 
     // 4. Cotas de Medida
     final cotaPaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
+      ..color = Colors.white.withValues(alpha: 0.15)
       ..strokeWidth = 1.0;
     _drawCota(
       canvas,
@@ -539,7 +539,7 @@ class MuseumBlueprintPainter extends CustomPainter {
 
   void _drawVitrinas(Canvas canvas, double x, double y, double w, double h) {
     final vPaint = Paint()
-      ..color = Colors.white.withOpacity(0.05)
+      ..color = Colors.white.withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
     // Dibujamos un patrón de cuadrículas internas tipo vitrina
@@ -565,7 +565,7 @@ class MuseumBlueprintPainter extends CustomPainter {
 
   void _drawDetailedDoor(Canvas canvas, Offset pos, bool vertical) {
     final doorPaint = Paint()
-      ..color = Colors.blueAccent.withOpacity(0.7)
+      ..color = Colors.blueAccent.withValues(alpha: 0.7)
       ..strokeWidth = 2.0;
     if (vertical) {
       canvas.drawLine(
@@ -601,7 +601,7 @@ class MuseumBlueprintPainter extends CustomPainter {
       text: TextSpan(
         text: text,
         style: TextStyle(
-          color: Colors.blueAccent.withOpacity(0.6),
+          color: Colors.blueAccent.withValues(alpha: 0.6),
           fontSize: 9,
           fontWeight: FontWeight.bold,
         ),
@@ -623,7 +623,7 @@ class MuseumBlueprintPainter extends CustomPainter {
       text: TextSpan(
         text: text,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.25),
+          color: Colors.white.withValues(alpha: 0.25),
           fontSize: size,
           fontWeight: bold ? FontWeight.bold : FontWeight.normal,
           letterSpacing: 1.2,

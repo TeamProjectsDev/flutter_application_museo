@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Museo Padre Suárez — GDD/TDD Pro</title>
+    <meta name="description" content="Documentación Técnica y Guía de Diseño para la aplicación de Realidad Augmented del Museo Histórico Padre Suárez. Proyecto Final DAM.">
+    
+    <!-- Open Graph / WhatsApp / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Museo Padre Suárez — Documentación Técnica">
+    <meta property="og:description" content="Guía de diseño, arquitectura y analítica avanzada para el proyecto de digitalización del patrimonio histórico.">
+    <meta property="og:image" content="media/icon.png">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Museo Padre Suárez — GDD/TDD Pro">
+    <meta name="twitter:description" content="Documentación técnica exhaustiva del Proyecto Final DAM.">
+    <meta name="twitter:image" content="media/icon.png">
+
+    <!-- Color de tema para navegadores móviles y Discord -->
+    <meta name="theme-color" content="#6366f1">
+    
+    <!-- Meta SEO Adicional -->
+    <meta name="keywords" content="Flutter, Realidad Aumentada, AR, Museo Padre Suárez, GDD, TDD, Documentación Técnica, DAM, Supabase, Firebase">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Alberto Ortiz Sánchez">
+    <meta name="publisher" content="Museo Padre Suárez">
+    <link rel="canonical" href="https://museopadresuarez.web.app/">
+
+    <link rel="icon" type="image/png" href="media/icon.png">
+    <link rel="image_src" href="media/icon.png" itemprop="image"> <!-- Reforzado para el analizador -->
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Fira+Code&display=swap" rel="stylesheet">
+
+    <!-- Schema.org (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "Documentación Técnica Museo Padre Suárez",
+      "description": "Guía completa de diseño y arquitectura técnica para la app de Realidad Aumentada del Museo Histórico Padre Suárez.",
+      "image": "media/icon.png",
+      "author": {
+        "@type": "Person",
+        "name": "Alberto Ortiz Sánchez"
+      }
+    }
+    </script>
+</head>
+<body itemscope itemtype="https://schema.org/TechArticle">
+    <meta itemprop="name" content="Documentación Museo Padre Suárez">
+    <meta itemprop="description" content="Guía técnica y de diseño del Proyecto Final DAM.">
+    <button id="menu-toggle">☰ Menú</button>
+    <button id="back-to-top" title="Volver arriba">↑</button>
+    <nav id="sidebar">
+        <h1>MUSEUM DOCS</h1>
+        <ul>
+            <li><a href="#vision" class="active" title="Ir a la sección de Visión General del Proyecto">01. Visión General</a></li>
+            <li><a href="#gdd" title="Consultar el Documento de Diseño de Juego (GDD)">02. Diseño (GDD)</a></li>
+            <li><a href="#tdd" title="Consultar el Documento de Diseño Técnico (TDD)">03. Arquitectura (TDD)</a></li>
+            <li><a href="#deep-dive" title="Análisis técnico profundo de las tecnologías utilizadas">03.5 Deep Dive Técnico</a></li>
+            <li><a href="#db" title="Explorar el esquema y las entidades de la Base de Datos">04. Base de Datos</a></li>
+            <li><a href="#requisitos" title="Listado de Requisitos Funcionales y No Funcionales">05. Requisitos (RF/RNF)</a></li>
+            <li><a href="#analytics" title="Detalle de eventos y métricas de Firebase Analytics">06. Analítica Full</a></li>
+            <li><a href="#manual" title="Guía de uso para el usuario final">07. Manual Usuario</a></li>
+            <li><a href="#mantenimiento" title="Plan de mantenimiento y escalabilidad">08. Mantenimiento</a></li>
+            <li><a href="#devops" title="Gestión de proyecto, Sprints y metodología Ágil">09. DevOps & Sprints</a></li>
+            <li><a href="#dafo" title="Análisis Estratégico DAFO">10. Estrategia DAFO</a></li>
+            <li><a href="#presupuesto" title="Desglose de costes y presupuesto del proyecto">11. Presupuesto</a></li>
+            <li><a href="#qa" title="Protocolo de Calidad y Casos de Prueba">12. Casos de Prueba</a></li>
+            <li><a href="#legal" title="Aspectos legales, privacidad y licencias">13. Legal & Privacidad</a></li>
+            <li><a href="#roadmap" title="Líneas de desarrollo y mejoras futuras">14. Roadmap Futuro</a></li>
+            <li><a href="#glosario" title="Definiciones de términos técnicos utilizados">15. Glosario Técnico</a></li>
+            <li><a href="#impacto" title="Análisis del impacto social y educativo">16. Impacto Social</a></li>
+            <li><a href="#enlaces" title="Enlaces externos y recursos del proyecto">17. Accesos</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-controls" style="position: fixed; top: 1.5rem; right: 2rem; z-index: 1000; display: flex; gap: 1rem;">
+        <button id="theme-toggle" class="chip" style="cursor:pointer; background: var(--card); border: 1px solid var(--border); color: var(--text);">🌓 Modo</button>
+    </div>
+
+    <main>
+        <!-- HERO -->
+        <header class="hero" id="vision">
+            <p style="text-transform:uppercase; letter-spacing:3px; opacity:0.5; font-size:0.7rem;">PROYECTO FINAL DAM · v4.0</p>
+            <h1>Museo Padre Suárez</h1>
+            <p>Guía de Diseño y Documentación Técnica Exhaustiva</p>
+            <div class="chips">
+                <div class="chip blue">Flutter 3.22</div>
+                <div class="chip blue">Riverpod</div>
+                <div class="chip gold">Supabase AR</div>
+                <div class="chip">Firebase Auth</div>
+                <div class="chip gold">Stripe / RevenueCat</div>
+            </div>
+        </header>
+
+        <!-- VISION EXPANDIDA -->
+        <section id="vision">
+            <div class="ibox blue">
+                <strong>Visión del Proyecto:</strong> Digitalizar el patrimonio del Museo Histórico Padre Suárez mediante una experiencia móvil híbrida que combina la realidad aumentada (AR) con una gestión de datos en tiempo real de alta fidelidad.
+            </div>
+            
+            <h3>Narrativa y Contexto</h3>
+            <p>El Museo Padre Suárez no es solo un almacén de objetos; es el alma de Granada. Esta aplicación actúa como el <strong>"Códice Digital"</strong> del museo, permitiendo que las piezas que han estado mudas durante siglos vuelvan a hablar a través de la tecnología.</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>Estudio de Mercado</h3>
+                    <p>Tras analizar aplicaciones como la del <em>Louvre</em> o el <em>Prado</em>, detectamos una falta de interactividad en museos escolares. Nuestra app llena este vacío usando AR de bajo coste pero alta precisión.</p>
+                    <table class="dtable">
+                        <thead><tr><th>Competidor</th><th>Interacción</th><th>Coste</th></tr></thead>
+                        <tbody>
+                            <tr><td>Google Arts</td><td>Alta</td><td>Gratis</td></tr>
+                            <tr><td>Apps Museo Tradicional</td><td>Baja</td><td>Variable</td></tr>
+                            <tr style="color:var(--accent-gold);"><td>Nuestra Propuesta</td><td>Máxima (AR)</td><td>Mínimo</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Análisis de Competencia y Valor Diferencial</h3>
+            <p>Para posicionar el proyecto, hemos realizado un estudio comparativo entre las soluciones actuales del mercado y nuestra propuesta para el Museo Padre Suárez.</p>
+            
+            <table class="dtable">
+                <thead>
+                    <tr><th>Solución</th><th>Ventajas</th><th>Desventajas</th><th>Frente a Nuestra App</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Google Arts & Culture</strong></td>
+                        <td>Inmensa base de datos global y alta calidad de imagen.</td>
+                        <td>Genérica, sin contexto local ni interacción física en el museo.</td>
+                        <td>Nosotros ofrecemos <strong>interacción AR in-situ</strong> y gamificación local.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Apps de Grandes Museos (Prado/Louvre)</strong></td>
+                        <td>Contenido muy curado y marca prestigiosa.</td>
+                        <td>Coste de desarrollo millonario. Suelen ser lentas y poco dinámicas.</td>
+                        <td>Nuestra arquitectura es <strong>ligera y ágil</strong>, permitiendo cambios en segundos.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Audioguías Tradicionales</strong></td>
+                        <td>Fáciles de usar para personas mayores.</td>
+                        <td>Hardware costoso de mantener, nula interacción visual.</td>
+                        <td>Eliminamos el hardware físico; el usuario usa su propio móvil (<strong>BYOD</strong>).</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="ibox gold">
+                <h3>Nuestra Ventaja Competitiva</h3>
+                <p>La combinación de <strong>AR + Gamificación + Donaciones Directas</strong> en un entorno escolar/histórico local es inédita. No solo informamos, sino que convertimos la visita en un reto (Ranks) y en una oportunidad de apoyo social al museo.</p>
+            </div>
+
+            <h3>User Personas</h3>
+            <div class="grid">
+                <div class="card">
+                    <p style="font-size:2rem;">👨‍🎓</p>
+                    <strong>El Estudiante (Álvaro)</strong>
+                    <p style="font-size:0.8rem; opacity:0.7;">16 años. Nativo digital. Busca gratificación instantánea y gamificación. Usa la app para completar "misiones" de historia.</p>
+                </div>
+                <div class="card">
+                    <p style="font-size:2rem;">👩‍🏫</p>
+                    <strong>La Profesora (Elena)</strong>
+                    <p style="font-size:0.8rem; opacity:0.7;">45 años. Busca herramientas que motiven a sus alumnos. Valora la precisión histórica y la facilidad de uso del panel de administración.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- GDD DETALLADO -->
+        <section id="gdd">
+            <h2><span>02</span> Game Design Document (GDD)</h2>
+            <div class="ibox gold">
+                <strong>Concepto Core:</strong> Exploración -> Escaneo -> Coleccionismo -> Aprendizaje.
+            </div>
+
+            <h3>Mecánicas de Interacción AR</h3>
+            <p>La Realidad Aumentada no es un simple visor. Hemos implementado un sistema de <strong>Anclaje por Marcador</strong> (QR) que permite:</p>
+            <ul>
+                <li>Rotación de piezas a 360 grados sin latencia.</li>
+                <li>Explosión de componentes (Vista técnica).</li>
+                <li>Información contextual que flota sobre la pieza real.</li>
+            </ul>
+
+            <h3>Sistema de Gamificación (Ranks)</h3>
+            <p>Para incentivar la recurrencia, los usuarios suben de rango según las piezas escaneadas y las donaciones realizadas:</p>
+            <table class="dtable">
+                <thead><tr><th>Rango</th><th>Requisito</th><th>Privilegio</th></tr></thead>
+                <tbody>
+                    <tr><td>Visitante</td><td>0 Piezas</td><td>Acceso a la Galería</td></tr>
+                    <tr><td>Explorador</td><td>5 Piezas</td><td>Visor AR Desbloqueado</td></tr>
+                    <tr><td>Conservador</td><td>15 Piezas</td><td>Acceso a Modelos High-Poly</td></tr>
+                    <tr style="color:var(--accent-gold);"><td>Mecenas</td><td>Donación > 10€</td><td>Nombre en el Muro de Honor</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- TDD / ARQUITECTURA EXPANDIDA -->
+        <section id="tdd">
+            <h2><span>03</span> Arquitectura Técnica (TDD)</h2>
+            <div class="ibox blue">
+                <strong>Arquitectura Limpia (Clean Architecture):</strong> La aplicación se divide en 4 capas independientes para asegurar que el código sea fácil de testear, mantener y escalar.
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3 style="color:var(--accent-blue);">1. Capa de Interfaz (Presentation)</h3>
+                    <p>Es la cara visible de la app. Construida con <strong>Flutter</strong> y gestionada de forma reactiva con <strong>Riverpod</strong>. Los widgets solo se preocupan de pintar los datos y capturar los clics del usuario.</p>
+                </div>
+                <div class="card">
+                    <h3 style="color:var(--accent-green);">2. Capa de Negocio (Domain)</h3>
+                    <p>Aquí reside la "inteligencia" de la app: las reglas para subir de rango, el cálculo de recompensas y la lógica de validación de los modelos 3D.</p>
+                </div>
+            </div>
+            <div class="grid" style="margin-top:1rem;">
+                <div class="card">
+                    <h3 style="color:var(--accent-gold);">3. Capa de Datos (Data)</h3>
+                    <p>Gestiona de dónde vienen los datos. Decide si debe leer la información de la <strong>Caché Local</strong> (si no hay internet) o si debe pedirla a los servidores remotos.</p>
+                </div>
+                <div class="card">
+                    <h3 style="color:var(--accent-red);">4. Capa Externa (Infrastructure)</h3>
+                    <p>Son las herramientas de terceros que usamos: <strong>Firebase</strong> para el usuario, <strong>Supabase</strong> para los archivos 3D y <strong>Stripe</strong> para los pagos.</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:4rem;">Flujo Lógico de Escaneo (Sequence Diagram)</h3>
+            <p>El proceso de escaneo no es una simple lectura; requiere validación cruzada entre Firebase (progreso) y Supabase (assets):</p>
+            <div class="ibox blue" style="font-family:'Fira Code'; font-size:0.8rem;">
+                [Cámara] -> Captura Hash QR -> [App] Encripta Localmente -> [Supabase] Valida Existence -> [Firebase] Registra Descubrimiento -> [App] Renderiza 3D/AR
+            </div>
+
+            <h3>Gestión de Estados (Riverpod)</h3>
+            <p>Implementamos un sistema de <strong>Estado Global Centralizado</strong>. Cada módulo (Piezas, Usuario, Pagos) tiene su propio Provider asíncrono:</p>
+            <pre>
+// Provider para gestionar la colección del usuario en tiempo real
+final userCollectionProvider = StateNotifierProvider&lt;CollectionNotifier, CollectionState&gt;((ref) {
+  return CollectionNotifier(ref.read(repositoryProvider));
+});
+
+// Lógica de carga con manejo de estados asíncronos
+final piecesFutureProvider = FutureProvider&lt;List&lt;Piece&gt;&gt;((ref) async {
+  final api = ref.watch(apiServiceProvider);
+  return api.fetchAvailablePieces();
+});
+            </pre>
+
+            <h3>Seguridad y Políticas RLS</h3>
+            <p>Para proteger los modelos 3D y los datos de pago, usamos <strong>Row Level Security</strong> en Supabase. Solo los usuarios autenticados pueden leer los metadatos de las piezas:</p>
+            <pre>
+-- Política de Seguridad en SQL
+ALTER TABLE pieces ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Usuarios autenticados pueden ver piezas"
+ON pieces FOR SELECT
+TO authenticated
+USING (true);
+
+CREATE POLICY "Solo admins pueden modificar piezas"
+ON pieces FOR ALL
+TO authenticated
+USING ( auth.jwt() ->> 'role' = 'admin' );
+            </pre>
+        </section>
+
+        <!-- DEEP DIVE TÉCNICO -->
+        <section id="deep-dive">
+            <h2><span>03.5</span> Especificaciones de Implementación (Deep Dive)</h2>
+            <div class="ibox blue">
+                <strong>Ingeniería de Software:</strong> Desglose técnico de los procesos críticos: Renderizado 3D y Pasarelas de Pago.
+            </div>
+
+            <h3>1. Pipeline de Renderizado 3D y 360º</h3>
+            <p>Para la visualización de las piezas del museo, hemos optado por el formato <strong>GLB (Binary glTF)</strong> debido a su alta compresión y soporte nativo para texturas PBR (Physically Based Rendering).</p>
+            <ul>
+                <li><strong>Librería:</strong> <code>model_viewer_plus</code> (basada en el motor de Google <code>&lt;model-viewer&gt;</code>).</li>
+                <li><strong>Cámara 360º:</strong> Implementada mediante <code>camera-orbit</code> y <code>auto-rotate</code>. Los usuarios pueden inspeccionar cada detalle con gestos táctiles sincronizados.</li>
+                <li><strong>Optimización:</strong> Aplicamos <em>Draco Compression</em> para reducir el tamaño de los modelos de 50MB a <5MB, permitiendo descargas fluidas.</li>
+            </ul>
+            <pre>
+// Fragmento de implementación del Visor 3D
+ModelViewer(
+  src: 'https://supabase.co/storage/v1/object/public/assets/piece_01.glb',
+  alt: 'Modelo 3D Museo',
+  ar: true, // Activa Realidad Aumentada nativa (ARCore/ARKit)
+  autoRotate: true,
+  cameraControls: true,
+)
+            </pre>
+
+            <h3>2. Arquitectura de Pagos Híbrida</h3>
+            <p>Dada la naturaleza multi-plataforma de Flutter, implementamos un <strong>Payment Switcher</strong> que detecta el entorno en tiempo de ejecución para ofrecer la experiencia más nativa y segura:</p>
+            
+            <div class="grid">
+                <div class="card" style="border-top:4px solid var(--accent-green);">
+                    <h3 style="color:var(--accent-green);">A. RevenueCat (Android/iOS)</h3>
+                    <p>Utilizamos el SDK de <strong>RevenueCat</strong> para abstraer la complejidad de las In-App Purchases de Google Play Store.</p>
+                    <ul>
+                        <li><strong>Flujo:</strong> El usuario pulsa 'Donar' -> Se abre el modal nativo de Google Play -> Pago exitoso -> RevenueCat recibe el recibo firmado -> Notifica a la App mediante un <code>CustomerInfo</code> actualizado.</li>
+                        <li><strong>Seguridad:</strong> La validación del recibo se hace <em>Server-to-Server</em> entre Google y RevenueCat, eliminando el riesgo de 'Fake Purchases'.</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-top:4px solid var(--accent-blue);">
+                    <h3 style="color:var(--accent-blue);">B. Stripe AI Checkout (Web)</h3>
+                    <p>Para la versión web o donaciones directas, usamos <strong>Stripe</strong> mediante sesiones de checkout dinámicas.</p>
+                    <ul>
+                        <li><strong>Flujo:</strong> La app pide una <code>CheckoutSession</code> a Supabase Edge Functions -> Redirección a Stripe -> Pago -> Stripe envía un <strong>Webhook</strong> firmado a nuestro servidor.</li>
+                        <li><strong>Sincronización:</strong> No dependemos de que el usuario vuelva a la app; el servidor actualiza la tabla <code>donations</code> en Supabase tan pronto como recibe el evento de Stripe.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="ibox warn">
+                <strong>Unificación de Datos:</strong> Independientemente de la pasarela usada, ambos sistemas terminan actualizando el campo <code>rank_level</code> en el perfil del usuario de Firebase, asegurando que sus privilegios de "Mecenas" sean visibles en todas las plataformas.
+            </div>
+
+            <h3>3. Ecosistema de Datos: Firebase & Supabase</h3>
+            <p>La aplicación utiliza una arquitectura de <strong>Base de Datos Híbrida</strong> para aprovechar lo mejor de cada mundo: la velocidad en tiempo real de Firebase y la potencia relacional de Supabase.</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>A. Firebase Cloud Firestore (El Cerebro)</h3>
+                    <p>Firestore gestiona los datos que cambian constantemente y requieren sincronización instantánea entre dispositivos.</p>
+                    <ul>
+                        <li><strong>Estructura NoSQL:</strong> Basada en colecciones (<code>users</code>, <code>ranks</code>) y documentos. Esto nos permite una escalabilidad horizontal masiva.</li>
+                        <li><strong>Streams de Datos:</strong> No pedimos los datos una vez; nos "suscribimos" a ellos. Si el administrador cambia la descripción de una pieza, el usuario la ve cambiar en su móvil al instante sin recargar.</li>
+                    </ul>
+                    <pre>
+// Escucha activa de datos en Flutter
+FirebaseFirestore.instance
+  .collection('users')
+  .doc(uid)
+  .snapshots() // Stream en tiempo real
+  .listen((doc) {
+    print("Nuevo Rango: ${doc['rank_level']}");
+  });
+                    </pre>
+                </div>
+                <div class="card">
+                    <h3>B. Supabase (El Almacén de Alta Fidelidad)</h3>
+                    <p>Mientras Firebase gestiona la lógica, Supabase se encarga del almacenamiento masivo y la integridad relacional mediante PostgreSQL.</p>
+                    <ul>
+                        <li><strong>Supabase Storage:</strong> Aloja los modelos 3D (.glb) y las texturas de alta resolución. Usamos un sistema de <strong>Bucket Privado</strong> para que los enlaces expiren y no puedan ser compartidos fuera de la app.</li>
+                        <li><strong>Edge Functions (Deno):</strong> Lógica de servidor para procesar webhooks de Stripe. Esto evita que las claves secretas de pago estén dentro del código de la aplicación móvil.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="ibox gold">
+                <strong>Seguridad Avanzada (Row Level Security - RLS):</strong> A diferencia de otras bases de datos, Supabase permite inyectar seguridad directamente en las tablas. Hemos definido políticas SQL que validan el <code>auth.uid()</code> del usuario en cada petición:
+                <pre style="margin-top:1rem;">
+-- Ejemplo de política RLS para proteger los Modelos 3D
+CREATE POLICY "Solo usuarios premium ven modelos HQ"
+ON storage.objects FOR SELECT
+TO authenticated
+USING ( 
+  bucket_id = 'models_hq' AND 
+  (SELECT rank_level FROM users WHERE id = auth.uid()) >= 3
+);
+                </pre>
+            </div>
+        </section>
+
+        <!-- BASE DE DATOS EXPANDIDA -->
+        <section id="db">
+            <h2><span>04</span> Base de Datos y Persistencia (3FN)</h2>
+            <p>Estructura de datos optimizada para consultas rápidas y consistencia mediante RLS. Separamos la identidad (Firebase) de los recursos multimedia (Supabase).</p>
+
+            <div class="entity">
+                <div class="entity-header"><strong>👤 USERS (Firebase/Firestore)</strong> <span>PK: user_id</span></div>
+                <div class="entity-field"><div>user_id</div><div>UUID</div><div>Identificador único de Firebase Auth</div></div>
+                <div class="entity-field"><div>username</div><div>STRING</div><div>Nombre público del usuario</div></div>
+                <div class="entity-field"><div>rank_level</div><div>INT</div><div>Nivel de gamificación (0-5)</div></div>
+                <div class="entity-field"><div>scanned_pieces</div><div>ARRAY</div><div>Lista de IDs de piezas descubiertas</div></div>
+                <div class="entity-field"><div>premium_status</div><div>BOOL</div><div>Estado de suscripción (RevenueCat)</div></div>
+            </div>
+
+            <div class="entity">
+                <div class="entity-header"><strong>🏛️ PIECES (Supabase)</strong> <span>PK: piece_id</span></div>
+                <div class="entity-field"><div>piece_id</div><div>UUID</div><div>ID único de la pieza</div></div>
+                <div class="entity-field"><div>name_es/en</div><div>STRING</div><div>Nombres multi-idioma</div></div>
+                <div class="entity-field"><div>model_url</div><div>URL</div><div>Enlace al archivo .GLB en Supabase Storage</div></div>
+                <div class="entity-field"><div>qr_hash</div><div>SHA-256</div><div>Hash para validación segura en el escaneo</div></div>
+            </div>
+
+            <div class="entity">
+                <div class="entity-header"><strong>💰 DONATIONS (Stripe/Firebase)</strong> <span>PK: tx_id</span></div>
+                <div class="entity-field"><div>tx_id</div><div>UUID</div><div>ID de transacción de Stripe</div></div>
+                <div class="entity-field"><div>user_id</div><div>FK</div><div>Vínculo con el donante</div></div>
+                <div class="entity-field"><div>amount</div><div>DECIMAL</div><div>Importe donado</div></div>
+                <div class="entity-field"><div>status</div><div>ENUM</div><div>succeeded | pending | failed</div></div>
+            </div>
+
+            <div class="entity">
+                <div class="entity-header"><strong>📜 LOGS_ERRORS (Supabase)</strong> <span>PK: log_id</span></div>
+                <div class="entity-field"><div>log_id</div><div>UUID</div><div>ID único del error</div></div>
+                <div class="entity-field"><div>error_msg</div><div>TEXT</div><div>Descripción del error de renderizado/AR</div></div>
+                <div class="entity-field"><div>device_info</div><div>JSON</div><div>Modelo de móvil y versión de Android/iOS</div></div>
+            </div>
+        </section>
+
+        <!-- REQUISITOS -->
+        <section id="requisitos">
+            <h2><span>05</span> Requisitos del Sistema</h2>
+            
+            <h3>Funcionales (RF)</h3>
+            <div class="req-item">
+                <div class="req-id">RF-01</div>
+                <div class="req-priority">ALTA</div>
+                <div>
+                    <div style="font-weight:bold; margin-bottom:0.5rem;">ESCANEADO DE PIEZAS</div>
+                    <div style="font-size:0.85rem; opacity:0.8;">La app debe validar códigos QR físicos y desbloquear el contenido 3D/AR asociado instantáneamente.</div>
+                </div>
+            </div>
+            <div class="req-item">
+                <div class="req-id">RF-02</div>
+                <div class="req-priority">ALTA</div>
+                <div>
+                    <div style="font-weight:bold; margin-bottom:0.5rem;">SISTEMA MULTI-PAGO</div>
+                    <div style="font-size:0.85rem; opacity:0.8;">Detección automática de plataforma para ofrecer Stripe (Web) o RevenueCat (Mobile).</div>
+                </div>
+            </div>
+
+            <h3>No Funcionales (RNF)</h3>
+            <table class="dtable">
+                <thead>
+                    <tr><th>ID</th><th>Categoría</th><th>Requisito</th><th>Objetivo</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>RNF-01</td><td>Seguridad</td><td>Políticas RLS en Supabase</td><td>100% de acceso validado</td></tr>
+                    <tr><td>RNF-02</td><td>Rendimiento</td><td>Carga de Modelos 3D</td><td>&lt; 3s en redes 4G/5G</td></tr>
+                    <tr><td>RNF-03</td><td>UX</td><td>Modo Offline</td><td>Consulta de catálogo sin red</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ANALYTICS FULL -->
+        <section id="analytics">
+            <h2><span>06</span> Diccionario de Eventos y Analítica (Full)</h2>
+            <div class="ibox green">
+                <strong>Estrategia de Datos:</strong> Implementamos un seguimiento 360º para entender el flujo del usuario y detectar cuellos de botella en la visualización AR.
+            </div>
+
+            <table class="dtable">
+                <thead>
+                    <tr><th>Evento Técnico</th><th>Parámetros (Variables)</th><th>Métrica / Objetivo</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>app_open</code></td><td><code>platform, version, source</code></td><td>Cálculo de DAU (Daily Active Users) y versión de la app.</td></tr>
+                    <tr><td><code>user_sign_up</code></td><td><code>method (Google/Email), time</code></td><td>Medir efectividad de los métodos de registro.</td></tr>
+                    <tr><td><code>piece_scanned</code></td><td><code>piece_id, scan_time, location_id</code></td><td>Identificar las piezas más populares y tiempos de interés.</td></tr>
+                    <tr><td><code>ar_session_start</code></td><td><code>piece_id, device_model</code></td><td>Analizar qué modelos atraen más al modo realidad aumentada.</td></tr>
+                    <tr><td><code>ar_view_duration</code></td><td><code>seconds, zoom_interact (bool)</code></td><td>Engagement real con el modelo 3D.</td></tr>
+                    <tr><td><code>ar_error_unsupported</code></td><td><code>os_version, gpu_info</code></td><td>Identificar dispositivos obsoletos que fallan en AR.</td></tr>
+                    <tr><td><code>model_download_start</code></td><td><code>file_id, size_mb</code></td><td>Medir latencia y consumo de ancho de banda.</td></tr>
+                    <tr><td><code>donation_button_click</code></td><td><code>section (Profile/Home), amount_pre</code></td><td>Optimizar la posición de los botones de pago (A/B Testing).</td></tr>
+                    <tr><td><code>donation_completed</code></td><td><code>tx_id, amount, currency, tax</code></td><td>Cálculo de ingresos netos y ROI de marketing.</td></tr>
+                    <tr><td><code>rank_upgrade</code></td><td><code>old_rank, new_rank, scan_count</code></td><td>Validar si la gamificación motiva a los usuarios a escanear más.</td></tr>
+                    <tr><td><code>share_social</code></td><td><code>piece_id, platform (WhatsApp/Twitter)</code></td><td>Medir el K-Factor (Viralidad) de la aplicación.</td></tr>
+                    <tr><td><code>lang_changed</code></td><td><code>from_lang, to_lang</code></td><td>Entender el perfil multicultural de los visitantes.</td></tr>
+                    <tr><td><code>error_api_supabase</code></td><td><code>status_code, endpoint</code></td><td>Monitorización proactiva de fallos en el servidor.</td></tr>
+                    <tr><td><code>search_piece</code></td><td><code>query_term, results_count</code></td><td>Identificar qué buscan los usuarios que no encuentran.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>KPIs Críticos (Cuadro de Mando)</h3>
+            <div class="grid">
+                <div class="card">
+                    <h3 style="color:var(--accent-green);">DAU/MAU</h3>
+                    <p>Ratio de usuarios activos diarios vs mensuales. Objetivo: 15%.</p>
+                </div>
+                <div class="card">
+                    <h3 style="color:var(--accent-gold);">Conversion Rate</h3>
+                    <p>Usuarios que escanean una pieza y terminan donando. Objetivo: 3%.</p>
+                </div>
+                <div class="card">
+                    <h3 style="color:var(--accent-blue);">AR Success Rate</h3>
+                    <p>% de escaneos que resultan en visualización exitosa. Objetivo: 98%.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MANUAL DE USUARIO -->
+        <section id="manual">
+            <h2><span>07</span> Manual de Usuario y UX</h2>
+            <div class="ibox blue">
+                <strong>Experiencia de Usuario (UX):</strong> Diseñada para minimizar la fricción. El usuario está a solo 2 clics de la realidad aumentada desde que abre la app.
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>1. Registro e Inicio</h3>
+                    <p>El usuario puede entrar de forma anónima para probar la app. Si desea guardar su colección y subir de rango, debe vincular su cuenta con Google Auth.</p>
+                </div>
+                <div class="card">
+                    <h3>2. El Escaneo Maestro</h3>
+                    <p>Al pulsar el botón central, se activa la cámara con un visor optimizado. Al detectar el QR de la vitrina, el móvil vibra (Haptic Feedback) y despliega la pieza 3D.</p>
+                </div>
+            </div>
+
+            <div class="grid" style="margin-top:2rem;">
+                <div class="card">
+                    <h3>3. Interacción AR</h3>
+                    <p>Una vez el modelo flota en el espacio real, el usuario puede pellizcar para hacer zoom o arrastrar para rotar. Se incluye un botón de "Info" para leer la ficha técnica del Padre Suárez.</p>
+                </div>
+                <div class="card">
+                    <h3>4. Donaciones</h3>
+                    <p>Desde la pestaña 'Tienda', el usuario puede elegir importes predefinidos (5€, 10€, 20€) o personalizados. El pago es nativo y seguro.</p>
+                </div>
+            </div>
+        <!-- MODO TESTER -->
+        <section id="tester">
+            <h2><span>07.5</span> Modo Tester (Developer Mode)</h2>
+            <div class="ibox warn">
+                <strong>Herramienta de QA:</strong> Sistema oculto diseñado para que los conservadores del museo y desarrolladores validen el contenido sin afectar a las métricas reales.
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>Acceso y Activación</h3>
+                    <p>Se activa mediante un <strong>"Easter Egg"</strong>: pulsando 5 veces seguidas sobre el número de versión en el menú de ajustes. Esto dispara un <code>HapticFeedback.vibrate()</code> confirmando la activación.</p>
+                </div>
+                <div class="card">
+                    <h3>El Badge de Perfil</h3>
+                    <p>Al activarse, el documento del usuario en Firestore se marca con <code>is_tester: true</code>. Esto genera un <strong>Badge flotante</strong> en su perfil que lo identifica ante el equipo técnico.</p>
+                </div>
+            </div>
+
+            <h3>Funcionalidades de Depuración</h3>
+            <div class="card">
+                <table class="dtable" style="margin:0; border:none;">
+                    <thead><tr><th>Herramienta</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Bypass QR</strong></td><td>Permite cargar cualquier pieza del catálogo sin escanear el código físico.</td></tr>
+                        <tr><td><strong>Monitor de FPS</strong></td><td>Overlay en tiempo real para asegurar que la AR se mantiene a 60 FPS.</td></tr>
+                        <tr><td><strong>Asset Inspector</strong></td><td>Muestra el peso real del modelo .glb en memoria RAM/GPU para evitar crashes.</td></tr>
+                        <tr><td><strong>Analytics Filter</strong></td><td>Los eventos enviados desde este modo se marcan como <code>debug: true</code> en Firebase para no alterar los KPIs de negocio.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- MANTENIMIENTO -->
+        <section id="mantenimiento">
+            <h2><span>08</span> Guía de Mantenimiento (Zero-Code)</h2>
+            <div class="ibox gold">
+                <strong>Administración:</strong> El personal del museo puede actualizar el contenido sin programar ni subir nuevas versiones a la Store.
+            </div>
+
+            <table class="dtable">
+                <thead>
+                    <tr><th>Acción</th><th>Herramienta</th><th>Procedimiento</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Añadir Pieza</td><td>Supabase Dashboard</td><td>Subir .GLB al bucket 'assets' y crear fila en la tabla 'pieces'.</td></tr>
+                    <tr><td>Cambiar Texto</td><td>Firestore Console</td><td>Modificar el campo 'description' en el documento de la pieza.</td></tr>
+                    <tr><td>Baneo de Usuario</td><td>Firebase Auth</td><td>Deshabilitar cuenta desde el panel de control.</td></tr>
+                    <tr><td>Ver Ingresos</td><td>Stripe Dashboard</td><td>Consulta de analíticas financieras y facturación.</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- DEVOPS & SPRINTS -->
+        <section id="devops">
+            <h2><span>09</span> Gestión Ágil: SCRUM & Trello</h2>
+            <div class="ibox green">
+                <strong>Metodología:</strong> Hemos aplicado un marco de trabajo <strong>SCRUM</strong> adaptado, utilizando <strong>Trello</strong> como herramienta central de orquestación y visibilidad del flujo de trabajo (Kanban-Style).
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>Ciclo de Sprints</h3>
+                    <p>El desarrollo se dividió en <strong>4 Sprints de 14 días</strong> cada uno. Al inicio de cada sprint se realizaba un <em>Sprint Planning</em> para seleccionar las User Stories del Backlog con mayor prioridad.</p>
+                </div>
+                <div class="card">
+                    <h3>Estructura del Tablero</h3>
+                    <p>Nuestro flujo de trabajo en Trello sigue el estándar de la industria para evitar cuellos de botella:</p>
+                    <ul style="font-size:0.85rem; padding-left:1rem;">
+                        <li><strong>Backlog:</strong> Ideas y requerimientos futuros.</li>
+                        <li><strong>To Do (Sprint):</strong> Tareas comprometidas para las próximas 2 semanas.</li>
+                        <li><strong>In Progress:</strong> Tareas en desarrollo activo.</li>
+                        <li><strong>Testing/QA:</strong> Validación de bugs y flujos de usuario.</li>
+                        <li><strong>Done:</strong> Tareas terminadas y validadas por el PO.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Sistema de Etiquetado y Prioridad</h3>
+            <p>Cada tarjeta en Trello cuenta con metadatos visuales para una gestión rápida:</p>
+            <table class="dtable">
+                <thead><tr><th>Etiqueta</th><th>Significado</th><th>Impacto</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="chip" style="background:#f87171; color:white;">🔥 CRITICAL</span></td><td>Bloqueo de desarrollo o bug grave.</td><td>Resolución inmediata.</td></tr>
+                    <tr><td><span class="chip" style="background:#38bdf8; color:white;">✨ FEATURE</span></td><td>Nueva funcionalidad (AR, Pagos, etc.).</td><td>Añade valor al producto.</td></tr>
+                    <tr><td><span class="chip" style="background:#fbbf24; color:white;">🎨 DESIGN</span></td><td>Mejoras de UI/UX y assets 3D.</td><td>Mejora el engagement.</td></tr>
+                    <tr><td><span class="chip" style="background:#4ade80; color:white;">🚀 DEVOPS</span></td><td>Configuración de Firebase/Supabase.</td><td>Estabilidad de infraestructura.</td></tr>
+                </tbody>
+            </table>
+            
+            <p style="margin-top:2rem;">Puedes consultar el tablero real con todo el histórico de tareas en el enlace de la sección de <a href="#enlaces">Accesos</a>.</p>
+
+            <h3 style="margin-top:4rem;">Planificación Detallada de Sprints</h3>
+            <div class="entity">
+                <div class="entity-header"><strong>Sprint 1: Cimientos y Auth</strong> <span>Semanas 1-2</span></div>
+                <div class="dbf"><div>Tarea 1.1</div><div>Setup Flutter + Firebase</div><div>Configuración de environments (Dev/Prod).</div></div>
+                <div class="dbf"><div>Tarea 1.2</div><div>Auth Provider</div><div>Lógica de login anónimo y Google.</div></div>
+                <div class="dbf"><div>Tarea 1.3</div><div>Theme System</div><div>Implementación de modo oscuro/claro y tokens de diseño.</div></div>
+            </div>
+
+            <div class="entity">
+                <div class="entity-header"><strong>Sprint 2: Core AR y Supabase</strong> <span>2 Semanas</span></div>
+                <div class="dbf"><div>Tarea 2.1</div><div>Integración Visor 3D</div><div>Uso de <code>model_viewer_plus</code> para renderizado GLB.</div></div>
+                <div class="dbf"><div>Tarea 2.2</div><div>Supabase Storage</div><div>Migración de assets y configuración de RLS.</div></div>
+                <div class="dbf"><div>Tarea 2.3</div><div>Lógica Escaneo</div><div>Validación de QR mediante hashes SHA-256.</div></div>
+            </div>
+
+            <div class="entity">
+                <div class="entity-header"><strong>Sprint 3: Gamificación y Pagos</strong> <span>2 Semanas</span></div>
+                <div class="dbf"><div>Tarea 3.1</div><div>Rank System</div><div>Cálculo de niveles según escaneos en Firestore.</div></div>
+                <div class="dbf"><div>Tarea 3.2</div><div>Stripe/RevenueCat</div><div>Integración de pasarelas de pago híbridas.</div></div>
+                <div class="dbf"><div>Tarea 3.3</div><div>Profile UI</div><div>Visualización de la colección y medallas.</div></div>
+            </div>
+
+            <div class="entity">
+                <div class="entity-header"><strong>Sprint 4: QA y Despliegue</strong> <span>2 Semanas</span></div>
+                <div class="dbf"><div>Tarea 4.1</div><div>Testing</div><div>Unit tests en domain layer y pruebas de estrés en AR.</div></div>
+                <div class="dbf"><div>Tarea 4.2</div><div>Analytics</div><div>Implementación de todos los eventos de Firebase.</div></div>
+                <div class="dbf"><div>Tarea 4.3</div><div>Store Build</div><div>Generación de App Bundle y despliegue en Google Play.</div></div>
+            </div>
+        </section>
+
+        <!-- DAFO Y ESTRATEGIA -->
+        <section id="dafo">
+            <h2><span>10</span> Análisis Estratégico (DAFO)</h2>
+            <div class="grid">
+                <div class="card dafo-card strengths">
+                    <h3>Fortalezas</h3>
+                    <p>Uso de AR sin necesidad de hardware costoso.</p>
+                    <p>Arquitectura escalable (Serverless).</p>
+                    <p>Integración multi-plataforma nativa.</p>
+                </div>
+                <div class="card dafo-card opportunities">
+                    <h3>Oportunidades</h3>
+                    <p>Expansión a otros museos de la ciudad.</p>
+                    <p>Patrocinios de instituciones educativas.</p>
+                    <p>Venta de merchandising digital (NFTs históricos).</p>
+                </div>
+            </div>
+            <div class="grid" style="margin-top:1rem;">
+                <div class="card dafo-card weaknesses">
+                    <h3>Debilidades</h3>
+                    <p>Dependencia de la iluminación para el escaneo.</p>
+                    <p>Tamaño de assets 3D en móviles antiguos.</p>
+                </div>
+                <div class="card dafo-card threats">
+                    <h3>Amenazas</h3>
+                    <p>Cambios en las APIs de ARCore/ARKit.</p>
+                    <p>Limitaciones de red en interiores históricos.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRESUPUESTO -->
+        <section id="presupuesto">
+            <h2><span>11</span> Presupuesto y Viabilidad Económica</h2>
+            <div class="ibox blue">
+                <strong>Análisis de Costes:</strong> Estimación para el primer año de operación (Desarrollo + Mantenimiento).
+            </div>
+            
+            <table class="dtable">
+                <thead>
+                    <tr><th>Concepto</th><th>Unidad</th><th>Precio/U</th><th>Total</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Desarrollador Senior (Flutter)</td><td>800h</td><td>45€/h</td><td>36.000€</td></tr>
+                    <tr><td>Diseñador UI/UX & 3D Artist</td><td>200h</td><td>35€/h</td><td>7.000€</td></tr>
+                    <tr><td>Infraestructura (Supabase/Firebase)</td><td>12 Meses</td><td>25€/m</td><td>300€</td></tr>
+                    <tr><td>Licencias Apple/Google Developer</td><td>1 Año</td><td>130€</td><td>130€</td></tr>
+                    <tr><td>Marketing y Lanzamiento</td><td>Global</td><td>1.500€</td><td>1.500€</td></tr>
+                    <tr><td>Imprevistos (10%)</td><td>-</td><td>-</td><td>4.493€</td></tr>
+                    <tr style="font-weight:900; background:rgba(99, 102, 241, 0.1);">
+                        <td colspan="3">TOTAL INVERSIÓN INICIAL</td>
+                        <td>49.423€</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- QA / CASOS DE PRUEBA -->
+        <section id="qa">
+            <h2><span>12</span> Quality Assurance (Casos de Prueba)</h2>
+            <table class="dtable">
+                <thead>
+                    <tr><th>ID</th><th>Escenario</th><th>Acción</th><th>Resultado Esperado</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>CP-01</td><td>Login Google Exitoso</td><td>Pulsar botón Google</td><td>Creación de sesión y persistencia en Firestore</td></tr>
+                    <tr><td>CP-02</td><td>Escaneo QR Válido</td><td>Escanear QR de prueba</td><td>Carga del visor 3D en < 3 seg.</td></tr>
+                    <tr><td>CP-03</td><td>Escaneo QR Inválido</td><td>Escanear QR ajeno</td><td>Mensaje de error: "Pieza no identificada"</td></tr>
+                    <tr><td>CP-04</td><td>Donación Stripe</td><td>Realizar pago 5€</td><td>Transacción 'succeeded' y actualización de rango</td></tr>
+                    <tr><td>CP-05</td><td>Modo Offline</td><td>Entrar sin Wi-Fi</td><td>Visualización de piezas en caché local</td></tr>
+                    <tr><td>CP-06</td><td>Cambio de Idioma</td><td>Seleccionar Inglés</td><td>Traducción instantánea de toda la UI (Easy Localization)</td></tr>
+                    <tr><td>CP-07</td><td>Compatibilidad AR</td><td>Móvil sin ARCore</td><td>Aviso de incompatibilidad y visor 3D estático</td></tr>
+                    <tr><td>CP-08</td><td>Recuperación de Cuenta</td><td>Reinstalar app</td><td>Sincronización automática de progreso con la nube</td></tr>
+                    <tr><td>CP-09</td><td>Límite de Donación</td><td>Intentar donar 0€</td><td>Validación de formulario: "Importe mínimo 1€"</td></tr>
+                    <tr><td>CP-10</td><td>Renderizado GLB</td><td>Pieza High-Poly</td><td>Mantener 60 FPS estables durante la inspección</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- LEGAL Y PRIVACIDAD -->
+        <section id="legal">
+            <h2><span>13</span> Marco Legal y Privacidad (GDPR)</h2>
+            <div class="ibox warn">
+                <strong>Cumplimiento:</strong> La aplicación cumple estrictamente con el Reglamento General de Protección de Datos (RGPD) y la LOPDGDD española.
+            </div>
+            <div class="card">
+                <h3>Tratamiento de Datos</h3>
+                <p>No recopilamos datos personales sensibles. El email se usa exclusivamente para la sincronización de progreso y validación de pagos en Stripe.</p>
+                <div class="grid" style="margin-top:1.5rem;">
+                    <div class="card dafo-card strengths">
+                        <p><strong>Derecho de Acceso:</strong> Exportación de perfil en JSON.</p>
+                    </div>
+                    <div class="card dafo-card threats">
+                        <p><strong>Derecho al Olvido:</strong> Eliminación total de datos.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ROADMAP EXPANDIDO -->
+        <section id="roadmap">
+            <h2><span>14</span> Roadmap de Desarrollo Futuro (Evolución)</h2>
+            <div class="ibox gold">
+                <strong>Visión a Largo Plazo:</strong> El proyecto tiene planificadas tres fases de evolución tecnológica para convertir la app en el estándar de los museos escolares.
+            </div>
+
+            <div class="grid">
+                <div class="card dafo-card strengths">
+                    <h3>Fase 2.0: IA y Narrativa</h3>
+                    <p>Guía IA (GPT-Museum) en tiempo real.</p>
+                    <p>Búsqueda del Tesoro gamificada.</p>
+                </div>
+                <div class="card dafo-card opportunities">
+                    <h3>Fase 3.0: Social y AR Avanzada</h3>
+                    <p>AR Multijugador sincronizada.</p>
+                    <p>Reconstrucción histórica Time Machine.</p>
+                </div>
+            </div>
+
+            <div class="grid" style="margin-top:1.5rem;">
+                <div class="card dafo-card weaknesses">
+                    <h3>Fase 4.0: Inclusión y Web3</h3>
+                    <p>Haptic AR para discapacidad visual.</p>
+                    <p>Digital Assets (NFTs) para mecenas.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- GLOSARIO -->
+        <section id="glosario">
+            <h2><span>15</span> Glosario Técnico</h2>
+            <div class="card" style="padding:0; overflow:hidden;">
+                <table class="dtable" style="margin:0; border:none;">
+                    <thead><tr><th>Término</th><th>Definición</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>ARCore / ARKit</strong></td><td>APIs de Realidad Aumentada de Google y Apple respectivamente.</td></tr>
+                        <tr><td><strong>GLB / glTF</strong></td><td>Formato estándar de archivos 3D optimizado para la web y móviles.</td></tr>
+                        <tr><td><strong>JWT</strong></td><td>JSON Web Token, usado para la autenticación segura.</td></tr>
+                        <tr><td><strong>RLS</strong></td><td>Row Level Security, sistema de permisos en base de datos.</td></tr>
+                        <tr><td><strong>Riverpod</strong></td><td>Framework de gestión de estado para Flutter.</td></tr>
+                        <tr><td><strong>Supabase</strong></td><td>Alternativa Open Source a Firebase (PostgreSQL).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- IMPACTO SOCIAL -->
+        <section id="impacto">
+            <h2><span>16</span> Impacto Social y Educativo</h2>
+            <div class="ibox green">
+                <strong>Valor Social:</strong> Democratización del acceso a la cultura y alineación con los <strong>ODS</strong> de la ONU (Objetivos 4 y 11).
+            </div>
+        </section>
+
+        <!-- ENLACES -->
+        <section id="enlaces">
+            <h2><span>17</span> Accesos y Recursos</h2>
+            <div class="card">
+                <ul style="list-style:none;">
+                    <li style="margin-bottom:1rem;">🚀 <b>Prototipo (Google Stitch):</b> <a href="https://stitch.withgoogle.com/projects/4937481282756923604" target="_blank" rel="noopener noreferrer" title="Ver prototipo interactivo en Google Stitch">Abrir Diseño</a></li>
+                    <li style="margin-bottom:1rem;">📋 <b>Gestión (Trello):</b> <a href="https://trello.com/invite/b/69f2388cbabd30ddc327ba4d/ATTIe3a67b5d853695cc29015db60479ce91566040F8/museo" target="_blank" rel="noopener noreferrer" title="Consultar el tablero de gestión y tareas en Trello">Ver Backlog</a></li>
+                    <li style="margin-bottom:1rem;">💻 <b>Código (GitHub):</b> <a href="https://github.com/TeamProjectsDev/flutter_application_museo.git" target="_blank" rel="noopener noreferrer" title="Explorar el código fuente del proyecto en GitHub">Acceder al Repo</a></li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>© 2026 Alberto Ortiz Sánchez | Documentación Final DAM</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

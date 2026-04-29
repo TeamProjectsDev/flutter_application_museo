@@ -12,7 +12,7 @@ Este documento explica paso a paso cómo configurar este proyecto desde cero, in
 3. [Configuración de Firebase (Base de Datos y Usuarios)](#3-configuración-de-firebase-base-de-datos-y-usuarios)
 4. [Configuración de EmailJS (Correos Automáticos)](#4-configuración-de-emailjs-correos-automáticos)
 5. [Configuración de Pagos Reales (RevenueCat y Stripe)](#5-configuración-de-pagos-reales-revenuecat-y-stripe)
-6. [Almacenamiento de Modelos 3D (Cloudflare R2 + GitHub)](#6-almacenamiento-de-modelos-3d-cloudflare-r2--github)
+6. [Almacenamiento de Modelos 3D (Supabase / R2 / GitHub)](#6-almacenamiento-de-modelos-3d-supabase--r2--github)
 7. [Códigos QR para las Piezas del Museo](#7-códigos-qr-para-las-piezas-del-museo)
 8. [Lanzar la Aplicación](#8-lanzar-la-aplicación)
 9. [Modo Tester (Pruebas sin pagar)](#9--modo-tester-para-tribunal-y-exposiciones-sin-gasto)
@@ -180,56 +180,21 @@ Si el museo se exporta a Web o se instala en el PC de la entrada, RevenueCat no 
    ```
 ¡Y ya está! La aplicación detectará automáticamente cuando un usuario esté usando un PC y generará una plataforma de pago virtual *al vuelo* redirigiéndole para proteger las tarjetas, avisando al vuelo del éxito para enviarle su Ticket por correo.
 
----
+## 6. Configuración de Modelos 3D y Entornos 360 (Supabase Storage)
 
-## 6. Almacenamiento de Modelos 3D (Cloudflare R2 + GitHub)
+La aplicación gestiona automáticamente el catálogo de piezas listando los archivos desde un bucket de **Supabase Storage**. No necesitas mantener archivos JSON manuales.
 
-La app descarga los modelos 3D (`.glb`) y entornos 360 (`.jpg`) de forma dinámica. El sistema elige la fuente automáticamente:
+1. Crea un proyecto en [Supabase](https://supabase.com/).
+2. Ve a la sección **Storage** y crea un nuevo Bucket llamado `museo-assets`. Asegúrate de que sea **Público**.
+3. Sube tus archivos `.glb` (modelos 3D) e imágenes `.jpg`/`.png` (entornos 360) a ese bucket.
+4. En la configuración de tu proyecto de Supabase, obtén tu **Project URL** y tu **anon key**.
+5. Configura tu archivo `.env` así:
+   ```env
+   R2_PUBLIC_URL=https://tu_proyecto.supabase.co/storage/v1/object/public/museo-assets
+   SUPABASE_ANON_KEY=tu_clave_anon_aqui
+   ```
 
-| Condición                         | Fuente usada                                         |
-|-----------------------------------|------------------------------------------------------|
-| `R2_PUBLIC_URL` relleno en `.env` | ☁️ **Cloudflare R2** (recomendado para producción)   |
-| `R2_PUBLIC_URL` vacío             | 🐙 **GitHub Raw** (comportamiento por defecto)       |
-
-### Opción A: GitHub Raw (defecto, sin configuración extra)
-```env
-GITHUB_RAW_URL=https://raw.githubusercontent.com/TU_USUARIO/TU_REPOSITORIO/main
-R2_PUBLIC_URL=   # dejar vacío
-```
-Sube tus `.glb` e imágenes a la raíz del repositorio. El catálogo se construye automáticamente leyendo el índice de archivos de la API de GitHub.
-
-### Opción B: Cloudflare R2 (recomendado para producción)
-1. Crea un bucket en [Cloudflare R2](https://dash.cloudflare.com/) y activa el acceso público.
-2. Sube tus archivos `.glb` e imágenes 360 al bucket.
-3. Crea y sube un archivo `manifest.json` en la **raíz del bucket** con este formato:
-
-```json
-{
-  "items": [
-    {
-      "fileName": "mi_pieza.glb",
-      "name": "Nombre Bonito",
-      "room": "Paleontología",
-      "description": "Descripción de la pieza"
-    },
-    {
-      "fileName": "entorno.jpg",
-      "name": "Sala Principal 360°",
-      "room": "General",
-      "description": "Vista panorámica"
-    }
-  ]
-}
-```
-
-> Hay una plantilla de ejemplo en `assets/r2_manifest.example.json`.
-
-4. Rellena el `.env`:
-```env
-R2_PUBLIC_URL=https://pub-XXXXXXXXXXXXXXXX.r2.dev
-```
-
-**Para añadir una pieza nueva:** sube el archivo a R2 y añade una entrada en `manifest.json`. La app mostrará la nueva pieza automáticamente sin necesidad de actualizar el código.
+La aplicación clasificará automáticamente los archivos: los `.glb` aparecerán en la sección 3D y las imágenes en la sección de Visitas Virtuales.
 
 ---
 

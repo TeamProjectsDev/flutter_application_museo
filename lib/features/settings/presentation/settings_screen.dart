@@ -105,8 +105,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               value: ThemeMode.light,
               groupValue: currentTheme,
               onChanged: (ThemeMode? value) {
-                if (value != null)
+                if (value != null) {
                   ref.read(themeProvider.notifier).setTheme(value);
+                }
               },
             ),
           ),
@@ -117,8 +118,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               value: ThemeMode.dark,
               groupValue: currentTheme,
               onChanged: (ThemeMode? value) {
-                if (value != null)
+                if (value != null) {
                   ref.read(themeProvider.notifier).setTheme(value);
+                }
               },
             ),
           ),
@@ -129,8 +131,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               value: ThemeMode.system,
               groupValue: currentTheme,
               onChanged: (ThemeMode? value) {
-                if (value != null)
+                if (value != null) {
                   ref.read(themeProvider.notifier).setTheme(value);
+                }
               },
             ),
           ),

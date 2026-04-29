@@ -10,11 +10,10 @@ class Vr360Screen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String baseUrl =
-        dotenv.env['GITHUB_RAW_URL'] ??
-        'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures';
-    final String panoramaUrl =
-        '$baseUrl/${panoramaFileName ?? "entorno_360.jpg"}';
+    final String baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
+    final String panoramaUrl = panoramaFileName != null 
+        ? '$baseUrl/$panoramaFileName'
+        : '$baseUrl/entorno_360.jpg'; // Fallback a un archivo que debería estar en tu Supabase
 
     FirebaseAnalytics.instance.logEvent(
       name: 'view_item_360',

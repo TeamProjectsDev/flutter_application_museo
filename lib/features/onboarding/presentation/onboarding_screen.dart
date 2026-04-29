@@ -171,7 +171,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       decoration: BoxDecoration(
         color: _currentPage == index
             ? (isDark ? Colors.amber.shade400 : Colors.deepPurple)
-            : Colors.grey.withOpacity(0.5),
+            : Colors.grey.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(4),
       ),
     );

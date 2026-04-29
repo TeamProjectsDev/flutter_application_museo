@@ -24,7 +24,7 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
   @override
   void initState() {
     super.initState();
-    _modelFileName = widget.modelFileName ?? 'mandibula hombre.glb';
+    _modelFileName = widget.modelFileName ?? 'mandibula_hombre.glb';
     _loadModel();
   }
 
@@ -53,7 +53,7 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
           // 🔥 AR FIX: Aunque descargamos para validar/progreso, para el visor usamos
           // la URL remota para que el intent de AR (Scene Viewer) sea capaz de alcanzar el archivo.
           // Android no tiene permiso para leer archivos locales de la app desde AR.
-          final baseUrl = dotenv.env['GITHUB_RAW_URL'] ?? '';
+          final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
           _localModelPath = '$baseUrl/${Uri.encodeComponent(_modelFileName)}';
           _isLoading = false;
         });
@@ -66,7 +66,7 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al cargar el modelo de GitHub')),
+          const SnackBar(content: Text('Error al cargar el modelo de Supabase')),
         );
       }
     }

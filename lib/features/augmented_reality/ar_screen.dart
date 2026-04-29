@@ -64,7 +64,7 @@ class _ArScreenState extends ConsumerState<ArScreen> {
               name: 'ar_scan_success',
               parameters: {'item_id': item.id, 'type': 'piece3D'},
             );
-            final baseUrl = dotenv.env['GITHUB_RAW_URL'] ?? '';
+            final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
             setState(() {
               _scannedModelUrl = Uri.encodeFull('$baseUrl/${item.fileName}');
               _isScanning = false;
@@ -112,7 +112,7 @@ class _ArScreenState extends ConsumerState<ArScreen> {
       parameters: {'item_id': first3DItem.id},
     );
 
-    final baseUrl = dotenv.env['GITHUB_RAW_URL'] ?? '';
+    final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
     setState(() {
       _scannedModelUrl = Uri.encodeFull('$baseUrl/${first3DItem.fileName}');
       _isScanning = false;

@@ -51,9 +51,9 @@ class CatalogItem {
     );
   }
 
-  /// Parsea un ítem desde el manifest.json de Cloudflare R2
-  factory CatalogItem.fromR2Manifest(Map<String, dynamic> json) {
-    final String fileName = json['fileName'] as String? ?? '';
+  /// Parsea un ítem desde el listado de archivos de Supabase
+  factory CatalogItem.fromSupabase(Map<String, dynamic> json) {
+    final String fileName = json['name'] as String? ?? '';
     final String lower = fileName.toLowerCase();
 
     CatalogItemType type = CatalogItemType.unknown;
@@ -65,28 +65,7 @@ class CatalogItem {
       type = CatalogItemType.environment360;
     }
 
-    return CatalogItem(
-      id: fileName.split('.').first.replaceAll(' ', '_'),
-      name: json['name'] as String? ?? fileName.split('.').first,
-      fileName: fileName,
-      description: json['description'] as String? ?? '',
-      type: type,
-      room: json['room'] as String? ?? 'General',
-    );
-  }
-
-  /// Parsea un ítem desde la respuesta de la API de GitHub
-  factory CatalogItem.fromGithub(Map<String, dynamic> json) {
-    final String name = json['name'] as String;
-    final String lower = name.toLowerCase();
-
-    CatalogItemType type = CatalogItemType.unknown;
-    if (lower.endsWith('.glb')) {
-      type = CatalogItemType.piece3D;
-    } else if (lower.endsWith('.jpg') || lower.endsWith('.png')) {
-      type = CatalogItemType.environment360;
-    }
-
+    // Adivinar sala según nombre
     String room = 'General';
     if (lower.contains('mandibula') ||
         lower.contains('fosil') ||
@@ -106,19 +85,20 @@ class CatalogItem {
       room = 'Instrumentación';
     }
 
-    String prettyName = name.split('.').first;
+    // Limpiar nombre para mostrar
+    String prettyName = fileName.split('.').first;
     prettyName = prettyName.replaceAll('_', ' ').replaceAll('-', ' ');
     if (prettyName.isNotEmpty) {
       prettyName = prettyName[0].toUpperCase() + prettyName.substring(1);
     }
 
     return CatalogItem(
-      id: name.split('.').first.replaceAll(' ', '_'),
+      id: fileName.split('.').first.replaceAll(' ', '_'),
       name: prettyName,
-      fileName: name,
+      fileName: fileName,
       description: type == CatalogItemType.piece3D
           ? 'Pieza de la sala $room'
-          : 'Vista panorámica',
+          : 'Entorno virtual 360',
       type: type,
       room: room,
     );
@@ -151,8 +131,7 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
       ? dotenv.env['R2_PUBLIC_URL']
       : null;
 
-  final String _githubApiUrl =
-      'https://api.github.com/repos/alberto2005-coder/Museo/contents';
+  final String? _supabaseKey = dotenv.env['SUPABASE_ANON_KEY'];
 
   CatalogNotifier() : super(CatalogState(isLoading: true)) {
     fetchCatalog();
@@ -161,10 +140,10 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
   Future<void> fetchCatalog() async {
     state = CatalogState(items: state.items, isLoading: true);
     try {
-      if (_r2BaseUrl != null) {
-        await _fetchFromR2();
+      if (_r2BaseUrl != null && _supabaseKey != null) {
+        await _fetchFromSupabase();
       } else {
-        await _fetchFromGithub();
+        await _loadFromCache();
       }
     } catch (e) {
       debugPrint('[Catalog] Error de red: $e — intentando caché local');
@@ -172,46 +151,44 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
     }
   }
 
-  Future<void> _fetchFromR2() async {
-    final manifestUrl = '$_r2BaseUrl/manifest.json';
-    debugPrint('[Catalog] Fuente: R2 → $manifestUrl');
-    try {
-      final response = await _dio.get(manifestUrl);
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final rawItems = data['items'] as List<dynamic>? ?? [];
-        final items = rawItems
-            .map((e) => CatalogItem.fromR2Manifest(e as Map<String, dynamic>))
-            .where((item) => item.type != CatalogItemType.unknown)
-            .toList();
-        await _saveToCache(items);
-        state = CatalogState(items: items, isLoading: false);
-      } else {
-        await _fetchFromGithub();
-      }
-    } catch (e) {
-      debugPrint('[Catalog] Error R2: $e — fallback a GitHub');
-      await _fetchFromGithub();
-    }
-  }
+  Future<void> _fetchFromSupabase() async {
+    // Usar la URL base directamente para el listado
+    final listUrl = _r2BaseUrl!.replaceFirst('/public/', '/list/');
 
-  Future<void> _fetchFromGithub() async {
-    debugPrint('[Catalog] Fuente: GitHub API → $_githubApiUrl');
+    debugPrint('[Catalog] Listando Supabase Storage (REST) → $listUrl');
+
     try {
-      final response = await _dio.get(_githubApiUrl);
+      final response = await _dio.post(
+        listUrl,
+        data: {
+          "prefix": "",
+          "limit": 100,
+          "offset": 0,
+          "sortBy": {"column": "name", "order": "asc"}
+        },
+        options: Options(
+          headers: {
+            'apikey': _supabaseKey,
+            'Authorization': 'Bearer $_supabaseKey',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
         final items = data
-            .map((e) => CatalogItem.fromGithub(e as Map<String, dynamic>))
+            .map((e) => CatalogItem.fromSupabase(e as Map<String, dynamic>))
             .where((item) => item.type != CatalogItemType.unknown)
             .toList();
+
         await _saveToCache(items);
         state = CatalogState(items: items, isLoading: false);
       } else {
         await _loadFromCache();
       }
     } catch (e) {
-      debugPrint('[Catalog] Error GitHub: $e — cargando caché');
+      debugPrint('[Catalog] Error Supabase List: $e — cargando caché');
       await _loadFromCache();
     }
   }

@@ -143,24 +143,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 await FirebaseAuth.instance.sendPasswordResetEmail(
                   email: emailController.text.trim(),
                 );
-                if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('auth_reset_sent'.tr()),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('auth_reset_sent'.tr()),
+                    backgroundColor: Colors.green,
+                  ),
+                );
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: ${e.toString()}'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             },
             child: Text('auth_send_link'.tr()),

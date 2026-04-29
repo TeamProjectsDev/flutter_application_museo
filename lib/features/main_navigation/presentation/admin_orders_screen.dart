@@ -78,7 +78,7 @@ class AdminOrdersScreen extends ConsumerWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.2),
+                    color: Colors.green.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.qr_code_2, color: Colors.green),
@@ -238,7 +238,7 @@ class AdminOrdersScreen extends ConsumerWidget {
       case PrintStatus.pendiente:
         color = Colors.orange;
         break;
-      case PrintStatus.en_cura:
+      case PrintStatus.enCura:
         color = Colors.blue;
         break;
       case PrintStatus.imprimiendo:
@@ -251,7 +251,7 @@ class AdminOrdersScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color),
       ),

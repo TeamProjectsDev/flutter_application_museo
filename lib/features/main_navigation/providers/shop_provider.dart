@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 
-enum PrintStatus { pendiente, en_cura, imprimiendo, listo }
+enum PrintStatus { pendiente, enCura, imprimiendo, listo }
 
 class PrintRequest {
   final String id;

@@ -17,11 +17,9 @@ class DownloadManager {
   DownloadManager({Dio? dio})
     : _dio = dio ?? Dio(),
       _usingR2 = (dotenv.env['R2_PUBLIC_URL'] ?? '').isNotEmpty,
-      _baseUrl = (dotenv.env['R2_PUBLIC_URL'] ?? '').isNotEmpty
-          ? dotenv.env['R2_PUBLIC_URL']!
-          : dotenv.env['GITHUB_RAW_URL'] ?? '' {
+      _baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '' {
     debugPrint(
-      '[DownloadManager] Fuente de assets: ${_usingR2 ? "☁️ Cloudflare R2 ($_baseUrl)" : "🐙 GitHub ($_baseUrl)"}',
+      '[DownloadManager] Fuente de assets: ${_usingR2 ? "☁️ Supabase Storage ($_baseUrl)" : "🐙 GitHub ($_baseUrl)"}',
     );
   }
 

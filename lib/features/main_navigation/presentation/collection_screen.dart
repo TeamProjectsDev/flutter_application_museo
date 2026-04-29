@@ -251,10 +251,7 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
                 if (is3D && isUnlocked)
                   OutlinedButton.icon(
                     onPressed: () {
-                      final baseUrl =
-                          dotenv.env['R2_PUBLIC_URL']?.isNotEmpty == true
-                          ? dotenv.env['R2_PUBLIC_URL']!
-                          : dotenv.env['GITHUB_RAW_URL'] ?? '';
+                      final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
                       context.push(
                         Uri(
                           path: '/shop',

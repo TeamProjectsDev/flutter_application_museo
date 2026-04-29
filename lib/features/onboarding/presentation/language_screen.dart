@@ -114,7 +114,7 @@ class _LanguageButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          border: Border.all(color: color.withOpacity(0.5), width: 2),
+          border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
