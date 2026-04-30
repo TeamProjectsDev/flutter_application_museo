@@ -373,6 +373,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             name: 'donation_mock_success',
             parameters: {'tier': tier},
           );
+          if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(

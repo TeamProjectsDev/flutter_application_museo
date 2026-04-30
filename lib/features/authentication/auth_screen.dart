@@ -143,7 +143,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 await FirebaseAuth.instance.sendPasswordResetEmail(
                   email: emailController.text.trim(),
                 );
-                if (!mounted) return;
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -152,7 +152,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   ),
                 );
               } catch (e) {
-                if (!mounted) return;
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Error: ${e.toString()}'),
@@ -246,7 +246,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               TextButton.icon(
                 onPressed: () async {
                   await ref.read(authProvider.notifier).loginAsGuest();
-                  if (mounted) context.go('/home');
+                  if (!mounted) return;
+                  context.go('/home');
                 },
                 icon: const Icon(Icons.person_outline),
                 label: Text('auth_guest'.tr()),
