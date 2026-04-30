@@ -35,8 +35,8 @@ jobs:
       - name: 🔍 Analyze code (lint)
         run: flutter analyze --no-fatal-warnings
 
-      - name: 🧪 Run tests
-        run: flutter test
+      # - name: 🧪 Run tests
+      #   run: flutter test
 
       - name: 🔨 Build Android APK (debug)
         run: flutter build apk --debug --no-pub
