@@ -576,7 +576,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
+                    errorBuilder: (context, error, stackTrace) =>
                         const Icon(Icons.art_track, size: 40),
                   ),
                 ),
