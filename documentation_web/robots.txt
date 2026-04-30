@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://museo-padre-suarez.infinityfreeapp.com/sitemap.xml

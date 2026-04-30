@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDD — Arquitectura y Backend — Museo Padre Suárez</title>
+    <meta name="description" content="Documento de Diseño Técnico (TDD). Ingeniería de software, base de datos Firestore/Supabase, APIs y DevOps profesional para el proyecto Museo Padre Suárez.">
+    <meta name="author" content="Alberto Ortiz Sánchez">
+    <meta name="publisher" content="Alberto Ortiz Sánchez">
+    <link rel="canonical" href="https://museo-padre-suarez.infinityfreeapp.com/tdd.html">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="TDD — Arquitectura y Backend — Museo Padre Suárez">
+    <meta property="og:description" content="Detalle técnico, infraestructura y código del Museo Padre Suárez.">
+    <meta property="og:image" content="media/icon.png">
+    
+    <link rel="icon" type="image/png" href="media/icon.png">
+    <link rel="image_src" href="media/icon.png">
+    <link rel="stylesheet" href="css/style.css?v=5.1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "TDD — Arquitectura y Backend — Museo Padre Suárez",
+      "description": "Ingeniería de software, base de datos Firestore/Supabase y DevOps del proyecto.",
+      "image": "media/icon.png",
+      "author": {"@type": "Person", "name": "Alberto Ortiz Sánchez"}
+    }
+    </script>
+</head>
+<body itemscope itemtype="https://schema.org/TechArticle">
+    <button id="menu-toggle" class="menu-btn">☰ Menú</button>
+    <button id="back-to-top" class="back-to-top" title="Volver arriba">↑</button>
+    
+    <nav id="sidebar">
+        <h1>TDD v5.0</h1>
+        <ul>
+            <li><a href="index.html" title="Volver al Portal Principal" style="color:var(--primary); font-weight:bold;">🏠 Portal Principal</a></li>
+            <li><a href="gdd.html" title="Consultar el Documento de Diseño del Juego" style="color:var(--accent-gold); font-weight:bold;">🎨 Documento GDD</a></li>
+            <li><a href="tdd.html" title="Consultar el Documento de Diseño Técnico" style="color:var(--primary); font-weight:bold;">⚙️ Documento TDD</a></li>
+            <li><a href="legal.html" title="Consultar el Marco Legal y RGPD" style="color:var(--accent-red); font-weight:bold;">⚖️ Documento Legal</a></li>
+            <hr style="opacity:0.1; margin: 1rem 0;">
+            <li><a href="#vision" title="Ir a la Visión Técnica" class="active">01. Visión Técnica</a></li>
+            <li><a href="#arquitectura" title="Ver la Arquitectura del Sistema">02. Arquitectura</a></li>
+            <li><a href="#data" title="Consultar Arquitectura de Datos">03. Datos</a></li>
+            <li><a href="#riverpod" title="Ver gestión de estado con Riverpod">04. Riverpod</a></li>
+            <li><a href="#apis" title="Consultar integración de APIs">05. APIs</a></li>
+            <li><a href="#security" title="Ver Seguridad y Crashlytics">06. Seguridad</a></li>
+            <li><a href="#payments" title="Consultar flujos de Pago">07. Pagos</a></li>
+            <li><a href="#analytics" title="Ver Analítica y KPIs">08. Analítica</a></li>
+            <li><a href="#devops" title="Consultar CI/CD y GitHub Actions">09. DevOps</a></li>
+            <li><a href="#qa" title="Ver Control de Calidad">10. QA</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-controls">
+        <button id="theme-toggle" class="chip">🌓 Modo</button>
+    </div>
+
+    <main>
+        <header class="hero" id="vision">
+            <p class="subtitle">TECHNICAL DESIGN DOCUMENT · PROYECTO FINAL DAM</p>
+            <h1 itemprop="headline">Arquitectura Técnica</h1>
+            <p itemprop="description">Ingeniería de software para el Museo Padre Suárez</p>
+            <meta itemprop="image" content="media/icon.png">
+            <meta itemprop="author" content="Alberto Ortiz Sánchez">
+            <div class="chips">
+                <div class="chip blue">Flutter 3.24</div>
+                <div class="chip blue">Riverpod</div>
+                <div class="chip blue">Firebase</div>
+                <div class="chip gold">Professional TDD</div>
+            </div>
+        </header>
+
+        <section id="arquitectura">
+            <h2><span>02</span> Arquitectura del Sistema</h2>
+            <p>La aplicación sigue un modelo de <strong>arquitectura en capas</strong> con separación clara entre Presentation, Domain y Data.</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>Presentation Layer</h3>
+                    <p>UI declarativa con Flutter. Widgets reactivos desacoplados de la lógica.</p>
+                </div>
+                <div class="card">
+                    <h3>Domain Layer</h3>
+                    <p>Lógica de negocio pura mediante Providers de Riverpod.</p>
+                </div>
+                <div class="card">
+                    <h3>Data Layer</h3>
+                    <p>Servicios de Firebase, Supabase Storage, Stripe y RevenueCat.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="data">
+            <h2><span>03</span> Arquitectura de Datos</h2>
+            <p>Estrategia híbrida: Firestore para datos en tiempo real y Supabase para activos multimedia.</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>Firestore (Cerebro NoSQL)</h3>
+                    <table class="dtable">
+                        <thead><tr><th>Colección</th><th>Propósito</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>users/</code></td><td>Perfiles, rangos y progreso</td></tr>
+                            <tr><td><code>tickets/</code></td><td>Entradas digitales y validación QR</td></tr>
+                            <tr><td><code>print_requests/</code></td><td>Pedidos de la tienda 3D</td></tr>
+                            <tr><td><code>donations/</code></td><td>Registro de transacciones</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <h3>Supabase Storage (CDN)</h3>
+                    <table class="dtable">
+                        <thead><tr><th>Bucket</th><th>Contenido</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>models/</code></td><td>Modelos 3D (.glb)</td></tr>
+                            <tr><td><code>images/</code></td><td>Texturas e iconos (.jpg, .png)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="riverpod">
+            <h2><span>04</span> Gestión de Estado: Riverpod</h2>
+            <div class="card code-example">
+                <h3>Lógica Reactiva</h3>
+                <pre><code class="language-dart">// Provider que calcula el rango según las piezas desbloqueadas
+final userRankProvider = Provider<UserRank>((ref) {
+  final unlockedCount = ref.watch(unlockedPiecesProvider).length;
+  if (unlockedCount >= 6) return UserRank.conservadorJefe;
+  if (unlockedCount >= 3) return UserRank.academico;
+  if (unlockedCount >= 1) return UserRank.explorador;
+  return UserRank.visitante;
+});</code></pre>
+            </div>
+        </section>
+
+        <section id="apis">
+            <h2><span>05</span> Integración de APIs</h2>
+            <div class="grid">
+                <div class="card api-card">
+                    <h3>💳 Pagos Híbridos</h3>
+                    <p>Uso coordinado de <strong>Stripe</strong> (Web/PC) y <strong>RevenueCat</strong> (Móvil nativo) para máxima cobertura.</p>
+                </div>
+                <div class="card api-card">
+                    <h3>📧 Email Automático</h3>
+                    <p>Integración con <strong>EmailJS</strong> para el envío de entradas digitales sin necesidad de servidor propio.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="analytics">
+            <h2><span>08</span> Analítica de Firebase</h2>
+            <div class="card">
+                <h3>Eventos KPI</h3>
+                <ul class="list-check">
+                    <li>✓ <code>ar_scan_success</code>: Conversión en vitrinas.</li>
+                    <li>✓ <code>view_item_3d</code>: Engagement con modelos AR.</li>
+                    <li>✓ <code>donation_success</code>: Éxito en pasarela de pagos.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="qa">
+            <h2><span>10</span> QA & Estabilidad</h2>
+            <div class="card">
+                <h3>Crashlytics</h3>
+                <p>Captura de errores en tiempo real mediante <code>runZonedGuarded</code> para asegurar un 99.9% de sesiones sin crashes.</p>
+            </div>
+        <!-- SECCION: ENLACES -->
+        <section id="enlaces">
+            <h2><span>11</span> Enlaces y Recursos</h2>
+            <div class="card">
+                <ul class="links-list">
+                    <li><a href="https://github.com/TeamProjectsDev/flutter_application_museo" target="_blank" rel="noopener noreferrer author" title="Ver código fuente en GitHub">💻 Repositorio GitHub</a></li>
+                    <li><a href="https://trello.com/invite/b/69f2388cbabd30ddc327ba4d/ATTIe3a67b5d853695cc29015db60479ce91566040F8/museo" target="_blank" rel="noopener noreferrer" title="Ver tablero de gestión en Trello">📋 Gestión del Proyecto (Trello)</a></li>
+                    <li><a href="https://stitch.withgoogle.com/projects/4937481282756923604" target="_blank" rel="noopener noreferrer" title="Ver prototipo interactivo en Stitch">🎨 Prototipo en Stitch</a></li>
+                    <li><a href="https://museo-padre-suarez.infinityfreeapp.com" target="_blank" rel="noopener noreferrer" title="Visitar la web oficial en producción">🌍 Web Live (Producción)</a></li>
+                    <hr style="opacity:0.1; margin: 10px 0;">
+                    <li><a href="index.html" title="Volver al Portal Principal">🏠 Portal Principal</a></li>
+                    <li><a href="gdd.html" title="Consultar el Documento de Diseño del Juego">🎨 Documento GDD (Diseño)</a></li>
+                    <li><a href="legal.html" title="Consultar el Marco Legal y RGPD">⚖️ Documento Legal (RGPD)</a></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Alberto Ortiz Sánchez · TDD Professional · Museo Padre Suárez</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>

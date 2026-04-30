@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RGPD y Privacidad — Museo Padre Suárez</title>
+    <meta name="description" content="Marco Legal, RGPD y LOPDGDD del Museo Padre Suárez. Detalles sobre privacidad, cookies, derechos ARCO y ética digital para el cumplimiento normativo.">
+    <meta name="author" content="Alberto Ortiz Sánchez">
+    <meta name="publisher" content="Alberto Ortiz Sánchez">
+    <link rel="canonical" href="https://museo-padre-suarez.infinityfreeapp.com/legal.html">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="RGPD y Privacidad — Museo Padre Suárez">
+    <meta property="og:description" content="Estrategia legal, protección de datos y cumplimiento normativo del Museo Padre Suárez.">
+    <meta property="og:image" content="media/icon.png">
+    
+    <link rel="icon" type="image/png" href="media/icon.png">
+    <link rel="image_src" href="media/icon.png">
+    <link rel="stylesheet" href="css/style.css?v=5.1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "RGPD y Privacidad — Museo Padre Suárez",
+      "description": "Estrategia legal, protección de datos y cumplimiento normativo del proyecto.",
+      "image": "media/icon.png",
+      "author": {"@type": "Person", "name": "Alberto Ortiz Sánchez"}
+    }
+    </script>
+</head>
+<body itemscope itemtype="https://schema.org/TechArticle">
+    <button id="menu-toggle" class="menu-btn">☰ Menú</button>
+    <button id="back-to-top" class="back-to-top" title="Volver arriba">↑</button>
+    
+    <nav id="sidebar">
+        <h1>Marco Legal</h1>
+        <ul>
+            <li><a href="index.html" title="Volver al Portal Principal" style="color:var(--primary); font-weight:bold;">🏠 Portal Principal</a></li>
+            <li><a href="gdd.html" title="Consultar el Documento de Diseño del Juego" style="color:var(--accent-gold); font-weight:bold;">🎨 Documento GDD</a></li>
+            <li><a href="tdd.html" title="Consultar el Documento de Diseño Técnico" style="color:var(--primary); font-weight:bold;">⚙️ Documento TDD</a></li>
+            <li><a href="legal.html" title="Consultar el Marco Legal y RGPD" style="color:var(--accent-red); font-weight:bold;">⚖️ Documento Legal</a></li>
+            <hr style="opacity:0.1; margin: 1rem 0;">
+            <li><a href="#rgpd" title="Ir a la sección de RGPD y LOPDGDD" class="active">01. RGPD / LOPDGDD</a></li>
+            <li><a href="#cookies" title="Ver la Política de Cookies">02. Política de Cookies</a></li>
+            <li><a href="#privacy" title="Consultar Derechos ARCO">03. Privacidad</a></li>
+            <li><a href="#ethics" title="Ver Ética y Accesibilidad">04. Ética y A11y</a></li>
+            <li><a href="#licensing" title="Consultar Licencias de Activos">05. Licencias</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-controls">
+        <button id="theme-toggle" class="chip">🌓 Modo</button>
+    </div>
+
+    <main>
+        <header class="hero" id="rgpd">
+            <p class="subtitle">MARCO LEGAL · PROTECCIÓN DE DATOS</p>
+            <h1 itemprop="headline">Privacidad y Cumplimiento</h1>
+            <p itemprop="description">Estrategia de adecuación al Reglamento General de Protección de Datos</p>
+            <meta itemprop="image" content="media/icon.png">
+            <meta itemprop="author" content="Alberto Ortiz Sánchez">
+            <div class="chips">
+                <div class="chip" style="background: var(--accent-red); color: white;">RGPD Compliant</div>
+                <div class="chip blue">LOPDGDD</div>
+                <div class="chip">Seguridad</div>
+            </div>
+        </header>
+
+        <section id="rgpd">
+            <h2><span>01</span> RGPD y LOPDGDD</h2>
+            <div class="ibox warn">
+                <strong>Estado:</strong> Pendiente de implementación (Fase Post-Entrega). Se ha diseñado la arquitectura para ser compatible con el principio de <em>"Privacidad desde el Diseño"</em>.
+            </div>
+            <div class="card">
+                <h3>Base Jurídica del Tratamiento</h3>
+                <p>El tratamiento de datos se fundamentará en el <strong>Consentimiento Explícito (Art. 6.1.a RGPD)</strong> y en la <strong>Ejecución de un Contrato (Art. 6.1.b)</strong> para las transacciones comerciales.</p>
+                <ul class="step-list">
+                    <li><strong>Transparencia:</strong> Información clara sobre el uso de Firebase Auth para la persistencia del perfil.</li>
+                    <li><strong>Derecho de Información:</strong> Implementación del Art. 13 mediante capas de información en la App.</li>
+                    <li><strong>Seguridad Técnica:</strong> Cifrado en tránsito (TLS 1.3) y en reposo (AES-256 en las bases de datos).</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="cookies">
+            <h2><span>02</span> Política de Rastreo y Cookies</h2>
+            <div class="card">
+                <p>Aunque es una App nativa, se implementará un sistema de <strong>Consentimiento Granular</strong> para Firebase Analytics. El usuario podrá elegir qué eventos desea que sean trackeados.</p>
+                <ul class="list-check">
+                    <li>✓ Analítica de uso (Opcional)</li>
+                    <li>✓ Registro de errores (Crashlytics - Esencial)</li>
+                    <li>✓ Preferencias de idioma (Esencial)</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="privacy">
+            <h2><span>03</span> Derechos ARCO</h2>
+            <p>El usuario podrá ejercer sus derechos de Acceso, Rectificación, Cancelación y Oposición directamente desde la pantalla de ajustes de la app.</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>Acceso y Portabilidad</h3>
+                    <p>Exportación de los datos del perfil en formato JSON/CSV a petición del usuario.</p>
+                </div>
+                <div class="card">
+                    <h3>Derecho al Olvido</h3>
+                    <p>Botón de "Eliminar Cuenta" que purga el documento en Firestore y la UID en Firebase Auth instantáneamente.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="ethics">
+            <h2><span>04</span> Ética y Accesibilidad (A11y)</h2>
+            <div class="card">
+                <h3>Inclusión Digital</h3>
+                <p>La aplicación cumple con las pautas <strong>WCAG 2.1</strong> mediante:</p>
+                <ul class="list-check">
+                    <li>✓ Soporte para lectores de pantalla (TalkBack/VoiceOver).</li>
+                    <li>✓ Etiquetas <code>Semantics</code> en todos los botones y modelos 3D.</li>
+                    <li>✓ Alto contraste de colores para usuarios con baja visión.</li>
+                    <li>✓ Tamaños de fuente dinámicos.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="licensing">
+            <h2><span>05</span> Licencias de Activos</h2>
+            <div class="card">
+                <h3>Modelos 3D y Media</h3>
+                <p>Todos los archivos alojados en Supabase Storage poseen licencias <strong>Creative Commons (CC BY-NC)</strong> o son de dominio público pertenecientes al Museo Histórico Padre Suárez.</p>
+            </div>
+        </section>
+
+        <!-- SECCION: ENLACES -->
+        <section id="enlaces">
+            <h2><span>06</span> Enlaces y Recursos</h2>
+            <div class="card">
+                <ul class="links-list">
+                    <li><a href="https://github.com/TeamProjectsDev/flutter_application_museo" target="_blank" rel="noopener noreferrer author" title="Ver código fuente en GitHub">💻 Repositorio GitHub</a></li>
+                    <li><a href="https://trello.com/invite/b/69f2388cbabd30ddc327ba4d/ATTIe3a67b5d853695cc29015db60479ce91566040F8/museo" target="_blank" rel="noopener noreferrer" title="Ver tablero de gestión en Trello">📋 Gestión del Proyecto (Trello)</a></li>
+                    <li><a href="https://stitch.withgoogle.com/projects/4937481282756923604" target="_blank" rel="noopener noreferrer" title="Ver prototipo interactivo en Stitch">🎨 Prototipo en Stitch</a></li>
+                    <li><a href="https://museo-padre-suarez.infinityfreeapp.com" target="_blank" rel="noopener noreferrer" title="Visitar la web oficial en producción">🌍 Web Live (Producción)</a></li>
+                    <hr style="opacity:0.1; margin: 10px 0;">
+                    <li><a href="index.html" title="Volver al Portal Principal">🏠 Portal Principal</a></li>
+                    <li><a href="gdd.html" title="Consultar el Documento de Diseño del Juego">🎨 Documento GDD (Diseño)</a></li>
+                    <li><a href="tdd.html" title="Consultar el Documento de Diseño Técnico">⚙️ Documento TDD (Técnico)</a></li>
+                    <li><a href="legal.html" title="Consultar el Marco Legal y RGPD">⚖️ Documento Legal (RGPD)</a></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Alberto Ortiz Sánchez · Legal Professional · Museo Padre Suárez</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

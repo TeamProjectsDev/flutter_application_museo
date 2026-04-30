@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDD — Diseño y Gamificación — Museo Padre Suárez</title>
+    <meta name="description" content="Documento de Diseño del Juego (GDD). Explora la narrativa, mecánicas de Realidad Aumentada y el sistema de gamificación inmersivo del Museo Padre Suárez v5.0.">
+    <meta name="author" content="Alberto Ortiz Sánchez">
+    <meta name="publisher" content="Alberto Ortiz Sánchez">
+    <link rel="canonical" href="https://museo-padre-suarez.infinityfreeapp.com/gdd.html">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="GDD — Diseño y Gamificación — Museo Padre Suárez">
+    <meta property="og:description" content="Detalle creativo, narrativa y mecánicas AR del Museo Padre Suárez.">
+    <meta property="og:image" content="media/icon.png">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="GDD — Museo Padre Suárez">
+    
+    <link rel="icon" type="image/png" href="media/icon.png">
+    <link rel="image_src" href="media/icon.png">
+    <link rel="stylesheet" href="css/style.css?v=5.1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Fira+Code&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "GDD — Diseño y Gamificación — Museo Padre Suárez",
+      "description": "Explora la narrativa, mecánicas de Realidad Aumentada y el sistema de gamificación del proyecto.",
+      "image": "media/icon.png",
+      "author": {"@type": "Person", "name": "Alberto Ortiz Sánchez"}
+    }
+    </script>
+</head>
+<body itemscope itemtype="https://schema.org/TechArticle">
+    <button id="menu-toggle" class="menu-btn">☰ Menú</button>
+    <button id="back-to-top" class="back-to-top" title="Volver arriba">↑</button>
+    
+    <nav id="sidebar">
+        <h1>GDD v5.0</h1>
+        <ul>
+            <li><a href="index.html" title="Volver al Portal Principal" style="color:var(--primary); font-weight:bold;">🏠 Portal Principal</a></li>
+            <li><a href="gdd.html" title="Consultar el Documento de Diseño del Juego" style="color:var(--accent-gold); font-weight:bold;">🎨 Documento GDD</a></li>
+            <li><a href="tdd.html" title="Consultar el Documento de Diseño Técnico" style="color:var(--primary); font-weight:bold;">⚙️ Documento TDD</a></li>
+            <li><a href="legal.html" title="Consultar el Marco Legal y RGPD" style="color:var(--accent-red); font-weight:bold;">⚖️ Documento Legal</a></li>
+            <hr style="opacity:0.1; margin: 1rem 0;">
+            <li><a href="#concept" title="Ir al Concepto de Juego" class="active">01. Concepto</a></li>
+            <li><a href="#gameplay" title="Ver mecánicas de Gameplay">02. Gameplay</a></li>
+            <li><a href="#gamification" title="Consultar sistema de Gamificación">03. Gamificación</a></li>
+            <li><a href="#art" title="Ver Diseño Artístico">04. Diseño Artístico</a></li>
+            <li><a href="#interface" title="Consultar Interfaz de Usuario">05. Interfaz (UI)</a></li>
+            <li><a href="#narrative" title="Ver Narrativa y Lore">06. Narrativa</a></li>
+        </ul>
+    </nav>
+
+    <div class="theme-controls">
+        <button id="theme-toggle" class="chip">🌓 Modo</button>
+    </div>
+
+    <main>
+        <header class="hero" id="concept">
+            <p class="subtitle">GAME DESIGN DOCUMENT · PROYECTO MUSEO</p>
+            <h1 itemprop="headline">Diseño de la Experiencia</h1>
+            <p itemprop="description">Definición creativa y mecánica del Museo Padre Suárez</p>
+            <meta itemprop="image" content="media/icon.png">
+            <meta itemprop="author" content="Alberto Ortiz Sánchez">
+            <div class="chips">
+                <div class="chip blue">Realidad Aumentada</div>
+                <div class="chip blue">Visita 360°</div>
+                <div class="chip gold">Gamificación</div>
+                <div class="chip">Inmersión</div>
+            </div>
+        </header>
+
+        <section id="concept">
+            <h2><span>01</span> Concepto de Juego</h2>
+            <div class="ibox blue">
+                <strong>Visión:</strong> Transformar la visita tradicional al museo en una "búsqueda del tesoro" digital, donde el usuario no solo observa, sino que colecciona y explora piezas mediante tecnología AR.
+            </div>
+            <div class="grid">
+                <div class="card">
+                    <h3>Público Objetivo</h3>
+                    <p>Estudiantes de secundaria, universitarios y entusiastas de la historia que buscan una experiencia interactiva en lugar de una lectura pasiva de cartelas.</p>
+                </div>
+                <div class="card">
+                    <h3>Género</h3>
+                    <p>Edutainment (Educación + Entretenimiento) con mecánicas de colección y exploración.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="gameplay">
+            <h2><span>02</span> Mecánicas de Gameplay</h2>
+            <div class="card">
+                <h3>El Bucle de Juego (Core Loop)</h3>
+                <ol class="step-list">
+                    <li><strong>Exploración:</strong> El usuario recorre las salas físicas del museo.</li>
+                    <li><strong>Descubrimiento:</strong> Encuentra un código QR en una vitrina.</li>
+                    <li><strong>Acción:</strong> Escanea el código con la cámara de la app.</li>
+                    <li><strong>Recompensa:</strong> Desbloquea el modelo 3D/AR y gana puntos de experiencia.</li>
+                    <li><strong>Colección:</strong> La pieza se guarda permanentemente en su "Galería Personal".</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="gamification">
+            <h2><span>03</span> Sistema de Gamificación</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Rangos de Usuario</h3>
+                    <table class="dtable">
+                        <thead><tr><th>Rango</th><th>Requisito</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Visitante</strong></td><td>0 piezas</td></tr>
+                            <tr><td><strong>Explorador</strong></td><td>1-2 piezas</td></tr>
+                            <tr><td><strong>Académico</strong></td><td>3-5 piezas</td></tr>
+                            <tr style="color:var(--accent-gold)"><td><strong>Conservador Jefe</strong></td><td>6+ piezas</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <h3>Insignias Especiales</h3>
+                    <ul class="list-check">
+                        <li>🎖️ <strong>Mecenas:</strong> Por realizar la primera donación.</li>
+                        <li>🎓 <strong>Historiador:</strong> Por completar una sala entera.</li>
+                        <li>⚡ <strong>Flash:</strong> Por escanear 3 piezas en menos de 5 min.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="art">
+            <h2><span>04</span> Diseño Artístico</h2>
+            <div class="card">
+                <h3>Estilo Visual</h3>
+                <p>Se ha optado por un estilo <strong>Neumórfico / Glassmórfico</strong> moderno, combinando fondos oscuros profundos con elementos vibrantes en azul índigo y dorado, evocando la mezcla entre lo histórico y lo futurista.</p>
+            </div>
+            <div class="diagram-container">
+                <svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="50" width="150" height="100" fill="#6366f1" rx="8"/>
+                    <text x="125" y="170" text-anchor="middle" font-size="12" fill="currentColor">Indigo (Primary)</text>
+                    
+                    <rect x="250" y="50" width="150" height="100" fill="#fbbf24" rx="8"/>
+                    <text x="325" y="170" text-anchor="middle" font-size="12" fill="currentColor">Gold (Accent)</text>
+                    
+                    <rect x="450" y="50" width="150" height="100" fill="#0b0f1a" rx="8"/>
+                    <text x="525" y="170" text-anchor="middle" font-size="12" fill="currentColor">Deep Navy (BG)</text>
+                    
+                    <rect x="650" y="50" width="150" height="100" fill="#ffffff" rx="8"/>
+                    <text x="725" y="170" text-anchor="middle" font-size="12" fill="currentColor">White (Text)</text>
+                </svg>
+            </div>
+        </section>
+
+        <section id="interface">
+            <h2><span>05</span> Interfaz de Usuario (UI)</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Pantallas Clave</h3>
+                    <ul class="step-list">
+                        <li><strong>Home:</strong> Dashboard con rango y últimas piezas.</li>
+                        <li><strong>Cámara AR:</strong> Interfaz limpia para máximo foco en el objeto.</li>
+                        <li><strong>Galería 3D:</strong> Rejilla visual con efecto hover y filtros.</li>
+                        <li><strong>Mapa:</strong> Dibujo técnico interactivo de las salas.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Interacciones</h3>
+                    <p>Micro-animaciones al pulsar botones, transiciones de "fade-in" al cargar secciones y respuesta háptica simulada mediante cambios visuales.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="narrative">
+            <h2><span>06</span> Narrativa y Lore</h2>
+            <div class="card">
+                <h3>El Legado del Padre Suárez</h3>
+                <p>El juego no solo muestra objetos, sino que cuenta la historia de la Institución. Cada pieza desbloqueada revela un fragmento de la historia del museo, incentivando al usuario a completar la colección para entender el panorama histórico completo.</p>
+            </div>
+        </section>
+        
+        <!-- SECCION: ENLACES -->
+        <section id="enlaces">
+            <h2><span>07</span> Enlaces y Recursos</h2>
+            <div class="card">
+                <ul class="links-list">
+                    <li><a href="https://github.com/TeamProjectsDev/flutter_application_museo" target="_blank" rel="noopener noreferrer author" title="Ver código fuente en GitHub">💻 Repositorio GitHub</a></li>
+                    <li><a href="https://trello.com/invite/b/69f2388cbabd30ddc327ba4d/ATTIe3a67b5d853695cc29015db60479ce91566040F8/museo" target="_blank" rel="noopener noreferrer" title="Ver tablero de gestión en Trello">📋 Gestión del Proyecto (Trello)</a></li>
+                    <li><a href="https://stitch.withgoogle.com/projects/4937481282756923604" target="_blank" rel="noopener noreferrer" title="Ver prototipo interactivo en Stitch">🎨 Prototipo en Stitch</a></li>
+                    <li><a href="https://museo-padre-suarez.infinityfreeapp.com" target="_blank" rel="noopener noreferrer" title="Visitar la web oficial en producción">🌍 Web Live (Producción)</a></li>
+                    <hr style="opacity:0.1; margin: 10px 0;">
+                    <li><a href="index.html" title="Volver al Portal Principal">🏠 Portal Principal</a></li>
+                    <li><a href="gdd.html" title="Consultar el Documento de Diseño del Juego">🎨 Documento GDD (Diseño)</a></li>
+                    <li><a href="tdd.html" title="Consultar el Documento de Diseño Técnico">⚙️ Documento TDD (Técnico)</a></li>
+                    <li><a href="legal.html" title="Consultar el Marco Legal y RGPD">⚖️ Documento Legal (RGPD)</a></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Alberto Ortiz Sánchez · GDD Professional · Museo Padre Suárez</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
