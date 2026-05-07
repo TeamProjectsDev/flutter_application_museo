@@ -33,7 +33,7 @@ void main() async {
   await Firebase.initializeApp(options: _getFirebaseOptions());
 
   // Crashlytics: capturar errores no manejados del framework Flutter
-  if (!kIsWeb) {
+  if (!kIsWeb && defaultTargetPlatform != TargetPlatform.windows) {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
     // Capturar errores asíncronos de la plataforma nativa
     PlatformDispatcher.instance.onError = (error, stack) {
@@ -57,7 +57,7 @@ void main() async {
       ),
     ),
     (error, stack) {
-      if (!kIsWeb) {
+      if (!kIsWeb && defaultTargetPlatform != TargetPlatform.windows) {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       }
     },
@@ -85,9 +85,17 @@ FirebaseOptions _getFirebaseOptions() {
         messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
         projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
         storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
-        measurementId:
-            dotenv.env['FIREBASE_MEASUREMENT_ID_WEB'] ??
-            '', // A veces ayuda al plugin de Flutter
+        measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID_WEB'] ?? '',
+      );
+    case TargetPlatform.windows:
+      return FirebaseOptions(
+        apiKey: dotenv.env['FIREBASE_API_KEY_WEB'] ?? '',
+        appId: dotenv.env['FIREBASE_APP_ID_WEB'] ?? '',
+        messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
+        projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
+        storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
+        authDomain: "${dotenv.env['FIREBASE_PROJECT_ID']}.firebaseapp.com",
+        measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID_WEB'] ?? '',
       );
     default:
       throw UnsupportedError('Plataforma no soportada por el momento.');

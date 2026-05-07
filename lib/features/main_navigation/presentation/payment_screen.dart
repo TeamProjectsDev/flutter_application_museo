@@ -296,6 +296,25 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                   int.tryParse(dotenv.env['TESTER'] ?? '0') ==
                                   1;
 
+                              // 1. PRIORIDAD: MODO TESTER (Simulación para cualquier plataforma)
+                              if (isTester) {
+                                if (defaultTargetPlatform !=
+                                    TargetPlatform.windows) {
+                                  await FirebaseAnalytics.instance.logEvent(
+                                    name: 'ticket_mock_success',
+                                    parameters: {'type': 'digital_entry'},
+                                  );
+                                }
+                                if (context.mounted) {
+                                  _showMockPaymentDialog(
+                                    context,
+                                    _emailController.text.trim(),
+                                    _nameController.text.trim(),
+                                  );
+                                }
+                                return;
+                              }
+
                               final isDesktopOrWeb =
                                   kIsWeb ||
                                   defaultTargetPlatform ==
@@ -304,7 +323,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                       TargetPlatform.macOS ||
                                   defaultTargetPlatform == TargetPlatform.linux;
 
-                              // MODO PAGOS WEB / PC (Stripe)
+                              // 2. MODO PAGOS WEB / PC (Stripe)
                               if (isDesktopOrWeb) {
                                 try {
                                   showDialog(
@@ -338,10 +357,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
                                   if (stripeUrl != null &&
                                       stripeUrl.isNotEmpty) {
-                                    await FirebaseAnalytics.instance.logEvent(
-                                      name: 'ticket_stripe_started',
-                                      parameters: {'type': 'digital_entry'},
-                                    );
+                                    if (defaultTargetPlatform !=
+                                        TargetPlatform.windows) {
+                                      await FirebaseAnalytics.instance.logEvent(
+                                        name: 'ticket_stripe_started',
+                                        parameters: {'type': 'digital_entry'},
+                                      );
+                                    }
                                     await launchUrlString(
                                       stripeUrl,
                                       mode: LaunchMode.externalApplication,
@@ -394,14 +416,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                 return;
                               }
 
-                              // MODO SIMULACIÓN MÓVIL (Si no hay llaves de RevenueCat o productos, o Modo Tester)
+                              // 3. MODO SIMULACIÓN MÓVIL (Si no hay llaves de RevenueCat o productos)
                               if (!paymentState.isReady ||
-                                  paymentState.products.isEmpty ||
-                                  isTester) {
-                                await FirebaseAnalytics.instance.logEvent(
-                                  name: 'ticket_mock_success',
-                                  parameters: {'type': 'digital_entry'},
-                                );
+                                  paymentState.products.isEmpty) {
                                 if (context.mounted) {
                                   _showMockPaymentDialog(
                                     context,
@@ -418,10 +435,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                                   .purchaseTicket();
 
                               if (success && context.mounted) {
-                                await FirebaseAnalytics.instance.logEvent(
-                                  name: 'ticket_revenuecat_success',
-                                  parameters: {'type': 'digital_entry'},
-                                );
+                                if (defaultTargetPlatform !=
+                                    TargetPlatform.windows) {
+                                  await FirebaseAnalytics.instance.logEvent(
+                                    name: 'ticket_revenuecat_success',
+                                    parameters: {'type': 'digital_entry'},
+                                  );
+                                }
                                 _sendTicketEmail(
                                   _emailController.text.trim(),
                                   _nameController.text.trim(),

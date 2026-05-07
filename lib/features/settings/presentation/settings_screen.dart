@@ -98,43 +98,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          ListTile(
-            title: Text('settings_theme_light'.tr()),
-            leading: const Icon(Icons.light_mode),
-            trailing: Radio<ThemeMode>(
-              value: ThemeMode.light,
-              groupValue: currentTheme,
-              onChanged: (ThemeMode? value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setTheme(value);
-                }
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('settings_theme_dark'.tr()),
-            leading: const Icon(Icons.dark_mode),
-            trailing: Radio<ThemeMode>(
-              value: ThemeMode.dark,
-              groupValue: currentTheme,
-              onChanged: (ThemeMode? value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setTheme(value);
-                }
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('settings_theme_system'.tr()),
-            leading: const Icon(Icons.settings_system_daydream),
-            trailing: Radio<ThemeMode>(
-              value: ThemeMode.system,
-              groupValue: currentTheme,
-              onChanged: (ThemeMode? value) {
-                if (value != null) {
-                  ref.read(themeProvider.notifier).setTheme(value);
-                }
-              },
+          RadioGroup<ThemeMode>(
+            groupValue: currentTheme,
+            onChanged: (ThemeMode? value) {
+              if (value != null) {
+                ref.read(themeProvider.notifier).setTheme(value);
+              }
+            },
+            child: Column(
+              children: [
+                ListTile(
+                  title: Text('settings_theme_light'.tr()),
+                  leading: const Icon(Icons.light_mode),
+                  trailing: const Radio<ThemeMode>(
+                    value: ThemeMode.light,
+                  ),
+                ),
+                ListTile(
+                  title: Text('settings_theme_dark'.tr()),
+                  leading: const Icon(Icons.dark_mode),
+                  trailing: const Radio<ThemeMode>(
+                    value: ThemeMode.dark,
+                  ),
+                ),
+                ListTile(
+                  title: Text('settings_theme_system'.tr()),
+                  leading: const Icon(Icons.settings_system_daydream),
+                  trailing: const Radio<ThemeMode>(
+                    value: ThemeMode.system,
+                  ),
+                ),
+              ],
             ),
           ),
           const Divider(height: 32),
@@ -147,32 +141,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          ListTile(
-            title: const Text('Español'),
-            leading: const Text('🇪🇸', style: TextStyle(fontSize: 24)),
-            trailing: Radio<String>(
-              value: 'es',
-              groupValue: context.locale.languageCode,
-              onChanged: (String? value) {
-                if (value != null) {
-                  context.setLocale(Locale(value));
-                  ref.read(localeProvider.notifier).state = Locale(value);
-                }
-              },
-            ),
-          ),
-          ListTile(
-            title: const Text('English'),
-            leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
-            trailing: Radio<String>(
-              value: 'en',
-              groupValue: context.locale.languageCode,
-              onChanged: (String? value) {
-                if (value != null) {
-                  context.setLocale(Locale(value));
-                  ref.read(localeProvider.notifier).state = Locale(value);
-                }
-              },
+          RadioGroup<String>(
+            groupValue: context.locale.languageCode,
+            onChanged: (String? value) {
+              if (value != null) {
+                context.setLocale(Locale(value));
+                ref.read(localeProvider.notifier).state = Locale(value);
+              }
+            },
+            child: Column(
+              children: [
+                ListTile(
+                  title: const Text('Español'),
+                  leading: const Text('🇪🇸', style: TextStyle(fontSize: 24)),
+                  trailing: const Radio<String>(
+                    value: 'es',
+                  ),
+                ),
+                ListTile(
+                  title: const Text('English'),
+                  leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
+                  trailing: const Radio<String>(
+                    value: 'en',
+                  ),
+                ),
+              ],
             ),
           ),
           const Divider(height: 32),
