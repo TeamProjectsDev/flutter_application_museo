@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -54,50 +55,74 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final goldColor = const Color(0xFFEBC154);
 
     return Scaffold(
+      backgroundColor: const Color(0xFF121212),
       body: Stack(
         children: [
+          // 1. Static Museum Background (Same as Welcome for continuity)
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/welcome_bg.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Dark Overlay with Blur
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
+
+          // 2. Content
           PageView.builder(
             controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
+            onPageChanged: (index) => setState(() => _currentPage = index),
             itemCount: _onboardingData.length,
             itemBuilder: (context, index) {
               return Padding(
-                padding: const EdgeInsets.all(40.0),
+                padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      _getIconData(_onboardingData[index]['icon']!),
-                      size: 120,
-                      color: isDark ? Colors.amber.shade200 : Colors.deepPurple,
+                    // Icon Container (Glassmorphism)
+                    Container(
+                      padding: const EdgeInsets.all(30),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: goldColor.withValues(alpha: 0.2)),
+                      ),
+                      child: Icon(
+                        _getIconData(_onboardingData[index]['icon']!),
+                        size: 80,
+                        color: goldColor,
+                      ),
                     ),
-                    const SizedBox(height: 60),
+                    const SizedBox(height: 50),
                     Text(
                       _onboardingData[index]['title']!.tr(),
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
                       textAlign: TextAlign.center,
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        fontSize: 28,
+                        color: goldColor,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Text(
                       _onboardingData[index]['description']!.tr(),
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
-                        color: isDark
-                            ? Colors.grey.shade300
-                            : Colors.grey.shade700,
-                        height: 1.5,
+                        color: Colors.white.withValues(alpha: 0.7),
+                        height: 1.6,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -105,53 +130,71 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
           ),
 
-          // Skip Button
+          // 3. Header Actions (Skip)
           Positioned(
-            top: 50,
+            top: 60,
             right: 20,
             child: TextButton(
               onPressed: _completeOnboarding,
               child: Text(
-                'common_skip'.tr(),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                'common_skip'.tr().toUpperCase(),
+                style: TextStyle(
+                  color: goldColor.withValues(alpha: 0.6),
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
           ),
 
-          // Indicators and Next/Start Button
+          // 4. Bottom Navigation
           Positioned(
-            bottom: 50,
-            left: 20,
-            right: 20,
+            bottom: 60,
+            left: 40,
+            right: 40,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Indicators
                 Row(
                   children: List.generate(
                     _onboardingData.length,
-                    (index) => buildDot(index, context, isDark),
+                    (index) => _buildIndicator(index, goldColor),
                   ),
                 ),
-                FloatingActionButton(
+                
+                // Next Button
+                ElevatedButton(
                   onPressed: () {
                     if (_currentPage == _onboardingData.length - 1) {
                       _completeOnboarding();
                     } else {
                       _pageController.nextPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOutCubic,
                       );
                     }
                   },
-                  backgroundColor: isDark
-                      ? Colors.amber.shade600
-                      : Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  child: Icon(
-                    _currentPage == _onboardingData.length - 1
-                        ? Icons.check
-                        : Icons.arrow_forward_ios,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: goldColor,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        _currentPage == _onboardingData.length - 1 ? 'START' : 'NEXT',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        _currentPage == _onboardingData.length - 1 
+                          ? Icons.check_rounded 
+                          : Icons.arrow_forward_rounded,
+                        size: 18,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -162,17 +205,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget buildDot(int index, BuildContext context, bool isDark) {
+  Widget _buildIndicator(int index, Color color) {
+    bool isActive = _currentPage == index;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.only(right: 8),
-      height: 8,
-      width: _currentPage == index ? 24 : 8,
+      height: 4,
+      width: isActive ? 24 : 8,
       decoration: BoxDecoration(
-        color: _currentPage == index
-            ? (isDark ? Colors.amber.shade400 : Colors.deepPurple)
-            : Colors.grey.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(4),
+        color: isActive ? color : color.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(2),
       ),
     );
   }
