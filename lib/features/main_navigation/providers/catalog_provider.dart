@@ -65,24 +65,24 @@ class CatalogItem {
       type = CatalogItemType.environment360;
     }
 
-    // Adivinar sala según nombre
-    String room = 'General';
+    // Adivinar sala según nombre (usando CLAVES de traducción para estabilidad)
+    String room = 'map_general';
     if (lower.contains('mandibula') ||
         lower.contains('fosil') ||
         lower.contains('diente')) {
-      room = 'Paleontología';
+      room = 'map_paleo';
     } else if (lower.contains('animal') ||
         lower.contains('ave') ||
         lower.contains('insecto')) {
-      room = 'Zoología';
+      room = 'map_zoo';
     } else if (lower.contains('vasija') ||
         lower.contains('hacha') ||
         lower.contains('romano')) {
-      room = 'Arqueología';
+      room = 'map_archaeo';
     } else if (lower.contains('auzoux') || lower.contains('anatomia')) {
-      room = 'Modelos Anatómicos';
+      room = 'map_anatomy';
     } else if (lower.contains('telescopio') || lower.contains('fisica')) {
-      room = 'Instrumentación';
+      room = 'map_instruments';
     }
 
     // Limpiar nombre para mostrar

@@ -1,516 +1,164 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'
-    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:url_launcher/url_launcher_string.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../../core/services/stripe_service.dart';
-import '../providers/shop_provider.dart';
-import '../providers/payment_provider.dart';
 
 class ShopScreen extends ConsumerStatefulWidget {
-  final String? preselectedItemId;
-  final String? preselectedItemName;
-  final String? preselectedImageUrl;
-  final String? preselectedStlUrl;
-
-  const ShopScreen({
-    super.key,
-    this.preselectedItemId,
-    this.preselectedItemName,
-    this.preselectedImageUrl,
-    this.preselectedStlUrl,
-  });
+  const ShopScreen({super.key});
 
   @override
   ConsumerState<ShopScreen> createState() => _ShopScreenState();
 }
 
 class _ShopScreenState extends ConsumerState<ShopScreen> {
-  final _notesController = TextEditingController();
+  int _generalTickets = 1;
+  int _studentTickets = 0;
+  int _audioGuides = 0;
+  double _printHeight = 50.0;
+  bool _include3DPrint = false;
 
-  Future<void> _submitRequest() async {
-    if (widget.preselectedItemId == null) return;
-
-    final success = await ref
-        .read(shopProvider.notifier)
-        .createRequest(
-          itemId: widget.preselectedItemId!,
-          itemName: widget.preselectedItemName!,
-          imageUrl: widget.preselectedImageUrl!,
-          stlUrl: widget.preselectedStlUrl!,
-          notes: _notesController.text,
-        );
-
-    if (success && mounted) {
-      // Notificar por correo invisible usando EmailJS
-      final serviceId = dotenv.env['EMAILJS_SERVICE_ID'] ?? '';
-      final templateId = dotenv.env['EMAILJS_TEMPLATE_ID'] ?? '';
-      final userId = dotenv.env['EMAILJS_USER_ID'] ?? '';
-      final privateKey = dotenv.env['EMAILJS_PRIVATE_KEY'] ?? '';
-      final adminEmailsStr = dotenv.env['ADMIN_EMAIL'] ?? '';
-
-      if (serviceId.isNotEmpty && serviceId != 'tu_service_id_aqui') {
-        final adminEmails = adminEmailsStr
-            .split(',')
-            .map((e) => e.trim())
-            .where((e) => e.isNotEmpty)
-            .toList();
-
-        for (final email in adminEmails) {
-          try {
-            debugPrint('📧 Intentando enviar email a $email...');
-            final response = await http.post(
-              Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
-              headers: {
-                'Content-Type': 'application/json',
-                if (privateKey.isNotEmpty) 'Authorization': privateKey,
-              },
-              body: json.encode({
-                'service_id': serviceId,
-                'template_id': templateId,
-                'user_id': userId,
-                'accessToken': privateKey,
-                'template_params': {
-                  'to_email': email,
-                  'item_name': widget.preselectedItemName,
-                  'user_notes': _notesController.text,
-                },
-              }),
-            );
-
-            if (response.statusCode == 200) {
-              debugPrint('✅ Email enviado con éxito a $email');
-            } else {
-              debugPrint(
-                '❌ Error de EmailJS (${response.statusCode}): ${response.body}',
-              );
-            }
-          } catch (e) {
-            debugPrint('🚨 Error de red enviando email a $email: $e');
-          }
-        }
-      }
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('shop_success'.tr())),
-      );
-      context.pop();
-    }
+  double get _subtotal {
+    return (_generalTickets * 25.0) + (_studentTickets * 15.0) + (_audioGuides * 8.0) + (_include3DPrint ? (10.0 + _printHeight * 0.2) : 0);
   }
+
+  double get _fees => _subtotal * 0.1;
+  double get _total => _subtotal + _fees;
 
   @override
   Widget build(BuildContext context) {
-    // Forzar reconstrucción por idioma
-    final state = ref.watch(shopProvider);
-    final paymentState = ref.watch(paymentProvider);
-
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      appBar: AppBar(title: Text('shop_title'.tr())),
+      appBar: AppBar(
+        title: Text('shop_plan_visit'.tr(), style: theme.textTheme.displayMedium?.copyWith(fontSize: 20)),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDigitalServices(
-              context,
-              ref,
-              paymentState,
-            ), // Pass ref and paymentState
-            const SizedBox(height: 16),
-            _buildInfoCard(),
-            const SizedBox(height: 32),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (widget.preselectedItemId != null)
-                    _buildOrderForm(state)
-                  else
-                    _buildEmptyState(),
-                  const SizedBox(height: 32),
-                  Text(
-                    'shop_my_requests'.tr(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildMyRequests(state),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.deepPurple.shade700, Colors.deepPurple.shade400],
-        ),
-      ),
-      child: Column(
-        children: [
-          const Icon(Icons.print_rounded, color: Colors.white, size: 48),
-          const SizedBox(height: 12),
-          Text(
-            'shop_3d_print_service'.tr(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'shop_3d_print_desc'.tr(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDonationDialog(
-    BuildContext context,
-    WidgetRef ref,
-    PaymentState paymentState,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // Added this line
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            // Modified padding
-            left: 24.0,
-            right: 24.0,
-            top: 24.0,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
-          ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.volunteer_activism,
-                size: 48,
-                color: Colors.orange,
-              ), // Modified icon
-              const SizedBox(height: 16),
-              const Text(
-                'Apoya al Museo',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                'shop_plan_visit'.tr(),
+                style: theme.textTheme.displayLarge?.copyWith(fontSize: 32),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Tu contribución nos ayuda a conservar y digitalizar más piezas históricas.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
+              Text(
+                'shop_plan_desc'.tr(),
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildDonationTier(
-                    context,
-                    ref,
-                    paymentState,
-                    '1€',
-                    'Bronce',
-                    Colors.brown.shade400,
-                    'donacion_bronce',
-                  ), // Modified call
-                  _buildDonationTier(
-                    context,
-                    ref,
-                    paymentState,
-                    '5€',
-                    'Plata',
-                    Colors.blueGrey.shade300,
-                    'donacion_plata',
-                  ), // Modified call
-                  _buildDonationTier(
-                    context,
-                    ref,
-                    paymentState,
-                    '15€',
-                    'Oro',
-                    Colors.amber.shade600,
-                    'donacion_oro',
-                  ), // Modified call
-                ],
+              const SizedBox(height: 40),
+
+              // 🎟️ Ticket Types
+              _buildTicketItem(
+                title: 'shop_item_general_title'.tr(),
+                desc: 'shop_item_general_desc'.tr(),
+                price: 25.0,
+                quantity: _generalTickets,
+                onChanged: (val) => setState(() => _generalTickets = val),
+                isPopular: true,
               ),
               const SizedBox(height: 16),
-              if (paymentState.isLoading)
-                const CircularProgressIndicator(), // Added this line
+              _buildTicketItem(
+                title: 'shop_item_student_title'.tr(),
+                desc: 'shop_item_student_desc'.tr(),
+                price: 15.0,
+                quantity: _studentTickets,
+                onChanged: (val) => setState(() => _studentTickets = val),
+              ),
+              const SizedBox(height: 16),
+              _buildTicketItem(
+                title: 'shop_item_audio_title'.tr(),
+                desc: 'shop_item_audio_desc'.tr(),
+                price: 8.0,
+                quantity: _audioGuides,
+                onChanged: (val) => setState(() => _audioGuides = val),
+                icon: Icons.headphones_outlined,
+              ),
+              
+              const SizedBox(height: 32),
+              const Divider(color: Colors.white10),
+              const SizedBox(height: 32),
+
+              // 🖨️ 3D Print Service
+              _build3DPrintSection(theme),
+
+              const SizedBox(height: 40),
+
+              // 📊 Order Summary
+              _buildOrderSummary(theme),
+              
+              const SizedBox(height: 40),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildDonationTier(
-    BuildContext context,
-    WidgetRef ref,
-    PaymentState paymentState,
-    String amount,
-    String tier,
-    Color color,
-    String productId,
-  ) {
-    // Modified signature
-    return InkWell(
-      onTap: () async {
-        final isTester = int.tryParse(dotenv.env['TESTER'] ?? '0') == 1;
-
-        final isDesktopOrWeb =
-            kIsWeb ||
-            defaultTargetPlatform == TargetPlatform.windows ||
-            defaultTargetPlatform == TargetPlatform.macOS ||
-            defaultTargetPlatform == TargetPlatform.linux;
-
-        // Pasarela Stripe para Web y PC (RevenueCat no soporta Web/Desktop directamente)
-        if (isDesktopOrWeb) {
-          try {
-            // Mostrar modal de carga
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => const AlertDialog(
-                content: Row(
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(width: 24),
-                    Text('Conectando con Stripe...'),
-                  ],
-                ),
-              ),
-            );
-
-            // Obtener precio numérico (Ej: "5€" -> 500 centavos)
-            final numericAmount =
-                int.tryParse(amount.replaceAll('€', '').trim()) ?? 1;
-            final cents = numericAmount * 100;
-
-            final stripeUrl = await StripeService().createCheckoutSession(
-              productName: 'Donación Museo: Nivel $tier',
-              amountInCents: cents,
-              currency: 'eur',
-              successUrl:
-                  'https://museo-padre-suarez.web.app/#/home', // Redirige al inicio si hay éxito
-              cancelUrl: 'https://museo-padre-suarez.web.app/#/shop',
-            );
-
-            if (context.mounted) {
-              Navigator.pop(context); // Cerrar Modal Loading Stripe
-              Navigator.pop(context); // Cerrar Modal original de Donaciones
-            }
-
-            if (stripeUrl != null && stripeUrl.isNotEmpty) {
-              await FirebaseAnalytics.instance.logEvent(
-                name: 'donation_stripe_started',
-                parameters: {'tier': tier, 'amount': cents},
-              );
-              if (!context.mounted) return;
-              await launchUrlString(
-                stripeUrl,
-                mode: LaunchMode.externalApplication,
-              );
-            } else {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Error obteniendo enlace de Stripe.'),
-                  ),
-                );
-              }
-            }
-          } catch (e) {
-            if (context.mounted) {
-              Navigator.pop(context); // Remove loading
-
-              String errorMessage = 'Asegúrate de tener conexión a Internet.';
-              if (e.toString().contains('401') ||
-                  e.toString().contains('Invalid API Key')) {
-                errorMessage =
-                    'El servicio de pagos (Stripe) no está configurado correctamente en este entorno.';
-              }
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error al procesar la donación: $errorMessage'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          }
-          return;
-        }
-
-        // Simulador Local para Móviles
-        if (isTester &&
-            (!paymentState.isReady || paymentState.products.isEmpty)) {
-          Navigator.pop(context);
-          await FirebaseAnalytics.instance.logEvent(
-            name: 'donation_mock_success',
-            parameters: {'tier': tier},
-          );
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '¡Gracias por tu donación de $amount ($tier)! (Simulación) ❤️',
-              ),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-          return;
-        }
-
-        // Pago Real RevenueCat
-        if (paymentState.isReady && paymentState.products.isNotEmpty) {
-          try {
-            final productToBuy = paymentState.products.firstWhere(
-              (p) => p.identifier == productId,
-              orElse: () => paymentState.products.first,
-            );
-
-            // Al intentar comprar, RevenueCat levanta la pasarela nativa sola, no cerramos el modal aún.
-            final success = await ref
-                .read(paymentProvider.notifier)
-                .purchaseSpecificProduct(productToBuy);
-
-            if (success && context.mounted) {
-              await FirebaseAnalytics.instance.logEvent(
-                name: 'donation_revenuecat_success',
-                parameters: {'tier': tier},
-              );
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    '¡Gracias por tu donación de $amount! Tu apoyo es vital. ❤️',
-                  ),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 4),
-                ),
-              );
-              Navigator.pop(context);
-            }
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error en el pago: $e'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          }
-        } else {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Las donaciones reales aún no están activadas en producción.',
-              ),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 4),
-            ),
-          );
-        }
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: 80,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
-          border: Border.all(color: color, width: 2),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Text(
-              amount,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              tier,
-              style: TextStyle(
-                fontSize: 12,
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildDigitalServices(
-    BuildContext context,
-    WidgetRef ref,
-    PaymentState paymentState,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+  Widget _buildTicketItem({
+    required String title,
+    required String desc,
+    required double price,
+    required int quantity,
+    required Function(int) onChanged,
+    bool isPopular = false,
+    IconData? icon,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Servicios Digitales',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.deepPurple,
+          if (isPopular)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text('MOST POPULAR', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey)),
             ),
-          ),
-          const SizedBox(height: 16),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (icon != null) ...[
+                Icon(icon, color: theme.colorScheme.primary, size: 20),
+                const SizedBox(width: 12),
+              ],
               Expanded(
-                child: _buildServiceCard(
-                  context,
-                  title: 'Entrada\nDigital',
-                  icon: Icons.qr_code_scanner_rounded,
-                  color: Colors.green.shade600,
-                  onTap: () => context.push('/payment'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    const SizedBox(height: 4),
+                    Text(desc, style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12)),
+                    const SizedBox(height: 16),
+                    Text('\$${price.toStringAsFixed(2)}', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 18)),
+                  ],
                 ),
               ),
               const SizedBox(width: 16),
-              Expanded(
-                child: _buildServiceCard(
-                  context,
-                  title: 'Apoyar al\nMuseo',
-                  icon: Icons.volunteer_activism_rounded,
-                  color: Colors.orange.shade600,
-                  onTap: () => _showDonationDialog(context, ref, paymentState),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    IconButton(onPressed: quantity > 0 ? () => onChanged(quantity - 1) : null, icon: const Icon(Icons.remove, size: 16)),
+                    Text('$quantity', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    IconButton(onPressed: () => onChanged(quantity + 1), icon: const Icon(Icons.add, size: 16)),
+                  ],
                 ),
               ),
             ],
@@ -520,241 +168,134 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     );
   }
 
-  Widget _buildServiceCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, size: 40, color: color),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderForm(ShopState state) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _build3DPrintSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Row(
+            Checkbox(
+              value: _include3DPrint,
+              onChanged: (val) => setState(() => _include3DPrint = val ?? false),
+              activeColor: theme.colorScheme.primary,
+            ),
+            Text('shop_3d_print_add'.tr(), style: theme.textTheme.displayMedium?.copyWith(fontSize: 18)),
+          ],
+        ),
+        if (_include3DPrint) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+            ),
+            child: Column(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    widget.preselectedImageUrl!,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.art_track, size: 40),
-                  ),
+                Text('shop_3d_height_select'.tr()),
+                Slider(
+                  value: _printHeight,
+                  min: 20,
+                  max: 200,
+                  divisions: 18,
+                  label: '${_printHeight.toInt()}mm',
+                  onChanged: (v) => setState(() => _printHeight = v),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'shop_request_print_label'.tr(),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Text(
-                        widget.preselectedItemName!,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                Text('Price: \$${(10 + _printHeight * 0.2).toStringAsFixed(2)}', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
               ],
             ),
-            const Divider(height: 32),
-            Text(
-              'shop_instructions_scale'.tr(),
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _notesController,
-              maxLines: 2,
-              decoration: InputDecoration(
-                hintText: 'shop_notes_hint'.tr(),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: Colors.grey[50],
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: state.isLoading ? null : _submitRequest,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: state.isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text('shop_confirm_request'.tr()),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        ],
+      ],
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildOrderSummary(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40),
-      alignment: Alignment.center,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.explore_outlined, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          Text(
-            'shop_select_item'.tr(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.grey),
+          Text('shop_order_summary'.tr(), style: theme.textTheme.displayMedium?.copyWith(fontSize: 22)),
+          const SizedBox(height: 24),
+          if (_generalTickets > 0) _summaryRow('${'shop_item_general_title'.tr()} x$_generalTickets', _generalTickets * 25.0),
+          if (_studentTickets > 0) _summaryRow('${'shop_item_student_title'.tr()} x$_studentTickets', _studentTickets * 15.0),
+          if (_audioGuides > 0) _summaryRow('${'shop_item_audio_title'.tr()} x$_audioGuides', _audioGuides * 8.0),
+          if (_include3DPrint) _summaryRow('3D Print ( ${_printHeight.toInt()}mm )', 10.0 + _printHeight * 0.2),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Divider(color: Colors.white10),
           ),
-          const SizedBox(height: 16),
-          TextButton(
-            onPressed: () => context.go('/collection'),
-            child: Text('shop_go_to_collection'.tr()),
+          _summaryRow('shop_subtotal'.tr(), _subtotal, isSmall: true),
+          _summaryRow('shop_fee'.tr(), _fees, isSmall: true),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('shop_total'.tr(), style: const TextStyle(fontSize: 18)),
+              Text('\$${_total.toStringAsFixed(2)}', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 28)),
+            ],
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _total > 0 ? () => _proceedToCheckout() : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: Colors.black,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.lock_outline, size: 18),
+                  const SizedBox(width: 8),
+                  Text('shop_proceed'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMyRequests(ShopState state) {
-    if (state.myRequests.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 32),
-        decoration: BoxDecoration(
-          color: Colors.grey.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-        ),
-        child: Column(
-          children: [
-            const Icon(
-              Icons.inventory_2_outlined,
-              color: Colors.grey,
-              size: 48,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'shop_no_requests'.tr(),
-              style: const TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: state.myRequests.length,
-      itemBuilder: (context, index) {
-        return _buildRequestCard(state.myRequests[index]);
-      },
+  Widget _summaryRow(String label, double value, {bool isSmall = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: Colors.white.withValues(alpha: isSmall ? 0.5 : 0.8), fontSize: isSmall ? 12 : 14)),
+          Text('\$${value.toStringAsFixed(2)}', style: TextStyle(fontSize: isSmall ? 12 : 14)),
+        ],
+      ),
     );
   }
 
-  Widget _buildRequestCard(PrintRequest req) {
-    Color statusColor;
-    IconData statusIcon;
-
-    switch (req.status) {
-      case PrintStatus.pendiente:
-        statusColor = Colors.orange;
-        statusIcon = Icons.timer;
-        break;
-      case PrintStatus.enCura:
-        statusColor = Colors.blue;
-        statusIcon = Icons.settings_suggest;
-        break;
-      case PrintStatus.imprimiendo:
-        statusColor = Colors.purple;
-        statusIcon = Icons.print;
-        break;
-      case PrintStatus.listo:
-        statusColor = Colors.green;
-        statusIcon = Icons.check_circle;
-        break;
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: statusColor.withValues(alpha: 0.5), width: 1),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: statusColor.withValues(alpha: 0.15),
-          child: Icon(statusIcon, color: statusColor),
-        ),
-        title: Text(
-          req.itemName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          'shop_status'.tr(args: [req.status.name.replaceAll('_', ' ')]),
-        ),
-        trailing: Text(
-          '${req.timestamp.day}/${req.timestamp.month}/${req.timestamp.year}',
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-      ),
+  void _proceedToCheckout() {
+    context.push(
+      Uri(
+        path: '/payment',
+        queryParameters: {
+          'total': _total.toString(),
+          'subtotal': _subtotal.toString(),
+          'fees': _fees.toString(),
+          'tickets': json.encode({
+            'general': _generalTickets,
+            'student': _studentTickets,
+            'audio': _audioGuides,
+            'print': _include3DPrint ? _printHeight.toInt() : 0,
+          }),
+        },
+      ).toString(),
     );
   }
 }

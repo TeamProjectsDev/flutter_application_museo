@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/news_provider.dart';
 import '../../../core/services/widget_service.dart';
 
@@ -17,6 +18,10 @@ class BioMagazineScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text('magazine_title'.tr()),
         actions: [
+          IconButton(
+            icon: Icon(Icons.settings_outlined, color: Theme.of(context).colorScheme.primary, size: 28),
+            onPressed: () => context.push('/settings'),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.read(newsProvider.notifier).fetchNews(),
@@ -105,24 +110,32 @@ class _ArticleCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CachedNetworkImage(
-              imageUrl: article.imageUrl,
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                height: 180,
-                color: Colors.grey[200],
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
+            article.imageUrl.isEmpty 
+              ? Container(
+                  height: 120,
+                  width: double.infinity,
+                  color: const Color(0xFF1A1A1A),
+                  child: Icon(Icons.article_outlined, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3), size: 40),
+                )
+              : CachedNetworkImage(
+                  imageUrl: article.imageUrl,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    height: 180,
+                    color: Colors.black12,
+                    child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    height: 120,
+                    width: double.infinity,
+                    color: const Color(0xFF1A1A1A),
+                    child: Icon(Icons.article_outlined, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3), size: 40),
+                  ),
                 ),
-              ),
-              errorWidget: (context, url, error) => Container(
-                height: 180,
-                color: Colors.grey[300],
-                child: const Icon(Icons.image_not_supported),
-              ),
-            ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
