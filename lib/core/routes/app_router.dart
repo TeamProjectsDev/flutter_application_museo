@@ -13,12 +13,14 @@ import '../../features/immersive_3d/presentation/viewer_3d_screen.dart';
 import '../../features/vr_360/vr_360_screen.dart';
 import '../../features/augmented_reality/ar_screen.dart';
 import '../../features/authentication/auth_screen.dart';
+import '../../features/authentication/providers/auth_provider.dart';
 import '../../features/main_navigation/presentation/shop_screen.dart';
 import '../../features/main_navigation/presentation/admin_orders_screen.dart';
 import '../../features/main_navigation/presentation/payment_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/onboarding/presentation/language_screen.dart';
+import '../../features/onboarding/presentation/welcome_screen.dart';
 import '../../features/main_navigation/presentation/my_tickets_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -40,16 +42,38 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
   final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
   final hasSelectedLanguage = prefs.getBool('has_selected_language') ?? false;
   final analytics = FirebaseAnalytics.instance;
+  
+  // Observar el estado de autenticación para reaccionar a cambios
+  ref.watch(authProvider);
 
-  String initialRoute = '/language';
-  if (hasSelectedLanguage) {
-    initialRoute = hasSeenOnboarding ? '/home' : '/onboarding';
+  String initialRoute = '/welcome';
+  if (hasSelectedLanguage && hasSeenOnboarding) {
+    initialRoute = '/home';
   }
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: initialRoute,
     observers: [FirebaseAnalyticsObserver(analytics: analytics)],
+    redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      final bool loggingIn = state.matchedLocation == '/auth';
+      final bool inOnboarding = state.matchedLocation == '/welcome' || 
+                                state.matchedLocation == '/language' || 
+                                state.matchedLocation == '/onboarding';
+
+      // Si no está autenticado y no está en las pantallas de inicio/login, al login
+      if (!authState.isAuthenticated && !loggingIn && !inOnboarding) {
+        return '/auth';
+      }
+
+      // Si ya está autenticado e intenta ir al login o bienvenida, a la home
+      if (authState.isAuthenticated && (loggingIn || inOnboarding)) {
+        return '/home';
+      }
+
+      return null;
+    },
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -99,6 +123,11 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
       ),
       // Rutas fuera del Bottom Navigation
       GoRoute(
+        path: '/welcome',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
         path: '/language',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const LanguageScreen(),
@@ -121,7 +150,8 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final modelFile = state.uri.queryParameters['model'];
-          return Viewer3DScreen(modelFileName: modelFile);
+          final room = state.uri.queryParameters['room'];
+          return Viewer3DScreen(modelFileName: modelFile, room: room);
         },
       ),
       GoRoute(
@@ -132,18 +162,7 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
       GoRoute(
         path: '/shop',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) {
-          final id = state.uri.queryParameters['id'];
-          final name = state.uri.queryParameters['name'];
-          final img = state.uri.queryParameters['img'];
-          final stl = state.uri.queryParameters['stl'];
-          return ShopScreen(
-            preselectedItemId: id,
-            preselectedItemName: name,
-            preselectedImageUrl: img,
-            preselectedStlUrl: stl,
-          );
-        },
+        builder: (context, state) => const ShopScreen(),
       ),
       GoRoute(
         path: '/admin/orders',
@@ -153,7 +172,18 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
       GoRoute(
         path: '/payment',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const PaymentScreen(),
+        builder: (context, state) {
+          final total = state.uri.queryParameters['total'] ?? '0';
+          final subtotal = state.uri.queryParameters['subtotal'] ?? '0';
+          final fees = state.uri.queryParameters['fees'] ?? '0';
+          final tickets = state.uri.queryParameters['tickets'] ?? '{}';
+          return PaymentScreen(
+            total: total,
+            subtotal: subtotal,
+            fees: fees,
+            ticketsJson: tickets,
+          );
+        },
       ),
       GoRoute(
         path: '/settings',
@@ -164,6 +194,11 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
         path: '/onboarding',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/tickets',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MyTicketsScreen(),
       ),
       GoRoute(
         path: '/my-tickets',

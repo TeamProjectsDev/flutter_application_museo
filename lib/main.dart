@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'core/routes/app_router.dart';
 import 'core/theme/theme_provider.dart';
-import 'core/providers/locale_provider.dart';
+import 'core/theme/app_theme.dart';
 
 import 'package:flutter/foundation.dart';
 
@@ -19,15 +18,6 @@ void main() async {
   // Cargar variables de entorno
   await dotenv.load(fileName: ".env");
   await EasyLocalization.ensureInitialized();
-
-  // Leer el locale guardado por EasyLocalization en SharedPreferences
-  // para inicializar localeProvider con el valor correcto desde el primer frame.
-  // EasyLocalization guarda el código de idioma bajo la clave 'selectedLocale'.
-  final prefs = await SharedPreferences.getInstance();
-  final savedCode = prefs.getString('selectedLocale');
-  final initialLocale = savedCode != null
-      ? Locale(savedCode)
-      : const Locale('en');
 
   // Inicialización de Firebase detectando la plataforma
   await Firebase.initializeApp(options: _getFirebaseOptions());
@@ -46,13 +36,12 @@ void main() async {
     () => runApp(
       EasyLocalization(
         supportedLocales: const [Locale('en'), Locale('es')],
-        path: 'assets/translations',
-        fallbackLocale: const Locale('en'),
-        startLocale: const Locale('en'),
+        path: 'assets/translations/',
+        fallbackLocale: const Locale('es'),
+        startLocale: const Locale('es'),
         useOnlyLangCode: true,
-        child: ProviderScope(
-          overrides: [localeProvider.overrideWith((ref) => initialLocale)],
-          child: const MuseoApp(),
+        child: const ProviderScope(
+          child: MuseoApp(),
         ),
       ),
     ),
@@ -87,16 +76,6 @@ FirebaseOptions _getFirebaseOptions() {
         storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
         measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID_WEB'] ?? '',
       );
-    case TargetPlatform.windows:
-      return FirebaseOptions(
-        apiKey: dotenv.env['FIREBASE_API_KEY_WEB'] ?? '',
-        appId: dotenv.env['FIREBASE_APP_ID_WEB'] ?? '',
-        messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
-        projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
-        storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
-        authDomain: "${dotenv.env['FIREBASE_PROJECT_ID']}.firebaseapp.com",
-        measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID_WEB'] ?? '',
-      );
     default:
       throw UnsupportedError('Plataforma no soportada por el momento.');
   }
@@ -108,9 +87,6 @@ class MuseoApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
-    // Watch localeProvider — when settings change the locale, MuseoApp
-    // rebuilds and propagates the new Locale down through the entire tree.
-    final locale = ref.watch(localeProvider);
     final routerAsyncValue = ref.watch(routerProvider);
 
     if (routerAsyncValue.isLoading ||
@@ -126,22 +102,10 @@ class MuseoApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
-      locale: locale,
+      locale: context.locale,
       themeMode: themeMode,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       // Integración de GoRouter dinámico
       routerConfig: routerAsyncValue.value,
       builder: (context, child) {

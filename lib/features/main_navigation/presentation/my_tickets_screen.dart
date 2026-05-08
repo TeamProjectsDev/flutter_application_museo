@@ -30,13 +30,17 @@ class MyTicketsScreen extends StatelessWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0D1B2A), Color(0xFF000814)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.5,
+            colors: [
+              Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0D1B2A) : const Color(0xFFF5F5F5),
+              Theme.of(context).brightness == Brightness.dark ? const Color(0xFF000814) : const Color(0xFFE0E0E0),
+            ],
           ),
         ),
         child: StreamBuilder<QuerySnapshot>(
@@ -55,17 +59,17 @@ class MyTicketsScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.confirmation_number_outlined,
                       size: 72,
-                      color: Colors.white24,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'tickets_empty'.tr(),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                         fontSize: 16,
                       ),
                     ),
@@ -110,7 +114,7 @@ class _TicketCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: const Color(0xFF1B263B),
+      color: Theme.of(context).colorScheme.surface,
       elevation: 8,
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -129,8 +133,8 @@ class _TicketCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'tickets_digital'.tr(args: [name]),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -138,15 +142,17 @@ class _TicketCard extends StatelessWidget {
                 ),
               ],
             ),
-            const Divider(color: Colors.white12, height: 20),
+            const Divider(height: 20),
 
             // Info
             _infoRow(
+              context,
               Icons.calendar_today,
               'tickets_visit_date'.tr(args: [visitDate]),
             ),
-            _infoRow(Icons.email_outlined, email),
+            _infoRow(context, Icons.email_outlined, email),
             _infoRow(
+              context,
               Icons.receipt_long,
               'tickets_purchase_date'.tr(args: [purchaseDate]),
             ),
@@ -171,8 +177,8 @@ class _TicketCard extends StatelessWidget {
             Center(
               child: Text(
                 ticketCode,
-                style: const TextStyle(
-                  color: Colors.white38,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                   fontSize: 10,
                   letterSpacing: 1.5,
                 ),
@@ -204,16 +210,16 @@ class _TicketCard extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(IconData icon, String text) => Padding(
+  Widget _infoRow(BuildContext context, IconData icon, String text) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 3),
     child: Row(
       children: [
-        Icon(icon, size: 16, color: Colors.white38),
+        Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13),
           ),
         ),
       ],

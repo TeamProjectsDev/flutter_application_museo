@@ -5,26 +5,55 @@ import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
 import '../../../core/providers/locale_provider.dart';
 
-class MapScreen extends ConsumerWidget {
+class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(localeProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           'map_museum_title'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: Colors.white,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline, color: Colors.blueAccent),
@@ -33,24 +62,25 @@ class MapScreen extends ConsumerWidget {
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.center,
             radius: 1.5,
-            colors: [Color(0xFF0D1B2A), Color(0xFF000814)],
+            colors: [
+              theme.brightness == Brightness.dark ? const Color(0xFF0D1B2A) : const Color(0xFFF5F5F5),
+              theme.brightness == Brightness.dark ? const Color(0xFF000814) : const Color(0xFFE0E0E0),
+            ],
           ),
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // Un lienzo ligeramente más grande que el viewport para permitir un poco de pan
-            final canvasWidth = constraints.maxWidth * 1.4;
-            final canvasHeight = constraints.maxHeight * 1.3;
+            final canvasWidth = constraints.maxWidth * 1.6;
+            final canvasHeight = constraints.maxHeight * 1.4;
 
             return InteractiveViewer(
               maxScale: 4.0,
-              minScale: 0.6,
-              boundaryMargin: const EdgeInsets.all(50),
-              // Centramos el visor para que el mapa aparezca de frente
+              minScale: 0.5,
+              boundaryMargin: const EdgeInsets.all(100),
               transformationController: TransformationController()
                 ..value = Matrix4.translationValues(
                   -(canvasWidth - constraints.maxWidth) / 2,
@@ -59,75 +89,76 @@ class MapScreen extends ConsumerWidget {
                 ),
               child: Stack(
                 children: [
-                  // Capa Blueprint (Fondo)
+                  // Capa Blueprint con profundidad
                   SizedBox(
                     width: canvasWidth,
                     height: canvasHeight,
                     child: CustomPaint(
                       painter: MuseumBlueprintPainter(
                         corridorLabel: 'map_corridor'.tr(),
+                        isDark: theme.brightness == Brightness.dark,
                       ),
                     ),
                   ),
 
-                  // Sala I: Paleontología (Ala Norte - Izquierda)
-                  _buildPremiumPin(
+                  // Sala I: Paleontología
+                  _buildAnimatedPin(
                     context,
-                    x: canvasWidth * 0.26,
-                    y: canvasHeight * 0.28,
+                    x: canvasWidth * 0.28,
+                    y: canvasHeight * 0.32,
                     label: 'map_paleo'.tr(),
                     icon: Icons.pest_control_rodent_outlined,
                     color: Colors.amber,
-                    info:
-                        'Fósiles de pterodáctilos, mamuts y minerales únicos.',
+                    info: 'Fósiles de pterodáctilos, mamuts y minerales únicos.',
+                    roomKey: 'map_paleo',
                   ),
 
-                  // Sala II: Zoología (Ala Norte - Centro)
-                  _buildPremiumPin(
+                  // Sala II: Zoología
+                  _buildAnimatedPin(
                     context,
                     x: canvasWidth * 0.5,
-                    y: canvasHeight * 0.28,
+                    y: canvasHeight * 0.32,
                     label: 'map_zoo'.tr(),
                     icon: Icons.pets,
                     color: Colors.greenAccent,
-                    info:
-                        'Espectacular colección de taxidermia y esqueletos reales.',
+                    info: 'Espectacular colección de taxidermia y esqueletos reales.',
+                    roomKey: 'map_zoo',
                   ),
 
-                  // Sala III: Arqueología (Ala Norte - Derecha)
-                  _buildPremiumPin(
+                  // Sala III: Arqueología
+                  _buildAnimatedPin(
                     context,
-                    x: canvasWidth * 0.74,
-                    y: canvasHeight * 0.28,
+                    x: canvasWidth * 0.72,
+                    y: canvasHeight * 0.32,
                     label: 'map_archaeo'.tr(),
                     icon: Icons.account_balance,
                     color: Colors.orangeAccent,
-                    info:
-                        'Vasijas griegas, romanas y tesoros de excavaciones granadinas.',
+                    info: 'Vasijas griegas, romanas y tesoros de excavaciones granadinas.',
+                    roomKey: 'map_archaeo',
                   ),
 
-                  // Sala VI: Modelos Dr. Auzoux (Ala Sur - Izquierda)
-                  _buildPremiumPin(
+                  // Sala VI: Modelos Dr. Auzoux
+                  _buildAnimatedPin(
                     context,
-                    x: canvasWidth * 0.35,
-                    y: canvasHeight * 0.71,
+                    x: canvasWidth * 0.38,
+                    y: canvasHeight * 0.68,
                     label: 'map_anatomy'.tr(),
                     icon: Icons.accessibility_new,
                     color: Colors.redAccent,
-                    info:
-                        'Anatomía clástica del siglo XIX de valor incalculable.',
+                    info: 'Anatomía clástica del siglo XIX de valor incalculable.',
+                    roomKey: 'map_anatomy',
                   ),
 
-                  // Sala VII: Física y Química (Ala Sur - Derecha)
-                  _buildPremiumPin(
+                  // Sala VII: Física y Química
+                  _buildAnimatedPin(
                     context,
-                    x: canvasWidth * 0.65,
-                    y: canvasHeight * 0.71,
+                    x: canvasWidth * 0.62,
+                    y: canvasHeight * 0.68,
                     label: 'map_instruments'.tr(),
                     icon: Icons.science,
                     color: Colors.cyanAccent,
-                    info:
-                        'Gabinete histórico con instrumentos científicos originales.',
+                    info: 'Gabinete histórico con instrumentos científicos originales.',
+                    roomKey: 'map_instruments',
                   ),
                 ],
               ),
@@ -138,7 +169,7 @@ class MapScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPremiumPin(
+  Widget _buildAnimatedPin(
     BuildContext context, {
     required double x,
     required double y,
@@ -146,55 +177,60 @@ class MapScreen extends ConsumerWidget {
     required IconData icon,
     required Color color,
     required String info,
+    required String roomKey,
   }) {
     return Positioned(
       left: x - 40,
       top: y - 45,
-      child: GestureDetector(
-        onTap: () => _showRoomDetails(context, label, info, color),
-        child: SizedBox(
-          width: 80,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.4),
-                      blurRadius: 12,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  backgroundColor: const Color(0xFF1B263B),
-                  radius: 20,
-                  child: Icon(icon, color: color, size: 22),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1B263B).withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8),
-                ),
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
+      child: ScaleTransition(
+        scale: _pulseAnimation,
+        child: GestureDetector(
+          onTap: () => _showRoomDetails(context, label, info, color, roomKey),
+          child: SizedBox(
+            width: 80,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.4),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  child: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    radius: 22,
+                    child: Icon(icon, color: color, size: 24),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -206,21 +242,28 @@ class MapScreen extends ConsumerWidget {
     String title,
     String info,
     Color color,
+    String roomKey,
   ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1B263B), Color(0xFF0D1B2A)],
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+            ],
           ),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, spreadRadius: 5),
+          ],
         ),
-        padding: const EdgeInsets.fromLTRB(28, 12, 28, 28),
+        padding: const EdgeInsets.fromLTRB(28, 12, 28, 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,54 +272,80 @@ class MapScreen extends ConsumerWidget {
               child: Container(
                 width: 40,
                 height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
+                margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             Row(
               children: [
-                Icon(Icons.location_on, color: color, size: 28),
-                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.location_on, color: color, size: 32),
+                ),
+                const SizedBox(width: 16),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      Text(
+                        'PLANTA PRINCIPAL',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: color,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               info,
               style: TextStyle(
-                fontSize: 15,
-                color: Colors.white.withValues(alpha: 0.8),
-                height: 1.5,
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                height: 1.6,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
+              height: 60,
               child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(context);
-                  context.go('/collection?room=$title');
+                  context.go('/collection?room=$roomKey');
                 },
-                icon: const Icon(Icons.explore_outlined),
-                label: Text('map_explore_objects'.tr()),
+                icon: const Icon(Icons.explore_outlined, size: 20),
+                label: Text(
+                  'map_explore_objects'.tr().toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: color,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
               ),
@@ -291,22 +360,28 @@ class MapScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1B263B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'map_museum_title'.tr(),
-          style: const TextStyle(color: Colors.white),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Icon(Icons.museum_outlined, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 12),
+            Text(
+              'map_museum_title'.tr(),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18),
+            ),
+          ],
         ),
         content: Text(
           'map_museum_desc'.tr(),
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'map_close'.tr(),
-              style: const TextStyle(color: Colors.blueAccent),
+              'map_close'.tr().toUpperCase(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -317,316 +392,98 @@ class MapScreen extends ConsumerWidget {
 
 class MuseumBlueprintPainter extends CustomPainter {
   final String corridorLabel;
+  final bool isDark;
 
-  MuseumBlueprintPainter({required this.corridorLabel});
+  MuseumBlueprintPainter({required this.corridorLabel, required this.isDark});
 
   @override
   void paint(Canvas canvas, Size size) {
+    final accentColor = isDark ? Colors.blueAccent : const Color(0xFF2B5797);
+    
     final blueprintPaint = Paint()
-      ..color = Colors.blueAccent.withValues(alpha: 0.2)
-      ..strokeWidth = 2.0
+      ..color = accentColor.withValues(alpha: 0.3)
+      ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
     final wallPaint = Paint()
-      ..color = Colors.blueAccent.withValues(alpha: 0.5)
-      ..strokeWidth = 3.5
+      ..color = accentColor.withValues(alpha: 0.6)
+      ..strokeWidth = 3.0
+      ..style = PaintingStyle.stroke;
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.1)
+      ..strokeWidth = 5.0
       ..style = PaintingStyle.stroke;
 
     final wallFillPaint = Paint()
-      ..color = Colors.blueAccent.withValues(alpha: 0.04)
+      ..color = accentColor.withValues(alpha: 0.05)
       ..style = PaintingStyle.fill;
 
-    // 1. Dibujar Cuadrícula Técnica
-    final gridPaint = Paint()..color = Colors.white.withValues(alpha: 0.04);
-    for (double i = 0; i < size.width; i += 40) {
+    // 1. Grid
+    final gridPaint = Paint()..color = accentColor.withValues(alpha: 0.1);
+    for (double i = 0; i < size.width; i += 50) {
       canvas.drawLine(Offset(i, 0), Offset(i, size.height), gridPaint);
     }
-    for (double i = 0; i < size.height; i += 40) {
+    for (double i = 0; i < size.height; i += 50) {
       canvas.drawLine(Offset(0, i), Offset(size.width, i), gridPaint);
     }
 
-    // 2. Definición de Áreas
     final double midX = size.width / 2;
-    final double nWingTop = size.height * 0.12;
-    final double nWingHeight = size.height * 0.32;
-    final double nWingWidth = size.width * 0.82;
+    final double nWingTop = size.height * 0.15;
+    final double nWingHeight = size.height * 0.35;
+    final double nWingWidth = size.width * 0.8;
     final double nWingLeft = midX - (nWingWidth / 2);
 
-    final double sWingTop = size.height * 0.6;
-    final double sWingHeight = size.height * 0.22;
-    final double sWingWidth = size.width * 0.65;
+    final double sWingTop = size.height * 0.65;
+    final double sWingHeight = size.height * 0.25;
+    final double sWingWidth = size.width * 0.6;
     final double sWingLeft = midX - (sWingWidth / 2);
 
-    // --- ALA NORTE (Salas I, II, III) ---
-    final Rect northRect = Rect.fromLTWH(
-      nWingLeft,
-      nWingTop,
-      nWingWidth,
-      nWingHeight,
-    );
+    // --- ALA NORTE ---
+    final Rect northRect = Rect.fromLTWH(nWingLeft, nWingTop, nWingWidth, nWingHeight);
+    
+    // Sombra isométrica
+    canvas.drawRect(northRect.shift(const Offset(4, 4)), shadowPaint);
+    
     canvas.drawRect(northRect, wallFillPaint);
     canvas.drawRect(northRect, wallPaint);
 
-    // Divisiones Ala Norte
+    // Divisiones
     final double roomWidth = nWingWidth / 3;
-    canvas.drawLine(
-      Offset(nWingLeft + roomWidth, nWingTop),
-      Offset(nWingLeft + roomWidth, nWingTop + nWingHeight),
-      blueprintPaint,
-    );
-    canvas.drawLine(
-      Offset(nWingLeft + roomWidth * 2, nWingTop),
-      Offset(nWingLeft + roomWidth * 2, nWingTop + nWingHeight),
-      blueprintPaint,
-    );
+    canvas.drawLine(Offset(nWingLeft + roomWidth, nWingTop), Offset(nWingLeft + roomWidth, nWingTop + nWingHeight), blueprintPaint);
+    canvas.drawLine(Offset(nWingLeft + roomWidth * 2, nWingTop), Offset(nWingLeft + roomWidth * 2, nWingTop + nWingHeight), blueprintPaint);
 
-    // Detalle de Vitrinas / Pilastras
-    _drawVitrinas(
-      canvas,
-      nWingLeft + 20,
-      nWingTop + 20,
-      roomWidth - 40,
-      nWingHeight - 40,
-    );
-    _drawVitrinas(
-      canvas,
-      nWingLeft + roomWidth + 20,
-      nWingTop + 20,
-      roomWidth - 40,
-      nWingHeight - 40,
-    );
-    _drawVitrinas(
-      canvas,
-      nWingLeft + roomWidth * 2 + 20,
-      nWingTop + 20,
-      roomWidth - 40,
-      nWingHeight - 40,
-    );
-
-    // Puertas Ala Norte
-    _drawDetailedDoor(
-      canvas,
-      Offset(nWingLeft + roomWidth, nWingTop + nWingHeight * 0.6),
-      true,
-    );
-    _drawDetailedDoor(
-      canvas,
-      Offset(nWingLeft + roomWidth * 2, nWingTop + nWingHeight * 0.6),
-      true,
-    );
-
-    // Numeración de salas (Norte)
-    _drawRoomTag(canvas, "S-I", Offset(nWingLeft + 15, nWingTop + 15));
-    _drawRoomTag(
-      canvas,
-      "S-II",
-      Offset(nWingLeft + roomWidth + 15, nWingTop + 15),
-    );
-    _drawRoomTag(
-      canvas,
-      "S-III",
-      Offset(nWingLeft + roomWidth * 2 + 15, nWingTop + 15),
-    );
-
-    // --- ALA SUR (Salas VI, VII) ---
-    final Rect southRect = Rect.fromLTWH(
-      sWingLeft,
-      sWingTop,
-      sWingWidth,
-      sWingHeight,
-    );
+    // --- ALA SUR ---
+    final Rect southRect = Rect.fromLTWH(sWingLeft, sWingTop, sWingWidth, sWingHeight);
+    canvas.drawRect(southRect.shift(const Offset(4, 4)), shadowPaint);
     canvas.drawRect(southRect, wallFillPaint);
     canvas.drawRect(southRect, wallPaint);
 
-    // División Ala Sur
-    canvas.drawLine(
-      Offset(midX, sWingTop),
-      Offset(midX, sWingTop + sWingHeight),
-      blueprintPaint,
-    );
-    _drawDetailedDoor(canvas, Offset(midX, sWingTop + sWingHeight * 0.4), true);
+    // División Sur
+    canvas.drawLine(Offset(midX, sWingTop), Offset(midX, sWingTop + sWingHeight), blueprintPaint);
 
-    // Vitrinas Sur
-    _drawVitrinas(
-      canvas,
-      sWingLeft + 20,
-      sWingTop + 20,
-      (sWingWidth / 2) - 40,
-      sWingHeight - 40,
-    );
-    _drawVitrinas(
-      canvas,
-      midX + 20,
-      sWingTop + 20,
-      (sWingWidth / 2) - 40,
-      sWingHeight - 40,
-    );
-
-    // Numeración de salas (Sur)
-    _drawRoomTag(canvas, "S-VI", Offset(sWingLeft + 15, sWingTop + 15));
-    _drawRoomTag(canvas, "S-VII", Offset(midX + 15, sWingTop + 15));
-
-    // --- PASILLOS Y CONEXIONES ---
-    final corridorPaint = Paint()
-      ..color = Colors.blueAccent.withValues(alpha: 0.4)
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
-
+    // --- CONEXIÓN ---
     final double corridorY = nWingTop + nWingHeight;
     final double corridorH = sWingTop - corridorY;
-    final double corridorW = 80;
-
-    final Rect corridorRect = Rect.fromCenter(
-      center: Offset(midX, corridorY + (corridorH / 2)),
-      width: corridorW,
-      height: corridorH,
-    );
+    final double corridorW = 100;
+    final Rect corridorRect = Rect.fromCenter(center: Offset(midX, corridorY + (corridorH / 2)), width: corridorW, height: corridorH);
     canvas.drawRect(corridorRect, wallFillPaint);
-    canvas.drawRect(corridorRect, corridorPaint);
+    canvas.drawRect(corridorRect, blueprintPaint);
 
-    _drawDetailedDoor(
-      canvas,
-      Offset(midX - corridorW / 2, corridorY + corridorH / 2),
-      false,
-    );
-    _drawDetailedDoor(
-      canvas,
-      Offset(midX + corridorW / 2, corridorY + corridorH / 2),
-      false,
-    );
-
-    // 3. Anotaciones de Texto Detalladas
-    _drawText(
-      canvas,
-      corridorLabel.toUpperCase(),
-      Offset(midX + 3, corridorY + corridorH * 0.4),
-      rot: 90,
-      size: 7,
-    );
-    _drawText(
-      canvas,
-      "PLANTA PRINCIPAL - SECCIÓN TÉCNICA",
-      Offset(nWingLeft, nWingTop - 25),
-      size: 9,
-      bold: true,
-    );
-    _drawText(
-      canvas,
-      "AC-MOD-2026 / PADRE SUÁREZ",
-      Offset(sWingLeft, sWingTop + sWingHeight + 20),
-      size: 7,
-    );
-
-    // 4. Cotas de Medida
-    final cotaPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.15)
-      ..strokeWidth = 1.0;
-    _drawCota(
-      canvas,
-      Offset(nWingLeft - 20, nWingTop),
-      Offset(nWingLeft - 20, nWingTop + nWingHeight),
-      "14.2m",
-      cotaPaint,
-    );
-    _drawCota(
-      canvas,
-      Offset(nWingLeft, nWingTop - 40),
-      Offset(nWingLeft + nWingWidth, nWingTop - 40),
-      "32.8m",
-      cotaPaint,
-    );
+    // Etiquetas
+    _drawText(canvas, corridorLabel.toUpperCase(), Offset(midX + 5, corridorY + corridorH * 0.4), rot: 90, size: 8, color: accentColor);
+    _drawText(canvas, "IES PADRE SUÁREZ - GABINETE TÉCNICO", Offset(nWingLeft, nWingTop - 30), size: 10, bold: true, color: accentColor);
   }
 
-  void _drawVitrinas(Canvas canvas, double x, double y, double w, double h) {
-    final vPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.5;
-    // Dibujamos un patrón de cuadrículas internas tipo vitrina
-    int rows = 2;
-    int cols = (w / 40).floor();
-    if (cols < 1) cols = 1;
-
-    for (int i = 0; i <= rows; i++) {
-      canvas.drawLine(
-        Offset(x, y + i * (h / rows)),
-        Offset(x + w, y + i * (h / rows)),
-        vPaint,
-      );
-    }
-    for (int i = 0; i <= cols; i++) {
-      canvas.drawLine(
-        Offset(x + i * (w / cols), y),
-        Offset(x + i * (w / cols), y + h),
-        vPaint,
-      );
-    }
-  }
-
-  void _drawDetailedDoor(Canvas canvas, Offset pos, bool vertical) {
-    final doorPaint = Paint()
-      ..color = Colors.blueAccent.withValues(alpha: 0.7)
-      ..strokeWidth = 2.0;
-    if (vertical) {
-      canvas.drawLine(
-        pos + const Offset(0, -15),
-        pos + const Offset(0, 15),
-        doorPaint,
-      );
-      canvas.drawArc(
-        Rect.fromCircle(center: pos + const Offset(0, -15), radius: 25),
-        0,
-        1.2,
-        false,
-        doorPaint,
-      );
-    } else {
-      canvas.drawLine(
-        pos + const Offset(-15, 0),
-        pos + const Offset(15, 0),
-        doorPaint,
-      );
-      canvas.drawArc(
-        Rect.fromCircle(center: pos + const Offset(-15, 0), radius: 25),
-        -1.5,
-        1.2,
-        false,
-        doorPaint,
-      );
-    }
-  }
-
-  void _drawRoomTag(Canvas canvas, String text, Offset pos) {
+  void _drawText(Canvas canvas, String text, Offset pos, {double rot = 0, double size = 8, bool bold = false, required Color color}) {
     final tp = TextPainter(
       text: TextSpan(
         text: text,
         style: TextStyle(
-          color: Colors.blueAccent.withValues(alpha: 0.6),
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: ui.TextDirection.ltr,
-    )..layout();
-    tp.paint(canvas, pos);
-  }
-
-  void _drawText(
-    Canvas canvas,
-    String text,
-    Offset pos, {
-    double rot = 0,
-    double size = 8,
-    bool bold = false,
-  }) {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.25),
+          color: color.withValues(alpha: 0.6),
           fontSize: size,
           fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-          letterSpacing: 1.2,
+          letterSpacing: 1.5,
         ),
       ),
       textDirection: ui.TextDirection.ltr,
@@ -637,48 +494,6 @@ class MuseumBlueprintPainter extends CustomPainter {
     canvas.rotate(rot * 0.0174533);
     tp.paint(canvas, Offset.zero);
     canvas.restore();
-  }
-
-  void _drawCota(
-    Canvas canvas,
-    Offset start,
-    Offset end,
-    String text,
-    Paint paint,
-  ) {
-    canvas.drawLine(start, end, paint);
-    // Trazos finales
-    bool isVertical = (start.dx == end.dx);
-    if (isVertical) {
-      canvas.drawLine(
-        start + const Offset(-5, 0),
-        start + const Offset(5, 0),
-        paint,
-      );
-      canvas.drawLine(
-        end + const Offset(-5, 0),
-        end + const Offset(5, 0),
-        paint,
-      );
-    } else {
-      canvas.drawLine(
-        start + const Offset(0, -5),
-        start + const Offset(0, 5),
-        paint,
-      );
-      canvas.drawLine(
-        end + const Offset(0, -5),
-        end + const Offset(0, 5),
-        paint,
-      );
-    }
-    _drawText(
-      canvas,
-      text,
-      (start + end) / 2 +
-          (isVertical ? const Offset(-30, 0) : const Offset(0, -15)),
-      size: 7,
-    );
   }
 
   @override

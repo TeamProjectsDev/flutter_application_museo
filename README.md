@@ -22,7 +22,7 @@ Aquí puedes encontrar acceso directo a toda la infraestructura y documentación
 2. [Configuración del Archivo `.env`](#2-configuración-del-archivo-env)
 3. [Configuración de Firebase (Base de Datos y Usuarios)](#3-configuración-de-firebase-base-de-datos-y-usuarios)
 4. [Configuración de EmailJS (Correos Automáticos)](#4-configuración-de-emailjs-correos-automáticos)
-5. [Configuración de Pagos Reales (RevenueCat y Stripe)](#5-configuración-de-pagos-reales-revenuecat-y-stripe)
+5. [Configuración de Pagos Reales (Stripe)](#5-configuración-de-pagos-reales-stripe)
 6. [Almacenamiento de Modelos 3D (Supabase / R2 / GitHub)](#6-almacenamiento-de-modelos-3d-supabase--r2--github)
 7. [Códigos QR para las Piezas del Museo](#7-códigos-qr-para-las-piezas-del-museo)
 8. [Lanzar la Aplicación](#8-lanzar-la-aplicación)
@@ -65,8 +65,6 @@ La app utiliza un archivo secreto llamado `.env` para almacenar contraseñas y c
 | `EMAILJS_TICKET_TEMPLATE_ID`   | Plantilla EmailJS para entradas digitales         |
 | `EMAILJS_USER_ID`              | Clave pública de EmailJS                          |
 | `ADMIN_EMAIL`                  | Correo(s) del administrador (separados por comas) |
-| `REVENUECAT_ANDROID_KEY`       | API Key RevenueCat para Android                   |
-| `REVENUECAT_IOS_KEY`           | API Key RevenueCat para iOS                       |
 | `STRIPE_SECRET_KEY`            | Clave secreta Stripe (formato `sk_test_...`)      |
 | `GITHUB_RAW_URL`               | URL raw de GitHub para modelos 3D (fallback)      |
 | `R2_PUBLIC_URL`                | URL pública del bucket Cloudflare R2 (opcional)   |
@@ -127,7 +125,7 @@ La app está preconfigurada de fábrica para enviar estadísticas de uso super c
   * `view_item_360`: Cuando abren un entorno inmersivo VR.
 * **Conversión y Tienda (`add_to_cart`, `_success`, `_error`):**
   * `add_to_cart`: Guardará qué reproducciones físicas piden mediante el formulario del apartado Merchandising.
-  * `donation_..._success` / `ticket_..._success`: Sabrás si el usuario completó el flujo de pago con éxito usando dinero de verdad (`revenuecat` o `stripe`) o si fue una demo (`mock`).
+  * `donation_..._success` / `ticket_..._success`: Sabrás si el usuario completó el flujo de pago con éxito usando dinero de verdad (`stripe`) o si fue una demo (`mock`).
   * `ecommerce_error`: Se dispara de forma invisible si hay fallos en Firestore guardando un pedido físico.
 
 **🔐 ¿Cómo ser Administrador?**
@@ -167,20 +165,9 @@ La app envía correos reales (tickets digitales, avisos de impresión 3D) a los 
 
 ---
 
-## 5. Configuración de Pagos Reales (RevenueCat y Stripe)
+## 5. Configuración de Pagos Reales (Stripe)
 
-La aplicación tiene un sistema **híbrido** inteligente para abarcar a todos los usuarios: utiliza **RevenueCat** para las compras dentro de tu móvil (Android/iOS) usando las billeteras nativas, y utiliza una integración a medida con la API de **Stripe** para simuladores en PC o versiones Web (donde RevenueCat no llega por defecto).
-
-### A) Configuración Móvil (RevenueCat)
-1. Crea una cuenta en [RevenueCat](https://www.revenuecat.com/).
-2. Crea un nuevo proyecto.
-3. RevenueCat te pedirá que lo vincules con tus cuentas comerciales reales de [Google Play Console](https://play.google.com/console) (cuesta 25$) y App Store Connect (cuesta 99$/año). *Puedes saltarte este paso provisionalmente si solo vas a hacer pruebas de tribunales enseñando la simulación.*
-4. Cuando crees la app de Android dentro de RevenueCat, te dará una API Key. Ponla en el archivo `.env` en `REVENUECAT_ANDROID_KEY`.
-5. Si creas la app de iOS, te dará otra clave paralela. Ponla en `REVENUECAT_IOS_KEY`.
-6. En Google Play/AppStore, asegúrate de crear los identificadores exactos para los productos In-App (por ejemplo, `donacion_bronce`, `donacion_plata`, `donacion_oro`), de lo contrario la app dirá que los productos no se encuentran al cobrar.
-
-### B) Configuración PC / Web (Stripe)
-Si el museo se exporta a Web o se instala en el PC de la entrada, RevenueCat no puede procesar los pagos. Para esto hemos integrado la API dinámica de Stripe.
+La aplicación utiliza la API de **Stripe** para procesar todos los pagos y donaciones de forma unificada en todas las plataformas (Móvil, Web y PC).
 1. Crea una cuenta gratuita en [Stripe.com](https://stripe.com/).
 2. Accede a tu Panel de Control (Dashboard) y haz clic en la esquina superior derecha donde dice **"Desarrolladores"** o **"Laves API"** (API Keys).
 3. Asegúrate de tener activado el "Modo de Prueba" (un interruptor arriba a la derecha) para poder hacer compras falsas.
@@ -189,7 +176,7 @@ Si el museo se exporta a Web o se instala en el PC de la entrada, RevenueCat no 
    ```env
    STRIPE_SECRET_KEY=sk_test_abcd...
    ```
-¡Y ya está! La aplicación detectará automáticamente cuando un usuario esté usando un PC y generará una plataforma de pago virtual *al vuelo* redirigiéndole para proteger las tarjetas, avisando al vuelo del éxito para enviarle su Ticket por correo.
+¡Y ya está! La aplicación generará una plataforma de pago virtual *al vuelo* redirigiendo al usuario para proteger sus datos, avisando al éxito para enviarle su Ticket por correo.
 
 ## 6. Configuración de Modelos 3D y Entornos 360 (Supabase Storage)
 
@@ -326,7 +313,7 @@ TESTER=1
 
 **¿Qué hace el modo Tester (`TESTER=1`)?**
 * Añade un botón rápido en la cámara AR (`ar_screen.dart`) que simula que has escaneado exitosamente un código, para que puedas ver el objeto 3D sin moverte de la silla.
-* Al donar dinero o comprar merchandising, se simula una compra exitosa (aparece una barra verde) sin tocar RevenueCat, AppStore ni tarjetas de crédito, por lo que puedes demostrar todo el flujo de compra tranquilamente en público.
+* Al donar dinero o comprar merchandising, se simula una compra exitosa (aparece una barra verde) sin tocar Stripe ni tarjetas de crédito, por lo que puedes demostrar todo el flujo de compra tranquilamente en público.
 * Desbloquea todos los visores de candados de la Galería 3D.
 * Muestra un letrero amarillo de "TESTER" arriba a la derecha.
 
@@ -362,7 +349,7 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 
 * **📦 Catálogo Dinámico (R2 + GitHub):** El catálogo de la galería se descubre automáticamente desde el servidor de assets configurado. Si se usa Cloudflare R2, basta con actualizar `manifest.json` en el bucket para que la pieza aparezca en la app sin ninguna actualización de código.
 
-* **💳 Pagos Híbridos Universales (Stripe + RevenueCat):** Implementa lógica responsiva de pasarela de pagos. Los usuarios en ecosistemas móviles cerrados pagarán por Google/Apple Pay usando RevenueCat, mientras que los visitantes desde ordenador o web tendrán acceso a URLs dinámicas (Checkout Sessions) de Stripe. Si no hay claves configuradas, la app activa automáticamente un diálogo de prueba para demostrar el flujo completo.
+* **💳 Pagos Unificados (Stripe):** Implementa una lógica de pasarela de pagos profesional y segura mediante Stripe Checkout. Todos los usuarios (Móvil, Web y PC) tienen acceso a una experiencia de pago consistente y moderna. Si no hay claves configuradas, la app activa automáticamente un diálogo de prueba para demostrar el flujo completo.
 
 * **📈 Analíticas Multiplataforma (Firebase):** Seguimiento del comportamiento de los usuarios (visitas a pantallas, compras de entradas en Stripe, donaciones simuladas o reales) con soporte total para Android, iOS y Web.
 

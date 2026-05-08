@@ -38,7 +38,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     }
 
     setState(() => _isLoading = true);
-
     try {
       if (_isLoginMode) {
         await ref.read(authProvider.notifier).login(email, password);
@@ -46,7 +45,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         await ref.read(authProvider.notifier).register(email, password);
       }
     } catch (e) {
-      // El error ya se guarda en el estado del provider y se muestra en la UI
+      // Error handling via provider state
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -54,76 +53,232 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Forzar reconstrucción por idioma
     final authState = ref.watch(authProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isLoginMode ? 'auth_login'.tr() : 'Únete al Museo'),
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: authState.isAuthenticated
-              ? _buildSuccessView(authState.userName)
-              : _buildFormView(authState.error),
-        ),
+      body: Stack(
+        children: [
+          // 🖼️ Fondo Inmersivo
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage('https://images.unsplash.com/photo-1554907984-15263bfd63bd?q=80&w=1000&auto=format&fit=crop'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // 🌑 Overlay Oscuro
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.3),
+                  theme.scaffoldBackgroundColor.withValues(alpha: 0.9),
+                  theme.scaffoldBackgroundColor,
+                ],
+              ),
+            ),
+          ),
+          // 📝 Contenido
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(32.0),
+                child: authState.isAuthenticated
+                    ? _buildSuccessView(context, authState.userName)
+                    : _buildFormView(context, authState.error),
+              ),
+            ),
+          ),
+          // ⬅️ Botón Atrás
+          Positioned(
+            top: 40,
+            left: 20,
+            child: IconButton(
+              icon: Icon(Icons.arrow_back_ios, color: theme.colorScheme.onSurface),
+              onPressed: () => context.go('/home'),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSuccessView(String? name) {
+  Widget _buildSuccessView(BuildContext context, String? name) {
+    final theme = Theme.of(context);
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const CircleAvatar(
-          radius: 50,
-          backgroundColor: Colors.greenAccent,
-          child: Icon(Icons.check, size: 50, color: Colors.white),
-        ),
+        const Icon(Icons.check_circle_outline, size: 80, color: Color(0xFFCBA35C)),
         const SizedBox(height: 24),
         Text(
-          name == 'Invitado'
-              ? 'auth_hello_guest'.tr()
-              : 'auth_hi'.tr(args: [name ?? '']),
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          name == 'Invitado' ? 'auth_hello_guest'.tr() : 'auth_hi'.tr(args: [name ?? '']),
+          style: theme.textTheme.displayLarge?.copyWith(fontSize: 28),
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
         const RankBadgeWidget(),
-        const SizedBox(height: 32),
-        ElevatedButton.icon(
-          onPressed: () => ref.read(authProvider.notifier).logout(),
-          icon: const Icon(Icons.logout),
-          label: Text('auth_logout'.tr()),
+        const SizedBox(height: 48),
+        _buildButton(
+          context,
+          text: 'auth_go_museum'.tr(),
+          onPressed: () => context.go('/home'),
+          isPrimary: true,
         ),
         const SizedBox(height: 16),
         TextButton(
-          onPressed: () => context.go('/home'),
-          child: Text('auth_go_museum'.tr()),
+          onPressed: () => ref.read(authProvider.notifier).logout(),
+          child: Text('auth_logout'.tr(), style: const TextStyle(color: Colors.redAccent)),
         ),
       ],
     );
   }
 
+  Widget _buildFormView(BuildContext context, String? error) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        const Icon(Icons.museum_outlined, size: 70, color: Color(0xFFCBA35C)),
+        const SizedBox(height: 16),
+        Text(
+          _isLoginMode ? 'auth_access'.tr() : 'Únete al Museo',
+          style: theme.textTheme.displayLarge?.copyWith(fontSize: 32),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _isLoginMode ? 'Bienvenido de nuevo' : 'Crea tu pase de explorador',
+          style: theme.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 40),
+        if (error != null) _buildErrorLabel(error),
+        _buildTextField(
+          controller: _emailController,
+          label: 'auth_email'.tr(),
+          icon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: _passwordController,
+          label: 'auth_pass'.tr(),
+          icon: Icons.lock_outline,
+          obscureText: true,
+        ),
+        if (_isLoginMode)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _resetPassword,
+              child: Text('auth_forgot'.tr(), style: TextStyle(color: theme.colorScheme.primary, fontSize: 12)),
+            ),
+          ),
+        const SizedBox(height: 32),
+        if (_isLoading)
+          const CircularProgressIndicator(color: Color(0xFFCBA35C))
+        else
+          Column(
+            children: [
+              _buildButton(
+                context,
+                text: _isLoginMode ? 'auth_login'.tr() : 'Registrarse',
+                onPressed: _submit,
+                isPrimary: true,
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => setState(() => _isLoginMode = !_isLoginMode),
+                child: Text(_isLoginMode ? 'auth_no_account'.tr() : 'auth_has_account'.tr()),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Divider(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+              ),
+              _buildButton(
+                context,
+                text: 'auth_guest'.tr(),
+                onPressed: () => ref.read(authProvider.notifier).loginAsGuest(),
+                isPrimary: false,
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+  }) {
+    final theme = Theme.of(context);
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: 20),
+        filled: true,
+        fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.1))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.1))),
+      ),
+    );
+  }
+
+  Widget _buildButton(BuildContext context, {required String text, required VoidCallback onPressed, required bool isPrimary}) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isPrimary ? const Color(0xFFCBA35C) : Colors.transparent,
+          foregroundColor: isPrimary ? Colors.black : theme.colorScheme.onSurface,
+          elevation: isPrimary ? 4 : 0,
+          side: isPrimary ? BorderSide.none : BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      ),
+    );
+  }
+
+  Widget _buildErrorLabel(String error) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3))),
+      child: Text(error, style: const TextStyle(color: Colors.redAccent, fontSize: 12), textAlign: TextAlign.center),
+    );
+  }
+
   Future<void> _resetPassword() async {
     final emailController = TextEditingController(text: _emailController.text);
+    final theme = Theme.of(context);
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('auth_reset_title'.tr()),
+        backgroundColor: theme.colorScheme.surface,
+        title: Text('auth_reset_title'.tr(), style: theme.textTheme.displayMedium?.copyWith(fontSize: 20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('auth_reset_desc'.tr()),
+            Text('auth_reset_desc'.tr(), style: theme.textTheme.bodyMedium),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Correo Electrónico',
-                prefixIcon: Icon(Icons.email),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.email_outlined),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ],
@@ -131,130 +286,25 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'settings_cancel'.tr(),
-              style: const TextStyle(color: Colors.grey),
-            ),
+            child: Text('settings_cancel'.tr(), style: const TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () async {
               if (emailController.text.trim().isEmpty) return;
               try {
-                await FirebaseAuth.instance.sendPasswordResetEmail(
-                  email: emailController.text.trim(),
-                );
+                await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text.trim());
                 if (!context.mounted) return;
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('auth_reset_sent'.tr()),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('auth_reset_sent'.tr()), backgroundColor: Colors.green));
               } catch (e) {
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: ${e.toString()}'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red));
               }
             },
             child: Text('auth_send_link'.tr()),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildFormView(String? error) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(Icons.museum, size: 80, color: Colors.deepPurple),
-        const SizedBox(height: 16),
-        Text(
-          _isLoginMode ? 'auth_access'.tr() : 'Únete al Museo',
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 32),
-        if (error != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Text(
-              error,
-              style: const TextStyle(color: Colors.red),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        TextField(
-          controller: _emailController,
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(
-            labelText: 'auth_email'.tr(),
-            prefixIcon: const Icon(Icons.email),
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _passwordController,
-          obscureText: true,
-          decoration: InputDecoration(
-            labelText: 'auth_pass'.tr(),
-            prefixIcon: const Icon(Icons.lock),
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        if (_isLoginMode)
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: _resetPassword,
-              child: Text(
-                'auth_forgot'.tr(),
-                style: const TextStyle(color: Colors.deepPurple, fontSize: 13),
-              ),
-            ),
-          ),
-        const SizedBox(height: 16),
-        if (_isLoading)
-          const CircularProgressIndicator()
-        else
-          Column(
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: _submit,
-                child: Text(_isLoginMode ? 'auth_login'.tr() : 'Registrarse'),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => setState(() => _isLoginMode = !_isLoginMode),
-                child: Text(
-                  _isLoginMode
-                      ? 'auth_no_account'.tr()
-                      : 'auth_has_account'.tr(),
-                ),
-              ),
-              const Divider(height: 32),
-              TextButton.icon(
-                onPressed: () async {
-                  await ref.read(authProvider.notifier).loginAsGuest();
-                  if (!mounted) return;
-                  context.go('/home');
-                },
-                icon: const Icon(Icons.person_outline),
-                label: Text('auth_guest'.tr()),
-              ),
-            ],
-          ),
-      ],
     );
   }
 }
