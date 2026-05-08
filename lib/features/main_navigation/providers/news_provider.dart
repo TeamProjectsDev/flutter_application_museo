@@ -22,9 +22,8 @@ class NewsArticle {
   });
 
   factory NewsArticle.fromRss(RssItem item) {
-    // 1. Intentar extraer imagen de Media RSS (media:content)
     String? imageUrl;
-
+    // 1. Intentar extraer imagen de Media RSS (media:content)
     if (item.media?.contents.isNotEmpty ?? false) {
       imageUrl = item.media!.contents.first.url;
     }
@@ -32,17 +31,43 @@ class NewsArticle {
     else if (item.enclosure?.url != null) {
       imageUrl = item.enclosure!.url;
     }
-    // 3. Fallback: Buscar una imagen en la descripción (regex)
-    else if (item.description != null) {
-      final imgRegex = RegExp(r'<img[^>]+src="([^">]+)"');
-      final match = imgRegex.firstMatch(item.description!);
+    // 4. Buscar en thumbnails (común en algunos feeds)
+    else if (item.media?.thumbnails.isNotEmpty ?? false) {
+      imageUrl = item.media!.thumbnails.first.url;
+    }
+
+    // 5. SIEMPRE buscar en el contenido si aún no tenemos imagen o si la imagen actual es sospechosa
+    final String contentToSearch =
+        (item.content?.value ?? '') + (item.description ?? '');
+    if ((imageUrl == null || imageUrl.isEmpty) && contentToSearch.isNotEmpty) {
+      // Buscar cualquier etiqueta <img o cualquier URL que termine en extensiones de imagen comunes
+      final imgRegex =
+          RegExp('<img[^>]+src=["\']([^"\']+)["\']', caseSensitive: false);
+      final match = imgRegex.firstMatch(contentToSearch);
       if (match != null) {
         imageUrl = match.group(1);
+      } else {
+        // Buscar una URL de imagen suelta en el texto
+        final urlRegex = RegExp(
+            '(https?://[^\\s"\'<>]+?\\.(?:jpg|jpeg|png|gif|webp))',
+            caseSensitive: false);
+        final urlMatch = urlRegex.firstMatch(contentToSearch);
+        if (urlMatch != null) {
+          imageUrl = urlMatch.group(1);
+        }
       }
     }
 
-    // Si todo falla, usar un seed aleatorio pero coherente
-    imageUrl ??= 'https://picsum.photos/seed/${item.title.hashCode}/800/400';
+    // 6. Limpieza final: Si es una URL relativa, intentar arreglarla
+    if (imageUrl != null && !imageUrl.startsWith('http')) {
+      if (imageUrl.startsWith('//')) {
+        imageUrl = 'https:$imageUrl';
+      }
+    }
+
+    // Si todo falla, usar una imagen de fallback (ejemplo: logo del museo o placeholder elegante)
+    imageUrl ??=
+        'https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?q=80&w=800&auto=format&fit=crop';
 
     // Limpieza de descripción (quitar HTML si lo hay)
     String cleanDesc = item.description ?? '';
@@ -105,8 +130,8 @@ class NewsNotifier extends StateNotifier<NewsState> {
   // Proxies de CORS para Web (en orden de preferencia)
   static const List<String> _corsProxies = [
     'https://corsproxy.io/?',
+    'https://api.codetabs.com/v1/proxy?quest=',
     'https://api.allorigins.win/raw?url=',
-    'https://cors.lol/?url=',
   ];
 
   NewsNotifier() : super(NewsState(isLoading: true)) {
@@ -119,7 +144,7 @@ class NewsNotifier extends StateNotifier<NewsState> {
       try {
         return await http
             .get(Uri.parse(url))
-            .timeout(const Duration(seconds: 10));
+            .timeout(const Duration(seconds: 15));
       } catch (e) {
         return null;
       }
@@ -131,7 +156,7 @@ class NewsNotifier extends StateNotifier<NewsState> {
         final proxyUrl = '$proxy${Uri.encodeComponent(url)}';
         final response = await http
             .get(Uri.parse(proxyUrl))
-            .timeout(const Duration(seconds: 8));
+            .timeout(const Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           return response;
@@ -160,14 +185,13 @@ class NewsNotifier extends StateNotifier<NewsState> {
           // Verificación para evitar parsear HTML de error como si fuera XML
           final isHtml =
               response.body.trim().toLowerCase().startsWith('<html') ||
-              response.body.trim().toLowerCase().startsWith('<!doctype');
+                  response.body.trim().toLowerCase().startsWith('<!doctype');
 
           if (!isHtml) {
             try {
               final feed = RssFeed.parse(response.body);
-              final articles = feed.items
-                  .map((item) => NewsArticle.fromRss(item))
-                  .toList();
+              final articles =
+                  feed.items.map((item) => NewsArticle.fromRss(item)).toList();
               allArticles.addAll(articles);
             } catch (e) {
               debugPrint('Error parseando feed (posible respuesta no-XML): $e');
