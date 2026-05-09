@@ -13,11 +13,11 @@
 ### 03. El Desafío del Museo Histórico (40s)
 - **Mensaje:** "Los museos tradicionales sufren de 'estatismo'. El público digital demanda interactividad. El reto era convertir vitrinas pasivas en experiencias activas."
 
-### 04. La Propuesta: Flutter + AR (40s)
-- **Mensaje:** "Nuestra respuesta es una App multiplataforma (iOS, Android, Web) desarrollada en Flutter. No es solo una web informativa, es una herramienta de exploración inmersiva."
+### 04. Identidad Visual Premium (40s)
+- **Mensaje:** "Nuestra respuesta es una App multiplataforma (iOS, Android, Web) con una estética **Premium Dark Card**. No es solo una web informativa, es una interfaz minimalista diseñada para resaltar la elegancia de las piezas históricas."
 
-### 05. Catálogo Digital e Interactivo (20s)
-- **Mensaje:** "El corazón de la app es el catálogo, donde el usuario puede revivir y explorar en detalle las piezas una vez desbloqueadas mediante su visita física."
+### 05. Onboarding y Acceso Sin Fricción (20s)
+- **Mensaje:** "La retención empieza en el primer clic. Implementamos un tutorial interactivo y un sistema de **Google Auth** de alto nivel, permitiendo al usuario sumergirse en la historia del museo en segundos."
 
 ---
 
@@ -49,7 +49,7 @@
 - **Mensaje:** "Para combatir la falta de retención, creamos un sistema de rangos. El usuario progresa de 'Visitante' a 'Conservador', incentivando la visita recurrente."
 
 ### 13. Pagos y Sostenibilidad (30s)
-- **Mensaje:** "El proyecto es viable. Integramos **Stripe** para donaciones y **RevenueCat** para gestionar micro-transacciones y suscripciones multiplataforma."
+- **Mensaje:** "El proyecto es viable. Integramos **Stripe** como pasarela de pagos universal para donaciones, tickets y micro-transacciones, garantizando seguridad y compatibilidad multiplataforma."
 
 ### 14. Calidad de Software y SEO (30s)
 - **Mensaje:** "Aplicamos estándares profesionales: **CI/CD con GitHub Actions** para tests automáticos y un SEO técnico optimizado para visibilidad web."

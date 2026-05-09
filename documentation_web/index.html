@@ -790,12 +790,12 @@ class UserUnlocksNotifier
                     </ol>
                 </div>
                 <div class="card">
-                    <h3>Plataforma Móvil (RevenueCat)</h3>
+                    <h3>Pasarela Única (Stripe)</h3>
                     <ol class="step-list">
                         <li>Usuario abre app en iOS/Android</li>
                         <li>Pulsa "Donar" → abre sheet bottom</li>
                         <li>Selecciona monto (3€, 5€, 10€)</li>
-                        <li>RevenueCat maneja el pago nativo</li>
+                        <li>Stripe maneja el pago nativo y web</li>
                         <li>Se abre cuadro Face ID / Touch ID</li>
                         <li>Confirmación automática</li>
                         <li>Webhook → Supabase → rango actualizado</li>
@@ -811,13 +811,9 @@ class UserUnlocksNotifier
   final isAndroid = defaultTargetPlatform == TargetPlatform.android;
   
   if (isWeb || !isIOS && !isAndroid) {
-    // Usar Stripe
+    // Usar Stripe en cualquier plataforma
     await ref.read(paymentProvider.notifier)
         .initiateStripeCheckout(amount);
-  } else if (isIOS || isAndroid) {
-    // Usar RevenueCat
-    await ref.read(paymentProvider.notifier)
-        .initiateRevenueCatPurchase(amount);
   }
 }</code></pre>
             </div>
@@ -1072,7 +1068,7 @@ class UserUnlocksNotifier
                                 </tr>
                                 <tr>
                                     <td><code>donation_success</code></td>
-                                    <td>amount, method (stripe/rc)</td>
+                                    <td>amount, method (stripe)</td>
                                     <td>Conversión de pagos reales</td>
                                 </tr>
                                 <tr>

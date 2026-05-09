@@ -329,6 +329,12 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 
 * **📖 Onboarding (Tutorial de Bienvenida):** Los nuevos usuarios son recibidos con un tutorial de bienvenida (deslizable) que explica las funciones principales del museo (AR, 3D, Gamificación). Este progreso se guarda en el teléfono para que solo aparezca la primera vez.
 
+* **🔐 Autenticación Premium (Google OAuth):** Pantalla de acceso totalmente rediseñada con una estética "Dark Card" minimalista y moderna.
+  * **Diseño de Gala**: Cuadro oscuro con bordes suavizados y aura de luz que resalta el logo oficial del museo.
+  * **Lectura Óptima**: Campos de texto en color "blanco marfil" con alto contraste para una escritura cómoda.
+  * **Cero Fricción**: Integración profesional con Google Sign-In optimizada para Web, Android e iOS, permitiendo el acceso en un solo clic.
+  * **Adaptabilidad**: Diseño compacto "anti-scroll" que garantiza una visualización perfecta en cualquier tamaño de pantalla.
+
 * **🌍 Multidioma Reactivo (i18n):** La interfaz completa está traducida a Español e Inglés con un sistema de alta fidelidad. 
   * **Persistencia Real:** La app recuerda el idioma incluso antes de mostrar la primera pantalla, leyendo directamente de las preferencias del sistema antes del arranque (`runApp`).
   * **Cambio en Caliente:** El usuario puede cambiar de idioma desde Ajustes y toda la aplicación se redibuja al instante sin parpadeos ni errores de navegación, gracias a una arquitectura reactiva con `riverpod` y `easy_localization`.
