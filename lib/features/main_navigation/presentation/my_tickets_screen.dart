@@ -4,19 +4,75 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:rxdart/rxdart.dart';
 
-class MyTicketsScreen extends StatelessWidget {
+class MyTicketsScreen extends StatefulWidget {
   const MyTicketsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Guarda de traducción: Evitamos mostrar Keys crudas durante el arranque o F5
-    if (context.locale.languageCode.isEmpty) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  State<MyTicketsScreen> createState() => _MyTicketsScreenState();
+}
+
+class _MyTicketsScreenState extends State<MyTicketsScreen> {
+  Stream<List<DocumentSnapshot>>? _ticketsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _initStreams();
+  }
+
+  void _initStreams() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      debugPrint('🔍 [TICKETS] No hay usuario logueado');
+      return;
     }
 
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
+    final controller = BehaviorSubject<List<DocumentSnapshot>>.seeded([]);
+    final Map<String, List<DocumentSnapshot>> resultsMap = {};
+
+    void updateResults(String key, List<DocumentSnapshot> docs) {
+      resultsMap[key] = docs;
+      final allDocs = resultsMap.values.expand((l) => l).toList();
+      
+      final seenIds = <String>{};
+      final uniqueDocs = allDocs.where((doc) {
+        if (seenIds.contains(doc.id)) return false;
+        seenIds.add(doc.id);
+        
+        final data = doc.data() as Map<String, dynamic>;
+        final status = data['status'] as String? ?? 'active';
+        return status != 'used';
+      }).toList();
+      
+      if (!controller.isClosed) controller.add(uniqueDocs);
+    }
+
+    // Escuchas independientes
+    FirebaseFirestore.instance.collection('tickets').where('visitorEmail', isEqualTo: user.email).snapshots().listen(
+      (s) => updateResults('t_email', s.docs),
+    );
+
+    FirebaseFirestore.instance.collection('tickets').where('userId', isEqualTo: user.uid).snapshots().listen(
+      (s) => updateResults('t_id', s.docs),
+    );
+
+    FirebaseFirestore.instance.collection('audio_guides').where('userEmail', isEqualTo: user.email).snapshots().listen(
+      (s) => updateResults('a_email', s.docs),
+    );
+
+    FirebaseFirestore.instance.collection('audio_guides').where('userId', isEqualTo: user.uid).snapshots().listen(
+      (s) => updateResults('a_id', s.docs),
+    );
+
+    _ticketsStream = controller.stream;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _ticketsStream == null) {
       return Scaffold(
         appBar: AppBar(title: Text('tickets_title'.tr())),
         body: Center(child: Text('tickets_login_required'.tr())),
@@ -24,76 +80,67 @@ class MyTicketsScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(
-          'tickets_title'.tr(),
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
+        title: Text('tickets_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [
-              Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0D1B2A) : const Color(0xFFF5F5F5),
-              Theme.of(context).brightness == Brightness.dark ? const Color(0xFF000814) : const Color(0xFFE0E0E0),
-            ],
-          ),
-        ),
-        child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('tickets')
-              .where('userId', isEqualTo: uid)
-              .orderBy('timestamp', descending: true)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      body: StreamBuilder<List<DocumentSnapshot>>(
+        stream: _ticketsStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          final allDocs = snapshot.data ?? [];
+          if (allDocs.isEmpty) {
+            return _buildEmptyState(Icons.confirmation_number_outlined, 'tickets_empty'.tr());
+          }
 
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.confirmation_number_outlined,
-                      size: 72,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'tickets_empty'.tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              );
+          final allItems = List<DocumentSnapshot>.from(allDocs);
+          
+          DateTime getSortDate(DocumentSnapshot doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            if (data['visitDateTimestamp'] != null) return (data['visitDateTimestamp'] as Timestamp).toDate();
+            
+            final dateStr = data['visitDate'] as String?;
+            if (dateStr != null) {
+              try {
+                final parts = dateStr.split('/');
+                if (parts.length == 3) {
+                  return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+                }
+              } catch (_) {}
             }
+            
+            final ts = data['timestamp'] as Timestamp? ?? data['purchaseDate'] as Timestamp?;
+            return ts?.toDate() ?? DateTime(2000);
+          }
 
-            final docs = snapshot.data!.docs;
-            return ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 100, 16, 16),
-              itemCount: docs.length,
-              itemBuilder: (context, index) {
-                final data = docs[index].data() as Map<String, dynamic>;
-                return _TicketCard(data: data, docId: docs[index].id);
-              },
-            );
-          },
-        ),
+          allItems.sort((a, b) => getSortDate(a).compareTo(getSortDate(b)));
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: allItems.length,
+            itemBuilder: (context, index) {
+              final doc = allItems[index];
+              final data = doc.data() as Map<String, dynamic>;
+              final isAudio = doc.reference.path.contains('audio_guides');
+              return _TicketCard(data: data, docId: doc.id, isAudio: isAudio);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(IconData icon, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 72, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
+          const SizedBox(height: 16),
+          Text(message, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4))),
+        ],
       ),
     );
   }
@@ -102,132 +149,179 @@ class MyTicketsScreen extends StatelessWidget {
 class _TicketCard extends StatelessWidget {
   final Map<String, dynamic> data;
   final String docId;
+  final bool isAudio;
 
-  const _TicketCard({required this.data, required this.docId});
+  const _TicketCard({required this.data, required this.docId, this.isAudio = false});
+
+  bool _canChangeDate(String? visitDateStr, Timestamp? visitTimestamp) {
+    if (isAudio) return false;
+    DateTime? visitDate;
+    
+    if (visitTimestamp != null) {
+      visitDate = visitTimestamp.toDate();
+    } else if (visitDateStr != null) {
+      // Intentar parsear el texto "dd/MM/yyyy" de las entradas antiguas
+      try {
+        final parts = visitDateStr.split('/');
+        if (parts.length == 3) {
+          visitDate = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+        }
+      } catch (e) {
+        return false;
+      }
+    }
+    
+    if (visitDate == null) return false;
+    final now = DateTime.now();
+    // Permitir si faltan más de 24 horas
+    return visitDate.difference(now).inHours >= 24;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final name = data['name'] as String? ?? 'Visitante';
-    final email = data['email'] as String? ?? '';
-    final visitDate = data['visitDate'] as String? ?? 'Sin fecha';
-    final ticketCode = data['ticketCode'] as String? ?? docId;
-    final timestamp = data['timestamp'] as Timestamp?;
-    final purchaseDate = timestamp != null
-        ? DateFormat('dd/MM/yyyy HH:mm').format(timestamp.toDate())
-        : '?';
+    final theme = Theme.of(context);
+    final visitDateStr = data['visitDate'] as String? ?? '';
+    final visitTimestamp = data['visitDateTimestamp'] as Timestamp?;
+    final ticketCode = data['ticketId'] as String? ?? docId;
+    final canChange = _canChangeDate(visitDateStr, visitTimestamp);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: Theme.of(context).colorScheme.surface,
-      elevation: 8,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
               children: [
-                const Icon(
-                  Icons.confirmation_number,
-                  color: Colors.amber,
-                  size: 28,
-                ),
-                const SizedBox(width: 10),
+                Icon(isAudio ? Icons.headset_mic : Icons.confirmation_number, color: theme.colorScheme.primary),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'tickets_digital'.tr(args: [name]),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                    isAudio ? 'Audio-guía (${data['quantity'] ?? 1})' : 'tickets_digital'.tr(args: [data['visitorName'] ?? '']), 
+                    style: const TextStyle(fontWeight: FontWeight.bold)
+                  )
                 ),
+                _buildStatusBadge(visitDateStr, visitTimestamp),
               ],
             ),
-            const Divider(height: 20),
-
-            // Info
-            _infoRow(
-              context,
-              Icons.calendar_today,
-              'tickets_visit_date'.tr(args: [visitDate]),
-            ),
-            _infoRow(context, Icons.email_outlined, email),
-            _infoRow(
-              context,
-              Icons.receipt_long,
-              'tickets_purchase_date'.tr(args: [purchaseDate]),
-            ),
-            const SizedBox(height: 16),
-
-            // QR Code centrado
+            const Divider(height: 32),
+            _infoRow(context, Icons.calendar_today, 'tickets_visit_date'.tr(args: [visitDateStr])),
+            const SizedBox(height: 20),
             Center(
               child: Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: QrImageView(
-                  data: ticketCode,
-                  version: QrVersions.auto,
-                  size: 180,
-                ),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                child: QrImageView(data: ticketCode, size: 160, version: QrVersions.auto),
               ),
             ),
-            const SizedBox(height: 10),
-            Center(
-              child: Text(
-                ticketCode,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-                  fontSize: 10,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Botón compartir
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => Share.share(
-                  'tickets_share_msg'.tr(args: [visitDate, ticketCode]),
-                ),
-                icon: const Icon(Icons.share, size: 18),
-                label: Text('tickets_share'.tr()),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.amber,
-                  side: const BorderSide(color: Colors.amber),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Share.share('tickets_share_msg'.tr(args: [visitDateStr, ticketCode])),
+                    icon: const Icon(Icons.share, size: 18),
+                    label: Text('tickets_share'.tr()),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                      foregroundColor: theme.colorScheme.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
                   ),
                 ),
-              ),
+                if (canChange) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showDatePicker(context),
+                      icon: const Icon(Icons.edit_calendar, size: 18),
+                      label: Text('tickets_change_date'.tr()),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
+            if (!canChange && visitTimestamp != null && !isAudio)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  'tickets_error_24h'.tr(),
+                  style: const TextStyle(color: Colors.redAccent, fontSize: 11),
+                  textAlign: TextAlign.center,
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _infoRow(BuildContext context, IconData icon, String text) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 3),
-    child: Row(
-      children: [
-        Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13),
-          ),
-        ),
-      ],
-    ),
+  void _showDatePicker(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now().add(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      final newDateStr = DateFormat('dd/MM/yyyy').format(picked);
+      await FirebaseFirestore.instance.collection('tickets').doc(docId).update({
+        'visitDate': newDateStr,
+        'visitDateTimestamp': Timestamp.fromDate(picked),
+      });
+    }
+  }
+
+  Widget _buildStatusBadge(String? visitDateStr, Timestamp? visitTimestamp) {
+    final status = data['status'] as String? ?? 'active';
+    if (status == 'used') return _statusChip('tickets_status_used'.tr(), Colors.grey);
+    
+    // Calcular si está caducada
+    DateTime? visitDate;
+    if (visitTimestamp != null) {
+      visitDate = visitTimestamp.toDate();
+    } else if (visitDateStr != null) {
+      try {
+        final parts = visitDateStr.split('/');
+        if (parts.length == 3) {
+          visitDate = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+        }
+      } catch (_) {}
+    }
+
+    if (visitDate != null) {
+      final now = DateTime.now();
+      final endOfVisitDay = DateTime(visitDate.year, visitDate.month, visitDate.day, 23, 59, 59);
+      if (now.isAfter(endOfVisitDay)) {
+        return _statusChip('tickets_status_expired'.tr(), Colors.redAccent);
+      }
+    }
+
+    return _statusChip('tickets_status_active'.tr(), Colors.green);
+  }
+
+  Widget _statusChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+      child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _infoRow(BuildContext context, IconData icon, String text) => Row(
+    children: [
+      Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3)),
+      const SizedBox(width: 8),
+      Text(text, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13)),
+    ],
   );
 }

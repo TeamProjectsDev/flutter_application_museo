@@ -209,5 +209,20 @@
   "museum_full_day": "Lo sentimos, el aforo para esta fecha está completo.",
   "museum_event_day": "Día reservado para evento privado o institucional.",
   "auth_required_checkout": "Debes iniciar sesión con tu cuenta del museo para comprar entradas.",
-  "museum_capacity_exceeded": "El pedido supera el aforo máximo permitido ({} personas)."
+  "museum_capacity_exceeded": "El pedido supera el aforo máximo permitido ({} personas).",
+  "nav_profile": "Perfil",
+  "profile_my_tickets": "Mis Entradas y Audio-guías",
+  "profile_3d_orders": "Seguimiento Pedidos 3D",
+  "tickets_tab_tickets": "Entradas",
+  "tickets_tab_3d": "Pedidos 3D",
+  "tickets_change_date": "Cambiar Fecha",
+  "tickets_status_active": "Activa",
+  "tickets_status_used": "Usada",
+  "tickets_status_expired": "Caducada",
+  "tickets_error_24h": "No se puede cambiar la fecha con menos de 24h de antelación.",
+  "admin_scanner_title": "Validar Entrada",
+  "admin_scanner_hint": "Escanea el código QR del visitante",
+  "admin_scanner_success": "¡Entrada validada correctamente!",
+  "admin_scanner_error_used": "Error: Esta entrada ya ha sido utilizada.",
+  "admin_scanner_error_not_found": "Error: Entrada no encontrada."
 }

@@ -209,5 +209,20 @@
   "museum_full_day": "Sorry, capacity for this date is full.",
   "museum_event_day": "Date reserved for private or institutional event.",
   "auth_required_checkout": "You must log in with your museum account to purchase tickets.",
-  "museum_capacity_exceeded": "Order exceeds the maximum allowed capacity ({} people)."
+  "museum_capacity_exceeded": "Order exceeds the maximum allowed capacity ({} people).",
+  "nav_profile": "Profile",
+  "profile_my_tickets": "My Tickets & Audio Guides",
+  "profile_3d_orders": "3D Orders Tracking",
+  "tickets_tab_tickets": "Tickets",
+  "tickets_tab_3d": "3D Orders",
+  "tickets_change_date": "Change Date",
+  "tickets_status_active": "Active",
+  "tickets_status_used": "Used",
+  "tickets_status_expired": "Expired",
+  "tickets_error_24h": "Date cannot be changed with less than 24h notice.",
+  "admin_scanner_title": "Validate Ticket",
+  "admin_scanner_hint": "Scan visitor's QR code",
+  "admin_scanner_success": "Ticket validated successfully!",
+  "admin_scanner_error_used": "Error: This ticket has already been used.",
+  "admin_scanner_error_not_found": "Error: Ticket not found."
 }
