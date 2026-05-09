@@ -24,5 +24,44 @@
     "material": "Hueso Natural / Conservación Histórica",
     "dimensions": "11.2 × 9.5 cm",
     "accessionNo": "MS-ANT-M02"
+  },
+  "Pez_globo_enano.glb": {
+    "name": "Pez Globo Enano (Carinotetraodon)",
+    "subtitle": "Espécimen de Biodiversidad Marina",
+    "category": "BIOLOGÍA / ZOOLOGÍA",
+    "description": "Ejemplar disecado de 8 cm. Es una de las especies de pez globo más pequeñas del mundo. Presenta un cuerpo redondeado y ojos prominentes.",
+    "history": "Parte de la colección zoológica histórica. Estos ejemplares eran utilizados para mostrar la diversidad de adaptaciones defensivas en el reino animal.",
+    "room": "SALA II: BIODIVERS.",
+    "date": "S. XIX",
+    "origin": "Océano Indo-Pacífico",
+    "material": "Espécimen Disecado / Ojos de cristal",
+    "dimensions": "8 cm",
+    "accessionNo": "MS-BIO-P08"
+  },
+  "Craneo_mujer.glb": {
+    "name": "Cráneo Humano (Femenino)",
+    "subtitle": "Modelo de Estudio Osteológico",
+    "category": "ANTROPOLOGÍA / ANATOMÍA",
+    "description": "Cráneo humano femenino sin mandíbula. Presenta una estructura grácil y rasgos característicos del dimorfismo sexual femenino en la región orbital y frontal.",
+    "history": "Procedente de una antigua sepultura (1883-1885). Utilizado históricamente para el estudio de la anatomía y osteología humana en el instituto.",
+    "room": "SALA I: AC y PALE.",
+    "date": "1883-1885",
+    "origin": "Antigua Colección Museo Padre Suárez",
+    "material": "Hueso Natural / Conservación Histórica",
+    "dimensions": "21 × 14 cm",
+    "accessionNo": "MS-ANT-C04"
+  },
+  "Acropora_hyacinthus.glb": {
+    "name": "Coral de Mesa (Acropora)",
+    "subtitle": "Formación de Arrecife Coralino",
+    "category": "BIOLOGÍA / ZOOLOGÍA",
+    "description": "Esqueleto de coral pétreo ramificado. Esta especie forma amplias estructuras horizontales que recuerdan a una mesa, proporcionando refugio a numerosas especies marinas.",
+    "history": "Recogido en expediciones científicas de finales del siglo XIX. Representa la arquitectura biológica de los arrecifes del Indo-Pacífico.",
+    "room": "SALA II: BIODIVERS.",
+    "date": "S. XIX",
+    "origin": "Océano Indo-Pacífico",
+    "material": "Carbonato de Calcio / Esqueleto Natural",
+    "dimensions": "32 × 28 cm",
+    "accessionNo": "MS-BIO-C12"
   }
 }
