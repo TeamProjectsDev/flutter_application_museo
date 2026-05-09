@@ -132,7 +132,7 @@ La app está preconfigurada de fábrica para enviar estadísticas de uso super c
 **🔐 Gestión Administrativa y Seguridad**
 La aplicación incluye un sistema de administración dinámico que permite gestionar el museo en tiempo real:
 * **Admin Panel**: Acceso exclusivo para el administrador (`ADMIN_EMAIL` en `.env`) desde la pantalla de Ajustes.
-* **Control de Aforo**: Capacidad de limitar el número de entradas diarias globalmente o por fechas específicas.
+* **Control de Aforo**: Capacidad de limitar el número de entradas diarias globalmente o por fechas específicas. Soporta **reservas de grupos** validando el total de entradas del carrito frente al espacio disponible.
 * **Cierre Inteligente**: Interruptor maestro para abrir/cerrar el museo instantáneamente en todos los dispositivos de los usuarios.
 * **Excepciones de Calendario**: Gestión de cierres por festivos o eventos privados.
 * **Seguridad en Firestore**: Las reglas protegen la colección `museum_config` para que solo el administrador pueda modificar los ajustes.
