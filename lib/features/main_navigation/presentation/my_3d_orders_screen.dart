@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class My3DOrdersScreen extends StatefulWidget {
   const My3DOrdersScreen({super.key});
@@ -16,6 +17,7 @@ class _My3DOrdersScreenState extends State<My3DOrdersScreen> {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logEvent(name: 'view_3d_orders');
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _ordersStream = FirebaseFirestore.instance

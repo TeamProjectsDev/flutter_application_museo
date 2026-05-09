@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class MyTicketsScreen extends StatefulWidget {
   const MyTicketsScreen({super.key});
@@ -220,7 +221,14 @@ class _TicketCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => Share.share('tickets_share_msg'.tr(args: [visitDateStr, ticketCode])),
+                    onPressed: () {
+                      final msg = 'tickets_share_msg'.tr(args: [visitDateStr, ticketCode]);
+                      Share.share(msg);
+                      FirebaseAnalytics.instance.logEvent(
+                        name: 'ticket_shared',
+                        parameters: {'type': isAudio ? 'audio' : 'ticket'},
+                      );
+                    },
                     icon: const Icon(Icons.share, size: 18),
                     label: Text('tickets_share'.tr()),
                     style: OutlinedButton.styleFrom(
@@ -278,6 +286,11 @@ class _TicketCard extends StatelessWidget {
         'visitDate': newDateStr,
         'visitDateTimestamp': Timestamp.fromDate(picked),
       });
+      
+      FirebaseAnalytics.instance.logEvent(
+        name: 'ticket_date_changed',
+        parameters: {'new_date': newDateStr},
+      );
     }
   }
 

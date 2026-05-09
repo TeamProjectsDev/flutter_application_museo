@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class TicketScannerScreen extends ConsumerStatefulWidget {
   const TicketScannerScreen({super.key});
@@ -175,18 +176,28 @@ class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
       }
 
       if (status == 'used') {
+        FirebaseAnalytics.instance.logEvent(name: 'admin_scan_error', parameters: {'reason': 'already_used'});
         await _showResultDialog('admin_scanner_error_used'.tr(), isError: true, data: data, status: status);
       } else if (isExpired) {
+        FirebaseAnalytics.instance.logEvent(name: 'admin_scan_error', parameters: {'reason': 'expired'});
         await _showResultDialog('tickets_status_expired'.tr(), isError: true, data: data, status: 'expired');
       } else {
         // ✅ Validar y marcar como usado
+        final isAudio = ticketDoc.reference.path.contains('audio_guides');
         await ticketDoc.reference.update({
           'status': 'used',
           'usedAt': FieldValue.serverTimestamp(),
         });
-        await _showResultDialog('admin_scanner_success'.tr(), isError: false, data: data, isAudio: ticketDoc.reference.path.contains('audio_guides'), status: status);
+        
+        FirebaseAnalytics.instance.logEvent(
+          name: isAudio ? 'admin_audio_guide_validated' : 'admin_ticket_validated',
+          parameters: {'visitor': data['visitorName'] ?? 'unknown'},
+        );
+        
+        await _showResultDialog('admin_scanner_success'.tr(), isError: false, data: data, isAudio: isAudio, status: status);
       }
     } catch (e) {
+      FirebaseAnalytics.instance.logEvent(name: 'admin_scan_error', parameters: {'reason': 'exception', 'error': e.toString()});
       await _showResultDialog('Error: $e', isError: true);
     } finally {
       // 🔄 Reiniciar la cámara para el siguiente visitante

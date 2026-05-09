@@ -1057,6 +1057,26 @@ class UserUnlocksNotifier
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td><code>purchase_completed</code></td>
+                                    <td>value, currency, items_count</td>
+                                    <td>Éxito en ventas de tickets y pedidos</td>
+                                </tr>
+                                <tr>
+                                    <td><code>admin_ticket_validated</code></td>
+                                    <td>visitor</td>
+                                    <td>Validación de entrada en puerta (Aforo)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>admin_scan_error</code></td>
+                                    <td>reason</td>
+                                    <td>Control de fraude y errores de acceso</td>
+                                </tr>
+                                <tr>
+                                    <td><code>ticket_date_changed</code></td>
+                                    <td>new_date</td>
+                                    <td>Uso de la flexibilidad de reserva</td>
+                                </tr>
+                                <tr>
                                     <td><code>ar_scan_success</code></td>
                                     <td>piece_id, time_to_scan</td>
                                     <td>Mide qué vitrinas son más populares</td>

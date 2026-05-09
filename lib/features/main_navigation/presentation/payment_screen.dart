@@ -12,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/providers/config_provider.dart';
 import '../../../core/models/museum_config.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final String total;
@@ -43,6 +44,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   @override
   void initState() {
     super.initState();
+    FirebaseAnalytics.instance.logEvent(name: 'view_payment_screen');
     _nameController.addListener(() => setState(() {}));
     _emailController.addListener(() => setState(() {}));
 
@@ -486,10 +488,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Text('Simulación de Pago',
+        title: Text('shop_tester_title'.tr(),
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         content: Text(
-          'En el modo TESTER, simulamos la pasarela de Stripe. El pago se marcará como completado y se generarán tus entradas en Firestore y EmailJS.',
+          'shop_tester_desc'.tr(),
           style: TextStyle(
               color: Theme.of(context)
                   .colorScheme
@@ -500,21 +502,21 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           TextButton(
               onPressed: () => Navigator.pop(ctx),
               child:
-                  const Text('Cancelar', style: TextStyle(color: Colors.grey))),
+                  Text('shop_tester_cancel'.tr(), style: const TextStyle(color: Colors.grey))),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               _processOrder();
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content:
-                      Text('¡Pedido completado con éxito! Revisa tu correo.'),
+                      Text('shop_tester_success'.tr()),
                   backgroundColor: Colors.green));
               context.pop();
             },
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green.withValues(alpha: 0.2),
                 foregroundColor: Colors.green),
-            child: const Text('Simular Pago'),
+            child: Text('shop_tester_confirm'.tr()),
           ),
         ],
       ),
@@ -574,6 +576,15 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         'totalAmount': widget.total,
         'status': 'completado',
       });
+      
+      FirebaseAnalytics.instance.logEvent(
+        name: 'purchase_completed',
+        parameters: {
+          'value': double.tryParse(widget.total) ?? 0.0,
+          'currency': 'EUR',
+          'items_count': tickets['general'] + tickets['student'] + tickets['audio'],
+        },
+      );
     } catch (e) {
       debugPrint('Error guardando compra integral: $e');
     }

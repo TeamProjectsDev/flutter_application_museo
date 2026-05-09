@@ -50,7 +50,7 @@ class AdminOrdersScreen extends ConsumerWidget {
                   return FloatingActionButton.extended(
                     onPressed: () => context.push('/admin/scanner'),
                     backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: Colors.black,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     icon: const Icon(Icons.qr_code_scanner),
                     label: Text('admin_scanner_title'.tr().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
                   );
@@ -215,7 +215,7 @@ class AdminOrdersScreen extends ConsumerWidget {
                   child: Icon(Icons.qr_code_2, color: theme.colorScheme.primary),
                 ),
                 title: Text(
-                  ticket.visitorName.isEmpty ? 'Visitante Anónimo' : ticket.visitorName,
+                  ticket.visitorName.isEmpty ? 'tickets_visitor_anonymous'.tr() : ticket.visitorName,
                   style: theme.textTheme.displayMedium?.copyWith(fontSize: 16),
                 ),
                 subtitle: Text(
@@ -231,7 +231,7 @@ class AdminOrdersScreen extends ConsumerWidget {
                       style: TextStyle(fontSize: 9, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
                     ),
                     Text(
-                      ticket.visitDate.isEmpty ? 'Pendiente' : ticket.visitDate,
+                      ticket.visitDate.isEmpty ? 'tickets_status_pending'.tr() : ticket.visitDate,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
