@@ -14,6 +14,11 @@ class BioMagazineScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final newsState = ref.watch(newsProvider);
 
+    // Guarda de traducción: Evitamos mostrar Keys crudas durante el arranque o F5
+    if (context.locale.languageCode.isEmpty) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('magazine_title'.tr()),

@@ -37,6 +37,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Guarda de traducción: Evitamos mostrar Keys crudas durante el arranque
+    if (context.locale.languageCode.isEmpty) {
+      return const Scaffold(backgroundColor: Colors.black, body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       body: Stack(
         children: [

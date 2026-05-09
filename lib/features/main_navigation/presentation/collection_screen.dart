@@ -32,6 +32,11 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
     final collectionState = ref.watch(collectionProvider);
     final favoritesState = ref.watch(favoritesProvider);
 
+    // Guarda de traducción: Evitamos mostrar Keys crudas si el sistema aún está cargando
+    if (context.locale.languageCode.isEmpty) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     // Lógica de filtrado preservada: 3D se filtra por sala, 360 siempre muestra todo
     var pieces3D = widget.filterRoom == null ? catalogState.pieces3D : catalogState.pieces3D.where((i) => i.room == widget.filterRoom).toList();
     var environments360 = catalogState.environments360; // Mostramos todos los 360 siempre

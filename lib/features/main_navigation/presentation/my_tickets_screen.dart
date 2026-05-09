@@ -10,6 +10,11 @@ class MyTicketsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Guarda de traducción: Evitamos mostrar Keys crudas durante el arranque o F5
+    if (context.locale.languageCode.isEmpty) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
       return Scaffold(

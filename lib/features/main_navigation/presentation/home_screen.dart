@@ -12,6 +12,11 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
 
+    // Guarda de traducción: Evitamos mostrar Keys crudas durante el arranque o F5
+    if (context.locale.languageCode.isEmpty) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
