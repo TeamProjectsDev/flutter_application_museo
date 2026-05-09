@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/shop_provider.dart';
 import '../providers/ticket_provider.dart';
 
@@ -37,6 +38,27 @@ class AdminOrdersScreen extends ConsumerWidget {
             _buildPrintsTab(context, ref),
             _buildTicketsTab(context, ref),
           ],
+        ),
+        floatingActionButton: Builder(
+          builder: (context) {
+            final tabController = DefaultTabController.of(context);
+            return AnimatedBuilder(
+              animation: tabController,
+              builder: (context, child) {
+                // Solo mostramos el botón de escaneo si estamos en la pestaña de Tickets (índice 2)
+                if (tabController.index == 2) {
+                  return FloatingActionButton.extended(
+                    onPressed: () => context.push('/admin/scanner'),
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: Colors.black,
+                    icon: const Icon(Icons.qr_code_scanner),
+                    label: Text('admin_scanner_title'.tr().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            );
+          }
         ),
       ),
     );
