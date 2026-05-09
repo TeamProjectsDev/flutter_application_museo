@@ -114,7 +114,7 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
         crossAxisCount: 1, // Una sola columna para mejor visibilidad en móvil
         mainAxisSpacing: 16,
         crossAxisSpacing: 0,
-        childAspectRatio: 4.5, // Ajustado para tarjetas horizontales elegantes
+        childAspectRatio: 8.5, // Equilibrio perfecto entre compacidad y legibilidad
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
@@ -143,7 +143,7 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

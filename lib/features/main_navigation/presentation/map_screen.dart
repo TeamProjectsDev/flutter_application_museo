@@ -132,49 +132,46 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
       top: y - 60,
       child: GestureDetector(
         onTap: () => _showRoomDetails(context, roomKey.tr(), '${roomKey}_desc'.tr(), color, roomKey),
-        child: SizedBox(
-          width: 120, // Aumentado de 100 a 120 para palabras largas
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ScaleTransition(
-                scale: _pulseAnimation,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: color,
-                    child: Icon(icon, size: 20, color: Colors.white),
-                  ),
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ScaleTransition(
+            scale: _pulseAnimation,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
-                ),
-                child: Text(
-                  roomKey.tr(),
-                  style: const TextStyle(
-                    color: Colors.white, 
-                    fontSize: 11, // Bajado de 12 a 11 para asegurar una sola línea
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1, // Forzamos una sola línea
-                  softWrap: false,
-                ),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: color,
+                child: Icon(icon, size: 20, color: Colors.white),
               ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(height: 6),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 150), // Límite para que no sea infinito
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
+            ),
+            child: Text(
+              roomKey.tr(),
+              style: const TextStyle(
+                color: Colors.white, 
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+              // Eliminamos maxLines y softWrap para que se adapte
+            ),
+          ),
+        ],
+      ),
       ),
     );
   }

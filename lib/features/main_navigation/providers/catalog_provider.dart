@@ -6,7 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const _cacheKey = 'cached_catalog_v1';
+const _cacheKey = 'cached_catalog_v2';
 
 enum CatalogItemType { piece3D, environment360, unknown }
 
