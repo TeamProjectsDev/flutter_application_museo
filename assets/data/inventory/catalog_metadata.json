@@ -76,5 +76,31 @@
     "material": "Hierro Fundido / Pintura de Conservación",
     "dimensions": "25 × 8 cm",
     "accessionNo": "MS-FIS-M09"
+  },
+  "Busardo_Caminero.glb": {
+    "name": "Busardo Caminero (Rupornis)",
+    "subtitle": "Ejemplar de Rapaz Neotropical",
+    "category": "BIOLOGÍA / ZOOLOGÍA",
+    "description": "Espécimen naturalizado de Busardo Caminero (Rupornis magnirostris). Es una rapaz de tamaño medio muy común en zonas abiertas, conocida por su característico grito y su adaptabilidad.",
+    "history": "Adquirido durante el periodo de expansión de la colección de aves (1874-1875). Utilizado para el estudio de las aves de presa en el gabinete de Historia Natural.",
+    "room": "SALA II: BIODIVERS.",
+    "date": "1874-1875",
+    "origin": "Región Neotropical",
+    "material": "Taxidermia / Peana de madera",
+    "dimensions": "35 cm",
+    "accessionNo": "MS-BIO-A16"
+  },
+  "Craneo_hombre.glb": {
+    "name": "Cráneo Humano (Masculino)",
+    "subtitle": "Modelo de Estudio Osteológico",
+    "category": "ANTROPOLOGÍA / ANATOMÍA",
+    "description": "Cráneo humano masculino de estudio. Presenta una estructura ósea robusta, con glabela prominente y un relieve muscular marcado en la zona occipital.",
+    "history": "Forma parte de la colección fundacional de antropología del siglo XIX. Se utilizaba para la enseñanza de la anatomía comparada y el dimorfismo humano.",
+    "room": "SALA I: AC y PALE.",
+    "date": "S. XIX",
+    "origin": "Antigua Colección Museo Padre Suárez",
+    "material": "Hueso Natural / Conservación Histórica",
+    "dimensions": "22 × 15 cm",
+    "accessionNo": "MS-ANT-C01"
   }
 }
