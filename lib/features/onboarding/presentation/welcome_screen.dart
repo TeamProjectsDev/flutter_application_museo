@@ -63,29 +63,39 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               constraints: const BoxConstraints(maxWidth: 400),
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  width: 0.5,
-                ),
+                color: const Color(0xFF121212).withValues(alpha: 0.95), // Cuadro negro premium
+                borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.5),
                     blurRadius: 30,
-                    offset: const Offset(0, 20),
+                    spreadRadius: 5,
                   ),
                 ],
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1.5,
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Logo limpio (Sin aura)
+                  Image.asset(
+                    'assets/images/museo_logo.png',
+                    height: 100,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.museum_outlined, size: 60, color: Color(0xFFCBA35C)),
+                  ),
+                  const SizedBox(height: 20),
                   // Title
                   Text(
                     'onboarding_welcome_title'.tr(),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontFamily: 'Serif', // Use a serif font if available, or default
+                      fontFamily:
+                          'Serif', // Use a serif font if available, or default
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
                       color: Color(0xFFEBC154), // Gold color
@@ -93,7 +103,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Description
                   Text(
                     'onboarding_welcome_desc'.tr(),
