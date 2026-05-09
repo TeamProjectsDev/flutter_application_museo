@@ -84,7 +84,7 @@ class RankBadgeWidget extends ConsumerWidget {
               Text(
                 rank.nextTierAt == 999
                     ? 'auth_max_rank'.tr()
-                    : 'auth_pieces_discovered'.tr(
+                    : 'auth_pieces_visited'.tr(
                         args: [count.toString(), rank.nextTierAt.toString()],
                       ),
                 style: const TextStyle(fontSize: 12, color: Colors.grey),

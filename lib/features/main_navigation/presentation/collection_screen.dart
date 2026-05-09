@@ -120,18 +120,19 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
       itemBuilder: (context, index) {
         final item = items[index];
         final bool isTester = int.tryParse(dotenv.env['TESTER'] ?? '0') == 1;
-        final bool isUnlocked = state.unlockedItems.contains(item.id) || isTester;
+        final bool isVisited = state.unlockedItems.contains(item.id) || isTester;
         final bool isFav = favorites.contains(item.id);
 
-        return _buildArtifactCard(context, item, isUnlocked, isFav, is3D);
+        return _buildArtifactCard(context, item, isVisited, isFav, is3D);
       },
     );
   }
 
-  Widget _buildArtifactCard(BuildContext context, CatalogItem item, bool isUnlocked, bool isFav, bool is3D) {
+  Widget _buildArtifactCard(BuildContext context, CatalogItem item, bool isVisited, bool isFav, bool is3D) {
     final theme = Theme.of(context);
     return InkWell(
-      onTap: isUnlocked ? () => context.push(is3D ? '/3d?model=${item.fileName}&room=${item.room}' : '/vr_explore?file=${item.fileName}') : null,
+      // Ahora todas las piezas son clicables por defecto
+      onTap: () => context.push(is3D ? '/3d?model=${item.fileName}&room=${item.room}' : '/vr_explore?file=${item.fileName}'),
       child: Container(
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
@@ -141,19 +142,42 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagen con overlay si está bloqueado
-            // Parte superior eliminada por petición del usuario
-            // Información de la pieza
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.name,
-                    style: theme.textTheme.displayMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.name,
+                          style: theme.textTheme.displayMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isVisited)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.verified, color: Colors.green, size: 12),
+                              const SizedBox(width: 4),
+                              Text(
+                                'tickets_status_visited'.tr().toUpperCase(),
+                                style: const TextStyle(color: Colors.green, fontSize: 9, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Row(
@@ -162,7 +186,7 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
                       Text(item.room.tr(), style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13)),
                       Row(
                         children: [
-                          if (isUnlocked && is3D)
+                          if (is3D)
                             GestureDetector(
                               onTap: () => _handle3DRequest(context, item),
                               child: Icon(Icons.print_outlined, size: 24, color: theme.colorScheme.primary),

@@ -54,7 +54,7 @@ class _ArScreenState extends ConsumerState<ArScreen> {
               parameters: {'item_id': item.id, 'type': 'environment360'},
             );
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('ar_360_unlocked'.tr(args: [item.name]))),
+              SnackBar(content: Text('ar_visit_success'.tr())),
             );
             context.push('/vr_explore?file=${item.fileName}');
             _resetScanner();
@@ -63,6 +63,9 @@ class _ArScreenState extends ConsumerState<ArScreen> {
             FirebaseAnalytics.instance.logEvent(
               name: 'ar_scan_success',
               parameters: {'item_id': item.id, 'type': 'piece3D'},
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('ar_visit_success'.tr())),
             );
             final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
             setState(() {

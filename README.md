@@ -147,7 +147,7 @@ La app está preconfigurada de fábrica para enviar estadísticas de uso super c
 * **Páginas Vistas (Automático):** Sabrás qué pantallas se visitan más gracias al rastreador de `GoRouter`.
 * **Usuarios (`logLogin` / `logSignUp`):** Registra si la gente entra como anónimo o con correo.
 * **AR y Escáner (`ar_scan_...`):**
-  * `ar_scan_success`: Registra qué pieza exacta de la exhibición es más popular usando su ID.
+  * `ar_scan_success`: Registra qué pieza exacta ha sido visitada (Check-in físico) para aumentar el rango de explorador del usuario.
   * `ar_scan_error`: Te avisa si la gente escanea códigos erróneos o ajenos al museo.
   * `ar_scan_simulated`: Separa los escaneos de prueba que haces desde el simulador de PC.
 * **Exploración 3D y VR (`view_item_...`):**
