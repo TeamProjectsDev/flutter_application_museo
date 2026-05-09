@@ -150,7 +150,7 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
       child: InkWell(
-        onTap: () => context.push('/3d?model=mandibula_hombre'),
+        onTap: () => context.push('/3d?model=mandibula_hombre.glb'),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(

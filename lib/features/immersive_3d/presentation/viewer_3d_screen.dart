@@ -23,7 +23,11 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
   @override
   void initState() {
     super.initState();
-    _modelFileName = widget.modelFileName ?? 'mandibula_hombre.glb';
+    String rawModel = widget.modelFileName ?? 'mandibula_hombre.glb';
+    if (!rawModel.toLowerCase().endsWith('.glb') && !rawModel.toLowerCase().endsWith('.gltf')) {
+      rawModel = '$rawModel.glb';
+    }
+    _modelFileName = rawModel;
     _details = MuseumArtifactManager.getDetail(_modelFileName, widget.room ?? 'General');
     _setupModel();
   }
