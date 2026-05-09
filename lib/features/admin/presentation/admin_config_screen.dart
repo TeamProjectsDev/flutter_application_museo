@@ -196,6 +196,12 @@ class _AdminConfigScreenState extends ConsumerState<AdminConfigScreen> {
                 decoration: const InputDecoration(labelText: 'Motivo (ej: Festivo, Evento)'),
               ),
               const SizedBox(height: 16),
+              TextField(
+                controller: _capacityController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Aforo Especial (Dejar vacío para global)'),
+              ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<DayStatus>(
                 initialValue: DayStatus.closed,
                 items: DayStatus.values.map((s) => DropdownMenuItem(value: s, child: Text(s.name.toUpperCase()))).toList(),
@@ -209,11 +215,18 @@ class _AdminConfigScreenState extends ConsumerState<AdminConfigScreen> {
             ElevatedButton(
               onPressed: () {
                 final dateKey = DateFormat('yyyy-MM-dd').format(picked);
+                final customCap = int.tryParse(_capacityController.text);
+                
                 ref.read(configProvider.notifier).setDayOverride(
                   dateKey, 
-                  DayConfig(status: DayStatus.closed, reason: _reasonController.text)
+                  DayConfig(
+                    status: DayStatus.closed, 
+                    reason: _reasonController.text,
+                    customCapacity: customCap,
+                  )
                 );
                 _reasonController.clear();
+                _capacityController.clear();
                 Navigator.pop(ctx);
               }, 
               child: const Text('Guardar')

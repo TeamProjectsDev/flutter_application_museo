@@ -158,16 +158,29 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                     }
                   }
 
-                  // 🚩 Comprobación 3: Aforo Máximo (Comparar pedido actual con límite admin)
+                  // 🚩 Comprobación 3: Aforo Máximo (Priorizar aforo especial del día)
                   final Map<String, dynamic> ticketsMap = json.decode(widget.ticketsJson);
                   final int totalRequested = (ticketsMap['general'] ?? 0) + (ticketsMap['student'] ?? 0);
                   
-                  if (config != null && totalRequested > config.maxDailyCapacity) {
-                    return _buildWarningBox(
-                      theme, 
-                      'museum_capacity_exceeded'.tr(args: [config.maxDailyCapacity.toString()]), 
-                      Icons.groups_outlined
-                    );
+                  if (config != null) {
+                    int effectiveCapacity = config.maxDailyCapacity;
+                    
+                    // Si el día tiene un aforo personalizado, usamos ese
+                    if (_selectedDate != null) {
+                      final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+                      final override = config.calendarOverrides[dateKey];
+                      if (override != null && override.customCapacity != null) {
+                        effectiveCapacity = override.customCapacity!;
+                      }
+                    }
+
+                    if (totalRequested > effectiveCapacity) {
+                      return _buildWarningBox(
+                        theme, 
+                        'museum_capacity_exceeded'.tr(args: [effectiveCapacity.toString()]), 
+                        Icons.groups_outlined
+                      );
+                    }
                   }
 
                   return SizedBox(
