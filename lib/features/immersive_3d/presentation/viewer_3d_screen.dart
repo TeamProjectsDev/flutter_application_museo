@@ -36,7 +36,16 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
     final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
     setState(() {
       _modelUrl = '$baseUrl/${Uri.encodeComponent(_modelFileName)}';
-      _isLoading = false;
+    });
+    
+    // Forzamos una espera mínima de 1.5 segundos para una transición suave
+    // y para dar tiempo a la inicialización del motor 3D.
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
   }
 
@@ -48,6 +57,13 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: !isWide ? AppBar(
+        title: Text(_details.title, style: const TextStyle(fontSize: 16)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ) : null,
       body: SafeArea(
         child: isWide ? _buildWideLayout(theme) : _buildMobileLayout(theme),
       ),
@@ -104,9 +120,58 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
             backgroundColor: Colors.transparent,
           ),
         
-        // Overlay de carga
+        // Overlay de carga Premium
         if (_isLoading)
-          const Center(child: CircularProgressIndicator()),
+          Container(
+            color: theme.scaffoldBackgroundColor,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Animación de carga con branding
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                        ),
+                      ),
+                      Icon(Icons.view_in_ar, size: 30, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'viewer_loading_title'.tr(),
+                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      'viewer_loading_subtitle'.tr(),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // Nombre del artefacto siendo cargado
+                  Text(
+                    _details.title.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      letterSpacing: 2,
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
         // 🏷️ Badge superior
         Positioned(

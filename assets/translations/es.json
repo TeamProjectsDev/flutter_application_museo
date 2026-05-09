@@ -234,5 +234,7 @@
   "admin_scanner_hint": "Escanea el código QR del visitante",
   "admin_scanner_success": "¡Entrada validada correctamente!",
   "admin_scanner_error_used": "Error: Esta entrada ya ha sido utilizada.",
-  "admin_scanner_error_not_found": "Error: Entrada no encontrada."
+  "admin_scanner_error_not_found": "Error: Entrada no encontrada.",
+  "viewer_loading_title": "Descargando Artefacto...",
+  "viewer_loading_subtitle": "Preparando visualización 3D de alta calidad..."
 }

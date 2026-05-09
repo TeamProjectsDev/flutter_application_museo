@@ -234,5 +234,7 @@
   "admin_scanner_hint": "Scan visitor's QR code",
   "admin_scanner_success": "Ticket validated successfully!",
   "admin_scanner_error_used": "Error: This ticket has already been used.",
-  "admin_scanner_error_not_found": "Error: Ticket not found."
+  "admin_scanner_error_not_found": "Error: Ticket not found.",
+  "viewer_loading_title": "Downloading Artifact...",
+  "viewer_loading_subtitle": "Preparing high-quality 3D visualization..."
 }
