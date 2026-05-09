@@ -217,7 +217,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               Center(
                 child: Text('checkout_secure'.tr(),
                     style:
-                        const TextStyle(color: Colors.white30, fontSize: 11)),
+                        TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 11)),
               ),
             ],
           ),
@@ -337,7 +337,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               color: Theme.of(context)
                   .colorScheme
                   .onSurface
-                  .withValues(alpha: 0.4),
+                  .withValues(alpha: 0.6), // Subido de 0.4 a 0.6 para legibilidad
               fontSize: 10,
               fontWeight: FontWeight.bold,
               letterSpacing: 1)),
@@ -424,21 +424,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   Widget _summaryRow(String label, String value, {bool isSmall = false}) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: TextStyle(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: isSmall ? 0.3 : 0.7),
-                  fontSize: isSmall ? 11 : 13)),
+          Expanded(
+            child: Text(label,
+                style: TextStyle(
+                    color: theme.colorScheme.onSurface
+                        .withValues(alpha: isSmall ? 0.5 : 0.8), // Subido de 0.3/0.7
+                    fontSize: isSmall ? 11 : 13)),
+          ),
           Text('\$$value',
               style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: isSmall ? FontWeight.normal : FontWeight.w500,
                   fontSize: isSmall ? 11 : 13)),
         ],
       ),

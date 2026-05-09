@@ -268,13 +268,29 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   }
 
   Widget _summaryRow(String label, double value, {bool isSmall = false}) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.white.withValues(alpha: isSmall ? 0.5 : 0.8), fontSize: isSmall ? 12 : 14)),
-          Text('\$${value.toStringAsFixed(2)}', style: TextStyle(fontSize: isSmall ? 12 : 14)),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withValues(alpha: isSmall ? 0.5 : 0.8),
+                fontSize: isSmall ? 12 : 14,
+              ),
+            ),
+          ),
+          Text(
+            '\$${value.toStringAsFixed(2)}',
+            style: TextStyle(
+              color: theme.colorScheme.onSurface,
+              fontSize: isSmall ? 12 : 14,
+              fontWeight: isSmall ? FontWeight.normal : FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
