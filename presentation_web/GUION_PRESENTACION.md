@@ -48,8 +48,8 @@
 ### 12. Gamificación: Sistema de Rangos (30s)
 - **Mensaje:** "Para combatir la falta de retención, creamos un sistema de rangos. El usuario progresa de 'Visitante' a 'Conservador', incentivando la visita recurrente."
 
-### 13. Pagos y Sostenibilidad (30s)
-- **Mensaje:** "El proyecto es viable. Integramos **Stripe** como pasarela de pagos universal para donaciones, tickets y micro-transacciones, garantizando seguridad y compatibilidad multiplataforma."
+### 13. Pasarela de Pagos de Clase Mundial (30s)
+- **Mensaje:** "El proyecto es viable y seguro. Hemos integrado **Stripe Checkout**, ofreciendo una experiencia de pago visualmente impresionante y fluida, al nivel de las plataformas de comercio electrónico líderes del mercado."
 
 ### 14. Calidad de Software y SEO (30s)
 - **Mensaje:** "Aplicamos estándares profesionales: **CI/CD con GitHub Actions** para tests automáticos y un SEO técnico optimizado para visibilidad web."

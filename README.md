@@ -355,7 +355,10 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 
 * **📦 Catálogo Dinámico (R2 + GitHub):** El catálogo de la galería se descubre automáticamente desde el servidor de assets configurado. Si se usa Cloudflare R2, basta con actualizar `manifest.json` en el bucket para que la pieza aparezca en la app sin ninguna actualización de código.
 
-* **💳 Pagos Unificados (Stripe):** Implementa una lógica de pasarela de pagos profesional y segura mediante Stripe Checkout. Todos los usuarios (Móvil, Web y PC) tienen acceso a una experiencia de pago consistente y moderna. Si no hay claves configuradas, la app activa automáticamente un diálogo de prueba para demostrar el flujo completo.
+* **💳 Pagos de Clase Mundial (Stripe Checkout):** Implementa una pasarela de pago visualmente impresionante y 100% segura.
+  * **Experiencia de Usuario**: Interfaz de Checkout fluida, moderna y optimizada para móviles, idéntica a la utilizada por grandes plataformas globales.
+  * **Confianza Instantánea**: El uso de la pasarela oficial de Stripe transmite una seguridad profesional al visitante desde el primer momento.
+  * **Unificado**: Una sola lógica de pago para Móvil, Web y PC, garantizando una experiencia consistente en todo el ecosistema del museo.
 
 * **📈 Analíticas Multiplataforma (Firebase):** Seguimiento del comportamiento de los usuarios (visitas a pantallas, compras de entradas en Stripe, donaciones simuladas o reales) con soporte total para Android, iOS y Web.
 
