@@ -1,16 +1,28 @@
 {
   "mandibula_hombre.glb": {
-    "name": "Mandíbula Inferior Humana (Fondo Histórico)",
+    "name": "Mandíbula Humana (Masculina)",
+    "subtitle": "Modelo de Estudio Osteológico",
+    "category": "ANTROPOLOGÍA / ANATOMÍA",
+    "description": "Estructura ósea inferior de un cráneo masculino. Se distingue por su robustez y una sínfisis mentoniana de forma cuadrangular.",
+    "history": "Ejemplar histórico del siglo XIX perteneciente a la colección didáctica del instituto. Utilizada para el estudio del dimorfismo sexual.",
     "room": "SALA I: Antropología y Paleontología",
-    "description": "Ejemplar histórico del siglo XIX perteneciente a la colección original del museo. Presenta una conservación excelente de la estructura ósea y dentaria.",
     "date": "Segunda mitad s. XIX",
-    "origin": "Antigua Colección Museo"
+    "origin": "Antigua Colección Museo Padre Suárez",
+    "material": "Hueso Natural / Tratamiento de Conservación",
+    "dimensions": "12.5 × 10.2 cm",
+    "accessionNo": "MS-ANT-H01"
   },
   "mandibula_mujer.glb": {
-    "name": "Mandíbula Humana Femenina",
+    "name": "Mandíbula Humana (Femenina)",
+    "subtitle": "Modelo de Estudio Osteológico",
+    "category": "ANTROPOLOGÍA / ANATOMÍA",
+    "description": "Estructura ósea inferior de un cráneo femenino. Presenta rasgos más gráciles, con un mentón redondeado y un ángulo mandibular más obtuso.",
+    "history": "Parte de la serie de paleoantropología. Utilizada históricamente para el estudio de la morfología craneal en las aulas del instituto.",
     "room": "SALA I: Antropología y Paleontología",
-    "description": "Parte de la serie de paleoantropología. Utilizada históricamente para el estudio de la morfología craneal en las aulas del instituto.",
     "date": "1883-1885",
-    "origin": "Fondo Histórico Natural B/G"
+    "origin": "Fondo Histórico Natural B/G",
+    "material": "Hueso Natural / Conservación Histórica",
+    "dimensions": "11.2 × 9.5 cm",
+    "accessionNo": "MS-ANT-M02"
   }
 }

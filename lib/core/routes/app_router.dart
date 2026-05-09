@@ -46,9 +46,13 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
   // Observar el estado de autenticación para reaccionar a cambios
   ref.watch(authProvider);
 
-  String initialRoute = '/welcome';
-  if (hasSelectedLanguage && hasSeenOnboarding) {
-    initialRoute = '/home';
+  String initialRoute = '/language';
+  if (hasSelectedLanguage) {
+    if (hasSeenOnboarding) {
+      initialRoute = '/home';
+    } else {
+      initialRoute = '/onboarding';
+    }
   }
 
   return GoRouter(
@@ -57,18 +61,21 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
     observers: [FirebaseAnalyticsObserver(analytics: analytics)],
     redirect: (context, state) {
       final authState = ref.read(authProvider);
-      final bool loggingIn = state.matchedLocation == '/auth';
-      final bool inOnboarding = state.matchedLocation == '/welcome' || 
-                                state.matchedLocation == '/language' || 
-                                state.matchedLocation == '/onboarding';
+      final String loc = state.matchedLocation;
 
-      // Si no está autenticado y no está en las pantallas de inicio/login, al login
-      if (!authState.isAuthenticated && !loggingIn && !inOnboarding) {
-        return '/auth';
+      // Pantallas que NO requieren estar autenticado (Onboarding y Auth)
+      final bool isConfiguring = loc == '/language' || 
+                                 loc == '/onboarding' || 
+                                 loc == '/welcome' || 
+                                 loc == '/auth';
+
+      // Si no está autenticado y trata de entrar a la App (Home, Mapa, etc.), a Welcome
+      if (!authState.isAuthenticated && !isConfiguring) {
+        return '/welcome';
       }
 
-      // Si ya está autenticado e intenta ir al login o bienvenida, a la home
-      if (authState.isAuthenticated && (loggingIn || inOnboarding)) {
+      // Si ya está autenticado e intenta volver atrás a Onboarding o Login, a la Home
+      if (authState.isAuthenticated && isConfiguring) {
         return '/home';
       }
 
