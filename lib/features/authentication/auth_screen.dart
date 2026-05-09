@@ -18,6 +18,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _passwordController = TextEditingController();
   bool _isLoginMode = true;
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -86,10 +87,29 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(32.0),
-                child: authState.isAuthenticated
-                    ? _buildSuccessView(context, authState.userName)
-                    : _buildFormView(context, authState.error),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 450),
+                  padding: const EdgeInsets.all(32.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF121212).withValues(alpha: 0.9), // Fondo negro profundo premium
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        blurRadius: 30,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: authState.isAuthenticated
+                      ? _buildSuccessView(context, authState.userName)
+                      : _buildFormView(context, authState.error),
+                ),
               ),
             ),
           ),
@@ -139,42 +159,69 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   Widget _buildFormView(BuildContext context, String? error) {
     final theme = Theme.of(context);
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.museum_outlined, size: 70, color: Color(0xFFCBA35C)),
-        const SizedBox(height: 16),
+        // 🏛️ Logo Oficial del Museo (Limpio)
+        SizedBox(
+          width: 180,
+          height: 180,
+          child: Center(
+            child: Image.asset(
+              'assets/images/museo_logo.png',
+              height: 160,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.museum_outlined, size: 80, color: Color(0xFFCBA35C)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         Text(
           _isLoginMode ? 'auth_access'.tr() : 'Únete al Museo',
-          style: theme.textTheme.displayLarge?.copyWith(fontSize: 32),
+          style: theme.textTheme.displayLarge?.copyWith(
+            fontSize: 24, 
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFFEBC154),
+          ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          _isLoginMode ? 'Bienvenido de nuevo' : 'Crea tu pase de explorador',
-          style: theme.textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 40),
-        if (error != null) _buildErrorLabel(error),
+        const SizedBox(height: 16),
+        if (error != null) ...[
+          _buildErrorLabel(error),
+          const SizedBox(height: 12),
+        ],
         _buildTextField(
           controller: _emailController,
           label: 'auth_email'.tr(),
           icon: Icons.email_outlined,
           keyboardType: TextInputType.emailAddress,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
         _buildTextField(
           controller: _passwordController,
           label: 'auth_pass'.tr(),
           icon: Icons.lock_outline,
-          obscureText: true,
+          obscureText: _obscurePassword,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              size: 20,
+              color: const Color(0xFFCBA35C),
+            ),
+            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+          ),
         ),
         if (_isLoginMode)
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: _resetPassword,
-              child: Text('auth_forgot'.tr(), style: TextStyle(color: theme.colorScheme.primary, fontSize: 12)),
+              child: Text(
+                'auth_forgot'.tr(), 
+                style: const TextStyle(color: Color(0xFFEBC154), fontSize: 11),
+              ),
             ),
           ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 12),
         if (_isLoading)
           const CircularProgressIndicator(color: Color(0xFFCBA35C))
         else
@@ -186,20 +233,34 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 onPressed: _submit,
                 isPrimary: true,
               ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => setState(() => _isLoginMode = !_isLoginMode),
-                child: Text(_isLoginMode ? 'auth_no_account'.tr() : 'auth_has_account'.tr()),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Divider(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
-              ),
+              const SizedBox(height: 10),
               _buildButton(
                 context,
-                text: 'auth_guest'.tr(),
+                text: 'Continuar con Google',
+                onPressed: () => ref.read(authProvider.notifier).loginWithGoogle(),
+                isPrimary: false,
+                icon: Image.asset(
+                  'assets/images/google_logo.png',
+                  height: 40, // 3 veces más grande que el estándar de 14-16px
+                  cacheHeight: 120,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _buildButton(
+                context,
+                text: 'Entrar como Invitado',
                 onPressed: () => ref.read(authProvider.notifier).loginAsGuest(),
                 isPrimary: false,
+                icon: const Icon(Icons.person_outline, size: 32, color: Colors.white70),
+              ),
+              const SizedBox(height: 12),
+              const Divider(color: Colors.white10, height: 16),
+              TextButton(
+                onPressed: () => setState(() => _isLoginMode = !_isLoginMode),
+                child: Text(
+                  _isLoginMode ? 'auth_no_account'.tr() : 'auth_has_account'.tr(),
+                  style: const TextStyle(color: Color(0xFFCBA35C), fontSize: 13, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -213,38 +274,75 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     required IconData icon,
     bool obscureText = false,
     TextInputType? keyboardType,
+    Widget? suffixIcon,
   }) {
-    final theme = Theme.of(context);
     return TextField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      style: const TextStyle(color: Color(0xFF2D2D2D), fontSize: 14), // Texto oscuro premium
       decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, size: 20),
+        hintText: label,
+        hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.4)),
+        prefixIcon: Icon(icon, size: 20, color: const Color(0xFFCBA35C)),
+        suffixIcon: suffixIcon,
         filled: true,
-        fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.1))),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.1))),
+        fillColor: const Color(0xFFF9F6F0), // Blanco Marfil
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: const Color(0xFFCBA35C).withValues(alpha: 0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFCBA35C), width: 1.5),
+        ),
       ),
     );
   }
 
-  Widget _buildButton(BuildContext context, {required String text, required VoidCallback onPressed, required bool isPrimary}) {
-    final theme = Theme.of(context);
+  Widget _buildButton(BuildContext context,
+      {required String text,
+      required VoidCallback onPressed,
+      required bool isPrimary,
+      Widget? icon}) {
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 50, // Un pelín más compacto
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? const Color(0xFFCBA35C) : Colors.transparent,
-          foregroundColor: isPrimary ? Colors.black : theme.colorScheme.onSurface,
-          elevation: isPrimary ? 4 : 0,
-          side: isPrimary ? BorderSide.none : BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor:
+              isPrimary ? const Color(0xFFCBA35C) : Colors.transparent,
+          foregroundColor: isPrimary ? Colors.black : Colors.white, // Letras blancas para secundarios
+          elevation: isPrimary ? 2 : 0,
+          side: isPrimary
+              ? BorderSide.none
+              : const BorderSide(color: Color(0xFFCBA35C), width: 1.5), // Borde Dorado
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              icon,
+              const SizedBox(width: 8), // Reducido de 12 a 8
+            ],
+            Flexible(
+              child: Text(
+                text,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), // Reducido de 16 a 14
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
