@@ -49,6 +49,7 @@ void main() {
           fallbackLocale: const Locale('es'),
           startLocale: const Locale('es'),
           useOnlyLangCode: true,
+          saveLocale: false,
           child: const ProviderScope(
             child: MuseoApp(),
           ),
