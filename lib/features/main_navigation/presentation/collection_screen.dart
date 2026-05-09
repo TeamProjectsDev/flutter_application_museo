@@ -111,10 +111,10 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
     return GridView.builder(
       padding: const EdgeInsets.all(20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 20,
-        crossAxisSpacing: 20,
-        childAspectRatio: 4.8,
+        crossAxisCount: 1, // Una sola columna para mejor visibilidad en móvil
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 0,
+        childAspectRatio: 4.5, // Ajustado para tarjetas horizontales elegantes
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {

@@ -12,9 +12,12 @@ class MainScaffold extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Observar localeProvider para que el bottom nav se rebuilde
-    // en cuanto cambie el idioma y los tr() devuelvan la traducción correcta.
     ref.watch(localeProvider);
+
+    // Guarda de traducción: Evitamos que la barra inferior muestre Keys crudas
+    if (context.locale.languageCode.isEmpty) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       body: navigationShell,
