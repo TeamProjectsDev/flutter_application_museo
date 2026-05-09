@@ -79,59 +79,54 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _buildSectionTitle('settings_appearance'.tr()),
           const SizedBox(height: 16),
           _buildSettingsCard(
-            child: Column(
-              children: [
-                _buildRadioTile<ThemeMode>(
-                  title: 'settings_theme_light'.tr(),
-                  icon: Icons.light_mode_outlined,
-                  value: ThemeMode.light,
-                  groupValue: currentTheme,
-                  onChanged: (v) => ref.read(themeProvider.notifier).setTheme(v!),
-                ),
-                _buildRadioTile<ThemeMode>(
-                  title: 'settings_theme_dark'.tr(),
-                  icon: Icons.dark_mode_outlined,
-                  value: ThemeMode.dark,
-                  groupValue: currentTheme,
-                  onChanged: (v) => ref.read(themeProvider.notifier).setTheme(v!),
-                ),
-                _buildRadioTile<ThemeMode>(
-                  title: 'settings_theme_system'.tr(),
-                  icon: Icons.settings_brightness_outlined,
-                  value: ThemeMode.system,
-                  groupValue: currentTheme,
-                  onChanged: (v) => ref.read(themeProvider.notifier).setTheme(v!),
-                ),
-              ],
+            child: RadioGroup<ThemeMode>(
+              groupValue: currentTheme,
+              onChanged: (v) => ref.read(themeProvider.notifier).setTheme(v!),
+              child: Column(
+                children: [
+                  _buildRadioTile<ThemeMode>(
+                    title: 'settings_theme_light'.tr(),
+                    icon: Icons.light_mode_outlined,
+                    value: ThemeMode.light,
+                  ),
+                  _buildRadioTile<ThemeMode>(
+                    title: 'settings_theme_dark'.tr(),
+                    icon: Icons.dark_mode_outlined,
+                    value: ThemeMode.dark,
+                  ),
+                  _buildRadioTile<ThemeMode>(
+                    title: 'settings_theme_system'.tr(),
+                    icon: Icons.settings_brightness_outlined,
+                    value: ThemeMode.system,
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 32),
           _buildSectionTitle('settings_language'.tr()),
           const SizedBox(height: 16),
           _buildSettingsCard(
-            child: Column(
-              children: [
-                _buildRadioTile<String>(
-                  title: 'Español',
-                  iconWidget: const Text('🇪🇸', style: TextStyle(fontSize: 20)),
-                  value: 'es',
-                  groupValue: context.locale.languageCode,
-                  onChanged: (v) {
-                    context.setLocale(Locale(v!));
-                    ref.read(localeProvider.notifier).state = Locale(v);
-                  },
-                ),
-                _buildRadioTile<String>(
-                  title: 'English',
-                  iconWidget: const Text('🇬🇧', style: TextStyle(fontSize: 20)),
-                  value: 'en',
-                  groupValue: context.locale.languageCode,
-                  onChanged: (v) {
-                    context.setLocale(Locale(v!));
-                    ref.read(localeProvider.notifier).state = Locale(v);
-                  },
-                ),
-              ],
+            child: RadioGroup<String>(
+              groupValue: context.locale.languageCode,
+              onChanged: (v) {
+                context.setLocale(Locale(v!));
+                ref.read(localeProvider.notifier).state = Locale(v);
+              },
+              child: Column(
+                children: [
+                  _buildRadioTile<String>(
+                    title: 'Español',
+                    iconWidget: const Text('🇪🇸', style: TextStyle(fontSize: 20)),
+                    value: 'es',
+                  ),
+                  _buildRadioTile<String>(
+                    title: 'English',
+                    iconWidget: const Text('🇬🇧', style: TextStyle(fontSize: 20)),
+                    value: 'en',
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 32),
@@ -203,27 +198,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     IconData? icon,
     Widget? iconWidget,
     required T value,
-    required T groupValue,
-    required ValueChanged<T?> onChanged,
   }) {
     final theme = Theme.of(context);
     return RadioListTile<T>(
       value: value,
-      groupValue: groupValue,
-      onChanged: onChanged,
       activeColor: theme.colorScheme.primary,
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-      secondary: iconWidget ?? Icon(icon, size: 20, color: theme.colorScheme.primary),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+      ),
+      secondary:
+          iconWidget ?? Icon(icon, size: 20, color: theme.colorScheme.primary),
       controlAffinity: ListTileControlAffinity.trailing,
     );
   }
 }
 
-class RadioGroup<T> extends StatelessWidget {
-  final T groupValue;
-  final ValueChanged<T?> onChanged;
-  final Widget child;
-  const RadioGroup({super.key, required this.groupValue, required this.onChanged, required this.child});
-  @override
-  Widget build(BuildContext context) => child;
-}
