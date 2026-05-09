@@ -187,5 +187,11 @@
   "ar_simulate": "Simulate Scan (Web)",
   "ar_camera_denied": "Camera access denied",
   "vr_title": "360º Viewer",
-  "vr_desc": "Immersive Environment"
+  "vr_desc": "Immersive Environment",
+  "museum_closed_global": "The museum is temporarily closed for global maintenance.",
+  "museum_unavailable": "SERVICE UNAVAILABLE",
+  "museum_closed_day": "Closed for holiday or scheduled maintenance.",
+  "museum_full_day": "Sorry, capacity for this date is full.",
+  "museum_event_day": "Date reserved for private or institutional event.",
+  "auth_required_checkout": "You must log in with your museum account to purchase tickets."
 }

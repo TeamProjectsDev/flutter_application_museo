@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../core/theme/theme_provider.dart';
@@ -173,6 +174,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
             ),
           ),
+          if (user?.email == 'museosuarez443@gmail.com') ...[
+            const SizedBox(height: 32),
+            _buildSectionTitle('ADMINISTRACIÓN'),
+            const SizedBox(height: 16),
+            _buildSettingsCard(
+              child: ListTile(
+                title: const Text('Gestión del Museo', style: TextStyle(fontWeight: FontWeight.bold)),
+                leading: Icon(Icons.admin_panel_settings_outlined, color: theme.colorScheme.primary),
+                subtitle: const Text('Aforo, cierres y configuración global'),
+                onTap: () => context.push('/admin/config'),
+                trailing: const Icon(Icons.chevron_right),
+              ),
+            ),
+          ],
         ],
       ),
     );

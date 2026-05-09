@@ -187,5 +187,11 @@
   "ar_simulate": "Simular Escaneo (Web)",
   "ar_camera_denied": "Acceso a la cámara denegado",
   "vr_title": "Visor 360º",
-  "vr_desc": "Entorno Inmersivo"
+  "vr_desc": "Entorno Inmersivo",
+  "museum_closed_global": "El museo se encuentra cerrado temporalmente por mantenimiento global.",
+  "museum_unavailable": "SERVICIO NO DISPONIBLE",
+  "museum_closed_day": "Cerrado por festivo o mantenimiento programado.",
+  "museum_full_day": "Lo sentimos, el aforo para esta fecha está completo.",
+  "museum_event_day": "Día reservado para evento privado o institucional.",
+  "auth_required_checkout": "Debes iniciar sesión con tu cuenta del museo para comprar entradas."
 }

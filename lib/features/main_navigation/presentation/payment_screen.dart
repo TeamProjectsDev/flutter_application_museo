@@ -10,6 +10,8 @@ import '../providers/payment_provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+import '../../../core/providers/config_provider.dart';
+import '../../../core/models/museum_config.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final String total;
@@ -101,34 +103,90 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
               const SizedBox(height: 40),
 
-              // 🔒 Confirm Button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: (paymentState.isLoading ||
-                          _nameController.text.trim().isEmpty ||
-                          !_emailController.text.contains('@') ||
-                          (_selectedDate == null && !isTester))
-                      ? null
-                      : _handlePayment,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: Colors.black,
-                  ),
-                  child: paymentState.isLoading
-                      ? const CircularProgressIndicator(color: Colors.black)
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('checkout_confirm'.tr(),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16)),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.check_circle, size: 18),
-                          ],
+              // 🔒 Confirm Button or Warning
+              Builder(
+                builder: (context) {
+                  final configState = ref.watch(configProvider);
+                  final config = configState.config;
+                  final currentUser = FirebaseAuth.instance.currentUser;
+                  
+                  if (configState.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  // 🚩 Comprobación 0: Usuario Autenticado
+                  if (currentUser == null) {
+                    return Column(
+                      children: [
+                        _buildWarningBox(theme, 'auth_required_checkout'.tr(), Icons.account_circle),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () => context.push('/auth'),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: theme.colorScheme.primary),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: Text('auth_login'.tr().toUpperCase()),
+                          ),
                         ),
-                ),
+                      ],
+                    );
+                  }
+
+                  // 🚩 Comprobación 1: Cierre Global
+                  if (config != null && !config.isGlobalOpen) {
+                    return _buildWarningBox(theme, 'museum_closed_global'.tr(), Icons.lock);
+                  }
+
+                  // 🚩 Comprobación 2: Estado del día seleccionado
+                  if (_selectedDate != null && config != null) {
+                    final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+                    final override = config.calendarOverrides[dateKey];
+                    
+                    if (override != null) {
+                      if (override.status == DayStatus.closed) {
+                        return _buildWarningBox(theme, override.reason ?? 'museum_closed_day'.tr(), Icons.event_busy);
+                      }
+                      if (override.status == DayStatus.fullyBooked) {
+                        return _buildWarningBox(theme, 'museum_full_day'.tr(), Icons.people_outline);
+                      }
+                      if (override.status == DayStatus.event) {
+                        return _buildWarningBox(theme, override.reason ?? 'museum_event_day'.tr(), Icons.stars);
+                      }
+                    }
+                  }
+
+                  return SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: (paymentState.isLoading ||
+                              _nameController.text.trim().isEmpty ||
+                              !_emailController.text.contains('@') ||
+                              (_selectedDate == null && !isTester))
+                          ? null
+                          : _handlePayment,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: Colors.black,
+                      ),
+                      child: paymentState.isLoading
+                          ? const CircularProgressIndicator(color: Colors.black)
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('checkout_confirm'.tr(),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold, fontSize: 16)),
+                                const SizedBox(width: 8),
+                                const Icon(Icons.check_circle, size: 18),
+                              ],
+                            ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               Center(
@@ -637,5 +695,38 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         debugPrint('Error EmailJS to $email: $e');
       }
     }
+  }
+
+  Widget _buildWarningBox(ThemeData theme, String message, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.red, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'museum_unavailable'.tr(),
+                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  message,
+                  style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

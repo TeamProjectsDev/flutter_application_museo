@@ -22,6 +22,7 @@ import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/onboarding/presentation/language_screen.dart';
 import '../../features/onboarding/presentation/welcome_screen.dart';
 import '../../features/main_navigation/presentation/my_tickets_screen.dart';
+import '../../features/admin/presentation/admin_config_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(
@@ -192,6 +193,18 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
         path: '/settings',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/config',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AdminConfigScreen(),
+        redirect: (context, state) {
+          final authState = ref.read(authProvider);
+          if (!authState.isAdmin) {
+            return '/home';
+          }
+          return null;
+        },
       ),
       GoRoute(
         path: '/onboarding',

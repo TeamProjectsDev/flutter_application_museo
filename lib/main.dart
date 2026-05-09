@@ -12,39 +12,41 @@ import 'core/theme/app_theme.dart';
 
 import 'package:flutter/foundation.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Cargar variables de entorno
-  await dotenv.load(fileName: ".env");
-  await EasyLocalization.ensureInitialized();
-
-  // Inicialización de Firebase detectando la plataforma
-  await Firebase.initializeApp(options: _getFirebaseOptions());
-
-  // Crashlytics: capturar errores no manejados del framework Flutter
-  if (!kIsWeb && defaultTargetPlatform != TargetPlatform.windows) {
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-    // Capturar errores asíncronos de la plataforma nativa
-    PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
-  }
-
+void main() {
   runZonedGuarded(
-    () => runApp(
-      EasyLocalization(
-        supportedLocales: const [Locale('en'), Locale('es')],
-        path: 'assets/translations/', // Restaurada la barra para evitar fallos de carga
-        fallbackLocale: const Locale('es'),
-        startLocale: const Locale('es'),
-        useOnlyLangCode: true,
-        child: const ProviderScope(
-          child: MuseoApp(),
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // Cargar variables de entorno
+      await dotenv.load(fileName: ".env");
+      await EasyLocalization.ensureInitialized();
+
+      // Inicialización de Firebase detectando la plataforma
+      await Firebase.initializeApp(options: _getFirebaseOptions());
+
+      // Crashlytics: capturar errores no manejados del framework Flutter
+      if (!kIsWeb && defaultTargetPlatform != TargetPlatform.windows) {
+        FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+        // Capturar errores asíncronos de la plataforma nativa
+        PlatformDispatcher.instance.onError = (error, stack) {
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+          return true;
+        };
+      }
+
+      runApp(
+        EasyLocalization(
+          supportedLocales: const [Locale('en'), Locale('es')],
+          path: 'assets/translations/',
+          fallbackLocale: const Locale('es'),
+          startLocale: const Locale('es'),
+          useOnlyLangCode: true,
+          child: const ProviderScope(
+            child: MuseoApp(),
+          ),
         ),
-      ),
-    ),
+      );
+    },
     (error, stack) {
       if (!kIsWeb && defaultTargetPlatform != TargetPlatform.windows) {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
