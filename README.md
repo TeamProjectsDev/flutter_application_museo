@@ -361,7 +361,10 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 
 * **📰 Bio-Revista Científica:** Sección de noticias con feeds RSS en tiempo real de fuentes científicas (Agencia SINC y otras). Las imágenes se almacenan en caché local con `cached_network_image` — la segunda visita carga instantáneamente sin red.
 
-* **🗺️ Mapa Interactivo del Museo:** Plano de planta interactivo de nivel técnico/arquitectónico dibujado con `CustomPainter`. Incluye muros, puertas, vitrinas internas, numeración de salas (S-I, S-II…), cotas de medida y anotaciones. Cada sala tiene un pin pulsable que muestra su descripción y permite navegar directamente a sus piezas. El mapa aparece centrado automáticamente al abrirse.
+* **🗺️ Mapa 3D Interactivo y Multi-Tema:** Plano de planta interactivo de alta fidelidad basado en modelos 3D y planos técnicos. 
+  - **Adaptación Inteligente**: El mapa cambia automáticamente entre el modo **Azul Abisal** (Oscuro) y **Blanco Técnico** (Claro) según los ajustes del dispositivo, incluyendo fondos y textos dinámicos.
+  - **Navegación por Salas**: Sistema de pines inteligentes para las salas principales (Paleontología, Zoología, Arqueología, Anatomía e Instrumentos). Cada sala incluye una ficha técnica y permite filtrar la galería de piezas 3D al instante.
+  - **Precisión Adaptativa**: Implementado con un sistema de coordenadas relativas que garantiza la posición exacta de los puntos de interés en cualquier resolución de pantalla (Web, Tablet o Móvil).
 
 * **📦 Catálogo Dinámico (R2 + GitHub):** El catálogo de la galería se descubre automáticamente desde el servidor de assets configurado. Si se usa Cloudflare R2, basta con actualizar `manifest.json` en el bucket para que la pieza aparezca en la app sin ninguna actualización de código.
 

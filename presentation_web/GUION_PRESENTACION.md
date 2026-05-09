@@ -38,6 +38,9 @@
 ### 10. Realidad Aumentada Inmersiva (50s)
 - **Punto Estrella:** "La característica diferencial es la **Realidad Aumentada (AR)**. Usando **SceneView**, proyectamos modelos 3D con iluminación realista y escala 1:1, permitiendo al usuario 'llevarse' el museo a casa."
 
+### 11. Mapa 3D y Navegación Inteligente (30s)
+- **Mensaje:** "Para completar la inmersión, hemos diseñado un **Mapa 3D interactivo** que actúa como cerebro de navegación. Es sensible al tema del sistema, transicionando entre un modo nocturno elegante y un plano técnico claro, permitiendo filtrar la colección por salas con un solo toque."
+
 ---
 
 ## Bloque 3: Blindaje, Calidad y Futuro (3:00 min)
