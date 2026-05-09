@@ -63,5 +63,18 @@
     "material": "Carbonato de Calcio / Esqueleto Natural",
     "dimensions": "32 × 28 cm",
     "accessionNo": "MS-BIO-C12"
+  },
+  "encorchador.glb": {
+    "name": "Prensa de Corchos (Cocodrilo)",
+    "subtitle": "Utillaje de Laboratorio y Farmacia",
+    "category": "CIENCIAS / INSTRUMENTAL",
+    "description": "Instrumento de hierro fundido diseñado para comprimir tapones de corcho mediante un mecanismo de palanca. Su forma característica ha hecho que sea popularmente conocido como 'Prensa Cocodrilo'.",
+    "history": "Este tipo de prensas eran esenciales en los laboratorios y farmacias del siglo XIX para asegurar el sellado de frascos de reactivos y medicamentos.",
+    "room": "SALA III: Instrumentos Científicos",
+    "date": "Finales s. XIX",
+    "origin": "Gabinete de Ciencias del Instituto",
+    "material": "Hierro Fundido / Pintura de Conservación",
+    "dimensions": "25 × 8 cm",
+    "accessionNo": "MS-FIS-M09"
   }
 }
