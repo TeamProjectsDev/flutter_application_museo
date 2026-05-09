@@ -27,7 +27,8 @@ Aquí puedes encontrar acceso directo a toda la infraestructura y documentación
 7. [Códigos QR para las Piezas del Museo](#7-códigos-qr-para-las-piezas-del-museo)
 8. [Lanzar la Aplicación](#8-lanzar-la-aplicación)
 9. [Modo Tester (Pruebas sin pagar)](#9--modo-tester-para-tribunal-y-exposiciones-sin-gasto)
-10. [✨ Características de Pulido Comercial](#10--características-de-pulido-comercial)
+10. [🏛️ Sistema de Gestión Administrativa (Panel Admin)](#10-sistema-de-gestión-administrativa-panel-admin)
+11. [✨ Características de Pulido Comercial](#11--características-de-pulido-comercial)
 
 ---
 
@@ -128,8 +129,17 @@ La app está preconfigurada de fábrica para enviar estadísticas de uso super c
   * `donation_..._success` / `ticket_..._success`: Sabrás si el usuario completó el flujo de pago con éxito usando dinero de verdad (`stripe`) o si fue una demo (`mock`).
   * `ecommerce_error`: Se dispara de forma invisible si hay fallos en Firestore guardando un pedido físico.
 
-**🔐 ¿Cómo ser Administrador?**
-Abre la base de datos Firestore, busca la colección `users`, encuentra tu propio usuario (su identificador largo) y asegúrate de que tiene un campo llamado `role` con el texto exactamente igual a `admin`.
+**🔐 Gestión Administrativa y Seguridad**
+La aplicación incluye un sistema de administración dinámico que permite gestionar el museo en tiempo real:
+* **Admin Panel**: Acceso exclusivo para el administrador (`ADMIN_EMAIL` en `.env`) desde la pantalla de Ajustes.
+* **Control de Aforo**: Capacidad de limitar el número de entradas diarias globalmente o por fechas específicas.
+* **Cierre Inteligente**: Interruptor maestro para abrir/cerrar el museo instantáneamente en todos los dispositivos de los usuarios.
+* **Excepciones de Calendario**: Gestión de cierres por festivos o eventos privados.
+* **Seguridad en Firestore**: Las reglas protegen la colección `museum_config` para que solo el administrador pueda modificar los ajustes.
+
+Para que un usuario sea reconocido como administrador:
+1. El correo electrónico debe estar incluido en la variable `ADMIN_EMAIL` del archivo `.env`.
+2. La aplicación detectará automáticamente el rango de administrador y habilitará el botón **"Gestión del Museo"** en los ajustes.
 
 ---
 

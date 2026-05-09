@@ -42,30 +42,34 @@
 
 ## Bloque 3: Blindaje, Calidad y Futuro (3:00 min)
 
-### 11. Seguridad y Blindaje (40s)
-- **Mensaje:** "La seguridad es prioridad. Implementamos **Row Level Security (RLS)** en Supabase. Los datos están blindados: un usuario solo puede ver y modificar lo que el sistema le permite mediante su token JWT."
+### 11. Panel de Administración Dinámico (40s)
+- **Mensaje:** "No es solo una app para visitantes; es una herramienta de gestión profesional. Hemos desarrollado un Panel Administrativo oculto que permite controlar en tiempo real el aforo, el estado de apertura y las excepciones del calendario mediante Firestore Sync."
+- **Clave:** Destacar que los cambios se reflejan instantáneamente en todos los móviles de los usuarios.
 
-### 12. Gamificación: Sistema de Rangos (30s)
+### 12. Seguridad y Blindaje (40s)
+- **Mensaje:** "La seguridad es prioridad. Implementamos reglas granulares en Firestore. Los datos de configuración están blindados: solo el administrador autenticado puede modificar los ajustes críticos del museo."
+
+### 13. Gamificación: Sistema de Rangos (30s)
 - **Mensaje:** "Para combatir la falta de retención, creamos un sistema de rangos. El usuario progresa de 'Visitante' a 'Conservador', incentivando la visita recurrente."
 
-### 13. Pasarela de Pagos de Clase Mundial (30s)
+### 14. Pasarela de Pagos de Clase Mundial (30s)
 - **Mensaje:** "El proyecto es viable y seguro. Hemos integrado **Stripe Checkout**, ofreciendo una experiencia de pago visualmente impresionante y fluida, al nivel de las plataformas de comercio electrónico líderes del mercado."
 
-### 14. Calidad de Software y SEO (30s)
+### 15. Calidad de Software y SEO (30s)
 - **Mensaje:** "Aplicamos estándares profesionales: **CI/CD con GitHub Actions** para tests automáticos y un SEO técnico optimizado para visibilidad web."
 
-### 15. Roadmap v2.0 (30s)
+### 16. Roadmap v2.0 (30s)
 - **Mensaje:** "El futuro pasa por la Realidad Virtual con Meta Quest y la implementación de una guía interactiva basada en Inteligencia Artificial."
 
 ---
 
 ## Bloque 4: Conclusión (1:00 min)
 
-### 16. Gestión y Recursos (20s)
+### 17. Gestión y Recursos (20s)
 - **Mensaje:** "Todo el desarrollo ha sido gestionado bajo metodologías ágiles, usando **Trello** para sprints y **GitHub** para el control de versiones."
 
-### 17. Conclusión (20s)
+### 18. Conclusión (20s)
 - **Mensaje:** "La tecnología es el puente necesario para salvar la brecha entre la historia y las nuevas generaciones. El Museo Padre Suárez ya es parte del futuro."
 
-### 18. Cierre y Preguntas (20s)
+### 19. Cierre y Preguntas (20s)
 - **Mensaje:** "Muchas gracias por su atención. Estoy a su disposición para cualquier pregunta técnica que deseen realizar."
