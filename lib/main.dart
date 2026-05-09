@@ -36,7 +36,7 @@ void main() async {
     () => runApp(
       EasyLocalization(
         supportedLocales: const [Locale('en'), Locale('es')],
-        path: 'assets/translations/',
+        path: 'assets/translations/', // Restaurada la barra para evitar fallos de carga
         fallbackLocale: const Locale('es'),
         startLocale: const Locale('es'),
         useOnlyLangCode: true,
@@ -61,7 +61,7 @@ FirebaseOptions _getFirebaseOptions() {
       messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
       projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
       storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
-      authDomain: "${dotenv.env['FIREBASE_PROJECT_ID']}.firebaseapp.com",
+      authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN_WEB'] ?? '',
       measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID_WEB'] ?? '',
     );
   }

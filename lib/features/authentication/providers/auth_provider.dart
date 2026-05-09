@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 /// Un estado básico para la autenticación real con Firebase
 class AuthState {
@@ -54,6 +56,30 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await FirebaseAnalytics.instance.logLogin(loginMethod: 'email');
     } on FirebaseAuthException catch (e) {
       state = AuthState(isAuthenticated: false, error: e.message);
+      rethrow;
+    }
+  }
+
+  // Login con Google
+  Future<void> loginWithGoogle() async {
+    try {
+      final String? clientId =
+          kIsWeb ? dotenv.env['GOOGLE_WEB_CLIENT_ID'] : null;
+      final GoogleSignInAccount? googleUser =
+          await GoogleSignIn(clientId: clientId).signIn();
+      if (googleUser == null) return;
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await _auth.signInWithCredential(credential);
+      await FirebaseAnalytics.instance.logLogin(loginMethod: 'google');
+    } catch (e) {
+      state = AuthState(isAuthenticated: false, error: e.toString());
       rethrow;
     }
   }
