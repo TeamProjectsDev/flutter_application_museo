@@ -158,6 +158,18 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                     }
                   }
 
+                  // 🚩 Comprobación 3: Aforo Máximo (Comparar pedido actual con límite admin)
+                  final Map<String, dynamic> ticketsMap = json.decode(widget.ticketsJson);
+                  final int totalRequested = (ticketsMap['general'] ?? 0) + (ticketsMap['student'] ?? 0);
+                  
+                  if (config != null && totalRequested > config.maxDailyCapacity) {
+                    return _buildWarningBox(
+                      theme, 
+                      'museum_capacity_exceeded'.tr(args: [config.maxDailyCapacity.toString()]), 
+                      Icons.groups_outlined
+                    );
+                  }
+
                   return SizedBox(
                     width: double.infinity,
                     height: 56,

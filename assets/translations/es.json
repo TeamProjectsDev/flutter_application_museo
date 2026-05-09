@@ -193,5 +193,6 @@
   "museum_closed_day": "Cerrado por festivo o mantenimiento programado.",
   "museum_full_day": "Lo sentimos, el aforo para esta fecha está completo.",
   "museum_event_day": "Día reservado para evento privado o institucional.",
-  "auth_required_checkout": "Debes iniciar sesión con tu cuenta del museo para comprar entradas."
+  "auth_required_checkout": "Debes iniciar sesión con tu cuenta del museo para comprar entradas.",
+  "museum_capacity_exceeded": "El pedido supera el aforo máximo permitido ({} personas)."
 }

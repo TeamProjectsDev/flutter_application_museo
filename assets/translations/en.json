@@ -193,5 +193,6 @@
   "museum_closed_day": "Closed for holiday or scheduled maintenance.",
   "museum_full_day": "Sorry, capacity for this date is full.",
   "museum_event_day": "Date reserved for private or institutional event.",
-  "auth_required_checkout": "You must log in with your museum account to purchase tickets."
+  "auth_required_checkout": "You must log in with your museum account to purchase tickets.",
+  "museum_capacity_exceeded": "Order exceeds the maximum allowed capacity ({} people)."
 }
