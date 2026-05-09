@@ -100,11 +100,19 @@ class MuseoApp extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     final routerAsyncValue = ref.watch(routerProvider);
 
+    // Pantalla de carga mientras se inicializa el Router o las Traducciones
     if (routerAsyncValue.isLoading ||
         routerAsyncValue.hasError ||
-        routerAsyncValue.value == null) {
-      return const MaterialApp(
-        home: Scaffold(body: Center(child: CircularProgressIndicator())),
+        routerAsyncValue.value == null ||
+        context.locale.languageCode.isEmpty) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        home: const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
       );
     }
 
