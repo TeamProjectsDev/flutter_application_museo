@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/admin/presentation/ticket_scanner_screen.dart';
 
 import '../../features/main_navigation/presentation/main_scaffold.dart';
 import '../../features/main_navigation/presentation/home_screen.dart';
@@ -22,6 +24,7 @@ import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/onboarding/presentation/language_screen.dart';
 import '../../features/onboarding/presentation/welcome_screen.dart';
 import '../../features/main_navigation/presentation/my_tickets_screen.dart';
+import '../../features/main_navigation/presentation/my_3d_orders_screen.dart';
 import '../../features/admin/presentation/admin_config_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -174,6 +177,11 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
         builder: (context, state) => const AdminOrdersScreen(),
       ),
       GoRoute(
+        path: '/admin/scanner',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TicketScannerScreen(), // We will create this next
+      ),
+      GoRoute(
         path: '/payment',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
@@ -188,6 +196,11 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
             ticketsJson: tickets,
           );
         },
+      ),
+      GoRoute(
+        path: '/profile',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ProfileScreen(), // We will create this next
       ),
       GoRoute(
         path: '/settings',
@@ -215,6 +228,11 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
         path: '/tickets',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const MyTicketsScreen(),
+      ),
+      GoRoute(
+        path: '/3d-orders',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const My3DOrdersScreen(),
       ),
       GoRoute(
         path: '/my-tickets',

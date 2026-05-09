@@ -594,10 +594,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       try {
         await FirebaseFirestore.instance.collection('audio_guides').add({
           'orderId': orderId,
+          'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest', // Añadido userId
           'userEmail': targetEmail,
           'quantity': tickets['audio'],
           'timestamp': FieldValue.serverTimestamp(),
-          'status': 'completado',
+          'status': 'active', // Cambiado de 'completado' a 'active' para el flujo de uso
         });
       } catch (e) {
         debugPrint('Error guardando audio-guía: $e');
@@ -624,15 +625,19 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       final qrUrlEncoded = Uri.encodeComponent(qrText);
       final qrUrl = 'https://quickchart.io/qr?text=$qrUrlEncoded&size=400';
 
-      // Guardar en la colección de tickets (AHORA PERMITE SIN FECHA SELECCIONADA)
       try {
         await FirebaseFirestore.instance.collection('tickets').add({
           'ticketId': ticketId,
           'orderId': orderId,
+          'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest', // CRÍTICO: Añadido userId
           'visitorName': targetName,
           'visitorEmail': targetEmail,
           'visitDate': dateStr,
+          'visitDateTimestamp': _selectedDate != null 
+              ? Timestamp.fromDate(_selectedDate!) 
+              : null, // Guardado para lógica de 24h
           'purchaseDate': FieldValue.serverTimestamp(),
+          'status': 'active', // Estado inicial
         });
       } catch (e) {
         debugPrint('Error guardando ticket individual: $e');

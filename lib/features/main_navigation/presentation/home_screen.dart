@@ -114,11 +114,21 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              // Botón de Ajustes Grande y Dorado
-              IconButton(
-                icon: Icon(Icons.settings_outlined, color: theme.colorScheme.primary, size: 36),
-                onPressed: () => context.push('/settings'),
-                tooltip: 'settings_title'.tr(),
+              // Botones de Acción (Perfil y Ajustes)
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.account_circle_outlined, color: theme.colorScheme.primary, size: 36),
+                    onPressed: () => context.push('/profile'),
+                    tooltip: 'nav_profile'.tr(),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(Icons.settings_outlined, color: theme.colorScheme.onSurface.withValues(alpha: 0.5), size: 28),
+                    onPressed: () => context.push('/settings'),
+                    tooltip: 'settings_title'.tr(),
+                  ),
+                ],
               ),
             ],
           ),
