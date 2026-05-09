@@ -102,5 +102,18 @@
     "material": "Hueso Natural / Conservación Histórica",
     "dimensions": "22 × 15 cm",
     "accessionNo": "MS-ANT-C01"
+  },
+  "Ricoh_Theta_8.JPG": {
+    "name": "Pasillo Principal (Galería)",
+    "subtitle": "Visita Virtual 360°",
+    "category": "ENTORNO / MUSEO",
+    "description": "Vista panorámica del pasillo principal del Museo Padre Suárez. Desde aquí se accede a las diferentes salas de Historia Natural y Física.",
+    "history": "Espacio de transición que alberga parte de la colección permanente de mobiliario histórico del instituto.",
+    "room": "Pasillo Central",
+    "date": "Actual",
+    "origin": "Fotografía 360° In-situ",
+    "material": "Imagen Equirrectangular",
+    "dimensions": "8K Resolución",
+    "accessionNo": "VRT-360-08"
   }
 }
