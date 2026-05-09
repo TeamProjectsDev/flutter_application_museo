@@ -52,6 +52,7 @@ class CatalogItem {
   }
 
   /// Parsea un ítem desde el listado de archivos de Supabase
+  /// Parsea un ítem desde el listado de archivos de Supabase
   factory CatalogItem.fromSupabase(
     Map<String, dynamic> json, [
     Map<String, dynamic>? metadata,
@@ -71,45 +72,24 @@ class CatalogItem {
     // Buscar si hay metadatos específicos para este archivo
     final extra = metadata?[fileName] as Map<String, dynamic>?;
 
-    // Adivinar sala según nombre (prioridad a metadatos)
-    String room = extra?['room'] ?? 'map_general';
-    if (extra == null) {
-      if (lower.contains('mandibula') ||
-          lower.contains('fosil') ||
-          lower.contains('diente')) {
-        room = 'map_paleo';
-      } else if (lower.contains('animal') ||
-          lower.contains('ave') ||
-          lower.contains('insecto')) {
-        room = 'map_zoo';
-      } else if (lower.contains('vasija') ||
-          lower.contains('hacha') ||
-          lower.contains('romano')) {
-        room = 'map_archaeo';
-      } else if (lower.contains('auzoux') || lower.contains('anatomia')) {
-        room = 'map_anatomy';
-      } else if (lower.contains('telescopio') || lower.contains('fisica')) {
-        room = 'map_instruments';
-      }
-    }
-
-    // Limpiar nombre para mostrar (prioridad a metadatos)
-    String prettyName = extra?['name'] ?? fileName.split('.').first;
-    prettyName = prettyName.replaceAll('_', ' ').replaceAll('-', ' ');
-    if (prettyName.isNotEmpty && extra == null) {
-      prettyName = prettyName[0].toUpperCase() + prettyName.substring(1);
-    }
+    // Si no hay metadatos, usamos valores por defecto limpios (sin inventar)
+    final String prettyName = extra?['name'] ??
+        fileName.split('.').first.replaceAll('_', ' ').replaceAll('-', ' ');
 
     return CatalogItem(
       id: fileName.split('.').first.replaceAll(' ', '_'),
-      name: prettyName,
+      name: extra != null
+          ? prettyName
+          : (prettyName.isNotEmpty
+              ? prettyName[0].toUpperCase() + prettyName.substring(1)
+              : prettyName),
       fileName: fileName,
       description: extra?['description'] ??
           (type == CatalogItemType.piece3D
-              ? 'Pieza de la sala $room'
+              ? 'Pieza pendiente de catalogación técnica.'
               : 'Entorno virtual 360'),
       type: type,
-      room: room,
+      room: extra?['room'] ?? 'map_general',
     );
   }
 }
