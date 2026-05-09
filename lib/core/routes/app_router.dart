@@ -46,13 +46,9 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
   // Observar el estado de autenticación para reaccionar a cambios
   ref.watch(authProvider);
 
-  String initialRoute = '/language';
-  if (hasSelectedLanguage) {
-    if (hasSeenOnboarding) {
-      initialRoute = '/home';
-    } else {
-      initialRoute = '/onboarding';
-    }
+  String initialRoute = '/welcome';
+  if (hasSelectedLanguage && hasSeenOnboarding) {
+    initialRoute = '/home';
   }
 
   return GoRouter(
