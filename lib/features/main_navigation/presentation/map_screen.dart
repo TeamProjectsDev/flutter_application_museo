@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'dart:ui' as ui;
-import '../../../core/providers/locale_provider.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -37,8 +35,14 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(localeProvider);
     final theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+
+    // Colores y assets dinámicos según el tema
+    final Color bgColor = isDark ? const Color(0xFF080E26) : Colors.white;
+    final String mapAsset = isDark ? 'assets/images/museum_map.png' : 'assets/images/museum_map_light.png';
+    final Color textColor = isDark ? Colors.white : Colors.black87;
+    final Color iconColor = isDark ? Colors.blueAccent : theme.colorScheme.primary;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -48,119 +52,114 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: theme.colorScheme.onSurface,
+            color: textColor,
           ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
+        iconTheme: IconThemeData(color: textColor),
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline, color: Colors.blueAccent),
+            icon: Icon(Icons.info_outline, color: iconColor),
             onPressed: () => _showMuseumInfo(context),
           ),
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [
-              theme.brightness == Brightness.dark ? const Color(0xFF0D1B2A) : const Color(0xFFF5F5F5),
-              theme.brightness == Brightness.dark ? const Color(0xFF000814) : const Color(0xFFE0E0E0),
-            ],
-          ),
-        ),
+        // Fondo dinámico según el tema
+        color: bgColor, 
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final canvasWidth = constraints.maxWidth * 1.6;
-            final canvasHeight = constraints.maxHeight * 1.4;
+            // El canvas es un poco más grande que la pantalla para permitir zoom
+            final canvasWidth = constraints.maxWidth > 800 ? constraints.maxWidth : 1200.0;
+            final canvasHeight = canvasWidth * 0.55; 
 
             return InteractiveViewer(
               maxScale: 4.0,
-              minScale: 0.5,
-              boundaryMargin: const EdgeInsets.all(100),
-              transformationController: TransformationController()
-                ..value = Matrix4.translationValues(
-                  -(canvasWidth - constraints.maxWidth) / 2,
-                  -(canvasHeight - constraints.maxHeight) / 2,
-                  0,
-                ),
-              child: Stack(
-                children: [
-                  // Capa Blueprint con profundidad
-                  SizedBox(
-                    width: canvasWidth,
-                    height: canvasHeight,
-                    child: CustomPaint(
-                      painter: MuseumBlueprintPainter(
-                        corridorLabel: 'map_corridor'.tr(),
-                        isDark: theme.brightness == Brightness.dark,
+              minScale: 0.1,
+              boundaryMargin: const EdgeInsets.all(500),
+              child: Center(
+                child: SizedBox(
+                  width: canvasWidth,
+                  height: canvasHeight,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Capa del Mapa (Fondo Dinámico)
+                      Positioned.fill(
+                        child: Image.asset(
+                          mapAsset,
+                          fit: BoxFit.fill,
+                          // Si no encuentra la imagen de modo claro, muestra la oscura para que no de error crítico
+                          errorBuilder: (context, error, stackTrace) => Image.asset(
+                            'assets/images/museum_map.png',
+                            fit: BoxFit.fill,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
 
-                  // Sala I: Paleontología
-                  _buildAnimatedPin(
-                    context,
-                    x: canvasWidth * 0.28,
-                    y: canvasHeight * 0.32,
-                    label: 'map_paleo'.tr(),
-                    icon: Icons.pest_control_rodent_outlined,
-                    color: Colors.amber,
-                    info: 'Fósiles de pterodáctilos, mamuts y minerales únicos.',
-                    roomKey: 'map_paleo',
-                  ),
+                      // Sala I: Paleontología (Dinosaurios)
+                      _buildAnimatedPin(
+                        context,
+                        x: canvasWidth * 0.22,
+                        y: canvasHeight * 0.44,
+                        label: 'map_paleo'.tr(),
+                        icon: Icons.pest_control_rodent_outlined,
+                        color: Colors.amber,
+                        info: 'Fósiles de pterodáctilos, mamuts y minerales únicos.',
+                        roomKey: 'SALA I: Antropología y Paleontología',
+                      ),
 
-                  // Sala II: Zoología
-                  _buildAnimatedPin(
-                    context,
-                    x: canvasWidth * 0.5,
-                    y: canvasHeight * 0.32,
-                    label: 'map_zoo'.tr(),
-                    icon: Icons.pets,
-                    color: Colors.greenAccent,
-                    info: 'Espectacular colección de taxidermia y esqueletos reales.',
-                    roomKey: 'map_zoo',
-                  ),
+                      // Sala II: Zoología (Ballena/Jirafa)
+                      _buildAnimatedPin(
+                        context,
+                        x: canvasWidth * 0.48,
+                        y: canvasHeight * 0.30,
+                        label: 'map_zoo'.tr(),
+                        icon: Icons.pets,
+                        color: Colors.greenAccent,
+                        info: 'Espectacular colección de taxidermia y esqueletos reales.',
+                        roomKey: 'SALA II: Zoología y Taxidermia',
+                      ),
 
-                  // Sala III: Arqueología
-                  _buildAnimatedPin(
-                    context,
-                    x: canvasWidth * 0.72,
-                    y: canvasHeight * 0.32,
-                    label: 'map_archaeo'.tr(),
-                    icon: Icons.account_balance,
-                    color: Colors.orangeAccent,
-                    info: 'Vasijas griegas, romanas y tesoros de excavaciones granadinas.',
-                    roomKey: 'map_archaeo',
-                  ),
+                      // Sala III: Arqueología (Jarrones)
+                      _buildAnimatedPin(
+                        context,
+                        x: canvasWidth * 0.82,
+                        y: canvasHeight * 0.32,
+                        label: 'map_archaeo'.tr(),
+                        icon: Icons.account_balance,
+                        color: Colors.orangeAccent,
+                        info: 'Vasijas griegas, romanas y tesoros de excavaciones granadinas.',
+                        roomKey: 'SALA III: Arqueología',
+                      ),
 
-                  // Sala VI: Modelos Dr. Auzoux
-                  _buildAnimatedPin(
-                    context,
-                    x: canvasWidth * 0.38,
-                    y: canvasHeight * 0.68,
-                    label: 'map_anatomy'.tr(),
-                    icon: Icons.accessibility_new,
-                    color: Colors.redAccent,
-                    info: 'Anatomía clástica del siglo XIX de valor incalculable.',
-                    roomKey: 'map_anatomy',
-                  ),
+                      // Sala VI: Modelos Dr. Auzoux (Anatomía)
+                      _buildAnimatedPin(
+                        context,
+                        x: canvasWidth * 0.53,
+                        y: canvasHeight * 0.78,
+                        label: 'map_anatomy'.tr(),
+                        icon: Icons.accessibility_new,
+                        color: Colors.redAccent,
+                        info: 'Anatomía clástica del siglo XIX de valor incalculable.',
+                        roomKey: 'SALA VI: Anatomía y Modelos Auzoux',
+                      ),
 
-                  // Sala VII: Física y Química
-                  _buildAnimatedPin(
-                    context,
-                    x: canvasWidth * 0.62,
-                    y: canvasHeight * 0.68,
-                    label: 'map_instruments'.tr(),
-                    icon: Icons.science,
-                    color: Colors.cyanAccent,
-                    info: 'Gabinete histórico con instrumentos científicos originales.',
-                    roomKey: 'map_instruments',
+                      // Sala VII: Física y Química (Laboratorio)
+                      _buildAnimatedPin(
+                        context,
+                        x: canvasWidth * 0.83,
+                        y: canvasHeight * 0.71,
+                        label: 'map_instruments'.tr(),
+                        icon: Icons.science,
+                        color: Colors.cyanAccent,
+                        info: 'Gabinete histórico con instrumentos científicos originales.',
+                        roomKey: 'SALA VII: Instrumentos Científicos',
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             );
           },
@@ -179,6 +178,9 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
     required String info,
     required String roomKey,
   }) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color currentBgColor = isDark ? const Color(0xFF080E26) : Colors.white;
+
     return Positioned(
       left: x - 40,
       top: y - 45,
@@ -203,7 +205,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
                     ],
                   ),
                   child: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    backgroundColor: currentBgColor,
                     radius: 22,
                     child: Icon(icon, color: color, size: 24),
                   ),
@@ -212,15 +214,15 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                    color: Colors.black.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
                   ),
                   child: Text(
                     label,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 8,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                     ),
@@ -244,23 +246,25 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
     Color color,
     String roomKey,
   ) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color currentBgColor = isDark ? const Color(0xFF080E26) : Colors.white;
+    final Color titleColor = isDark ? Colors.white : Colors.black87;
+    final Color descColor = isDark ? Colors.white.withValues(alpha: 0.7) : Colors.black54;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
-            ],
-          ),
+          color: currentBgColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, spreadRadius: 5),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.1), 
+              blurRadius: 20, 
+              spreadRadius: 5
+            ),
           ],
         ),
         padding: const EdgeInsets.fromLTRB(28, 12, 28, 40),
@@ -274,7 +278,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -299,7 +303,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: titleColor,
                           letterSpacing: -0.5,
                         ),
                       ),
@@ -307,7 +311,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
                         'PLANTA PRINCIPAL',
                         style: TextStyle(
                           fontSize: 10,
-                          color: color,
+                          color: isDark ? Colors.grey : Colors.grey[600],
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2,
                         ),
@@ -322,7 +326,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
               info,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: descColor,
                 height: 1.6,
               ),
             ),
@@ -357,145 +361,38 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
   }
 
   void _showMuseumInfo(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color currentBgColor = isDark ? const Color(0xFF080E26) : Colors.white;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: currentBgColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
-            Icon(Icons.museum_outlined, color: Theme.of(context).colorScheme.primary),
+            const Icon(Icons.museum_outlined, color: Colors.blueAccent),
             const SizedBox(width: 12),
             Text(
               'map_museum_title'.tr(),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 18),
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 18),
             ),
           ],
         ),
         content: Text(
           'map_museum_desc'.tr(),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7), height: 1.5),
+          style: TextStyle(color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.7), height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'map_close'.tr().toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent),
             ),
           ),
         ],
       ),
     );
   }
-}
-
-class MuseumBlueprintPainter extends CustomPainter {
-  final String corridorLabel;
-  final bool isDark;
-
-  MuseumBlueprintPainter({required this.corridorLabel, required this.isDark});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final accentColor = isDark ? Colors.blueAccent : const Color(0xFF2B5797);
-    
-    final blueprintPaint = Paint()
-      ..color = accentColor.withValues(alpha: 0.3)
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    final wallPaint = Paint()
-      ..color = accentColor.withValues(alpha: 0.6)
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke;
-
-    final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.1)
-      ..strokeWidth = 5.0
-      ..style = PaintingStyle.stroke;
-
-    final wallFillPaint = Paint()
-      ..color = accentColor.withValues(alpha: 0.05)
-      ..style = PaintingStyle.fill;
-
-    // 1. Grid
-    final gridPaint = Paint()..color = accentColor.withValues(alpha: 0.1);
-    for (double i = 0; i < size.width; i += 50) {
-      canvas.drawLine(Offset(i, 0), Offset(i, size.height), gridPaint);
-    }
-    for (double i = 0; i < size.height; i += 50) {
-      canvas.drawLine(Offset(0, i), Offset(size.width, i), gridPaint);
-    }
-
-    final double midX = size.width / 2;
-    final double nWingTop = size.height * 0.15;
-    final double nWingHeight = size.height * 0.35;
-    final double nWingWidth = size.width * 0.8;
-    final double nWingLeft = midX - (nWingWidth / 2);
-
-    final double sWingTop = size.height * 0.65;
-    final double sWingHeight = size.height * 0.25;
-    final double sWingWidth = size.width * 0.6;
-    final double sWingLeft = midX - (sWingWidth / 2);
-
-    // --- ALA NORTE ---
-    final Rect northRect = Rect.fromLTWH(nWingLeft, nWingTop, nWingWidth, nWingHeight);
-    
-    // Sombra isométrica
-    canvas.drawRect(northRect.shift(const Offset(4, 4)), shadowPaint);
-    
-    canvas.drawRect(northRect, wallFillPaint);
-    canvas.drawRect(northRect, wallPaint);
-
-    // Divisiones
-    final double roomWidth = nWingWidth / 3;
-    canvas.drawLine(Offset(nWingLeft + roomWidth, nWingTop), Offset(nWingLeft + roomWidth, nWingTop + nWingHeight), blueprintPaint);
-    canvas.drawLine(Offset(nWingLeft + roomWidth * 2, nWingTop), Offset(nWingLeft + roomWidth * 2, nWingTop + nWingHeight), blueprintPaint);
-
-    // --- ALA SUR ---
-    final Rect southRect = Rect.fromLTWH(sWingLeft, sWingTop, sWingWidth, sWingHeight);
-    canvas.drawRect(southRect.shift(const Offset(4, 4)), shadowPaint);
-    canvas.drawRect(southRect, wallFillPaint);
-    canvas.drawRect(southRect, wallPaint);
-
-    // División Sur
-    canvas.drawLine(Offset(midX, sWingTop), Offset(midX, sWingTop + sWingHeight), blueprintPaint);
-
-    // --- CONEXIÓN ---
-    final double corridorY = nWingTop + nWingHeight;
-    final double corridorH = sWingTop - corridorY;
-    final double corridorW = 100;
-    final Rect corridorRect = Rect.fromCenter(center: Offset(midX, corridorY + (corridorH / 2)), width: corridorW, height: corridorH);
-    canvas.drawRect(corridorRect, wallFillPaint);
-    canvas.drawRect(corridorRect, blueprintPaint);
-
-    // Etiquetas
-    _drawText(canvas, corridorLabel.toUpperCase(), Offset(midX + 5, corridorY + corridorH * 0.4), rot: 90, size: 8, color: accentColor);
-    _drawText(canvas, "IES PADRE SUÁREZ - GABINETE TÉCNICO", Offset(nWingLeft, nWingTop - 30), size: 10, bold: true, color: accentColor);
-  }
-
-  void _drawText(Canvas canvas, String text, Offset pos, {double rot = 0, double size = 8, bool bold = false, required Color color}) {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          color: color.withValues(alpha: 0.6),
-          fontSize: size,
-          fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-          letterSpacing: 1.5,
-        ),
-      ),
-      textDirection: ui.TextDirection.ltr,
-    )..layout();
-
-    canvas.save();
-    canvas.translate(pos.dx, pos.dy);
-    canvas.rotate(rot * 0.0174533);
-    tp.paint(canvas, Offset.zero);
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
