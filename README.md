@@ -86,21 +86,50 @@ Firebase es el servidor de Google que guarda los usuarios registrados, la colecc
    service cloud.firestore {
      match /databases/{database}/documents {
        
-       // Regla para la colección de usuarios (cada usuario lee/escribe su propio documento)
+       // 🛡️ Función Maestra de Administrador
+       function isAdmin() {
+         return request.auth != null && request.auth.token.email in [
+           "museosuarez443@gmail.com"
+         ];
+       }
+       
+       // 👤 Perfiles de Usuario
        match /users/{userId} {
          allow read, write: if request.auth != null && request.auth.uid == userId;
        }
-       
-       // Regla para la colección de peticiones de impresión 3D
-       match /print_requests/{requestId} {
-         // Cualquier usuario autenticado puede crear una petición
+
+       // 🖨️ Solicitudes de Impresión
+       match /print_requests/{document=**} {
          allow create: if request.auth != null;
-         // Un usuario solo puede leer sus propias peticiones
-         allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-         // Solo los administradores pueden modificar el estado (Aceptada/Denegada)
-         // Nota: Para un entorno real, la comprobación de admin se haría contra la colección 'users'.
-         // Por simplicidad, permitimos actualización al dueño de la petición.
-         allow update: if request.auth != null && (request.auth.uid == resource.data.userId);
+         allow read, update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
+       }
+       
+       // 🎫 Tickets y Compras
+       match /tickets/{document=**} {
+         // Creación permitida a usuarios autenticados
+         allow create: if request.auth != null;
+         // Lectura permitida si eres el dueño (UID o Email) o eres Admin
+         allow read: if request.auth != null && (
+           request.auth.uid == resource.data.userId || 
+           request.auth.token.email == resource.data.visitorEmail ||
+           isAdmin()
+         );
+         // Actualización permitida al dueño (para cambiar fecha) o Admin
+         allow update: if request.auth != null && (
+           request.auth.uid == resource.data.userId || 
+           request.auth.token.email == resource.data.visitorEmail ||
+           isAdmin()
+         );
+       }
+
+       // 🎧 Audio-guías
+       match /audio_guides/{document=**} {
+         allow read: if request.auth != null && (
+           request.auth.uid == resource.data.userId || 
+           request.auth.token.email == resource.data.userEmail ||
+           isAdmin()
+         );
+         allow write: if isAdmin();
        }
      }
    }
