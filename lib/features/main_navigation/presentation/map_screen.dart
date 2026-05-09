@@ -128,12 +128,12 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
     required IconData icon,
   }) {
     return Positioned(
-      left: x - 50,
+      left: x - 60, // Ajustado para centrar el nuevo ancho de 120
       top: y - 60,
       child: GestureDetector(
         onTap: () => _showRoomDetails(context, roomKey.tr(), '${roomKey}_desc'.tr(), color, roomKey),
         child: SizedBox(
-          width: 100,
+          width: 120, // Aumentado de 100 a 120 para palabras largas
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -162,8 +162,14 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
                 ),
                 child: Text(
                   roomKey.tr(),
-                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white, 
+                    fontSize: 11, // Bajado de 12 a 11 para asegurar una sola línea
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
+                  maxLines: 1, // Forzamos una sola línea
+                  softWrap: false,
                 ),
               ),
             ],
