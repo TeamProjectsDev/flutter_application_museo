@@ -115,5 +115,18 @@
     "material": "Imagen Equirrectangular",
     "dimensions": "8K Resolución",
     "accessionNo": "VRT-360-08"
+  },
+  "entorno_360.jpg": {
+    "name": "SALA II: Biodiversidad (Vista General)",
+    "subtitle": "Visita Virtual 360°",
+    "category": "ENTORNO / MUSEO",
+    "description": "Explora la Sala de Biodiversidad, donde se exhiben las colecciones botánicas, modelos de estudio de plantas y grandes especímenes zoológicos.",
+    "history": "Esta sala alberga una de las colecciones más completas de modelos didácticos de finales del siglo XIX.",
+    "room": "SALA II: BIODIVERS.",
+    "date": "Actual",
+    "origin": "Fotografía 360° In-situ",
+    "material": "Imagen Equirrectangular",
+    "dimensions": "8K Resolución",
+    "accessionNo": "VRT-360-02"
   }
 }
