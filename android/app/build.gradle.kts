@@ -33,18 +33,12 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
-        // Inyectar claves de Firebase desde .env para Analytics nativo (JSON-less)
-        val envFile = project.rootProject.file("../.env")
-        val env = Properties()
-        if (envFile.exists()) {
-            env.load(FileInputStream(envFile))
-        }
-        
-        resValue("string", "google_app_id", env.getProperty("FIREBASE_APP_ID_ANDROID") ?: "")
-        resValue("string", "google_api_key", env.getProperty("FIREBASE_API_KEY_ANDROID") ?: "")
-        resValue("string", "project_id", env.getProperty("FIREBASE_PROJECT_ID") ?: "")
-        resValue("string", "gcm_defaultSenderId", env.getProperty("FIREBASE_MESSAGING_SENDER_ID") ?: "")
-        resValue("string", "google_storage_bucket", env.getProperty("FIREBASE_STORAGE_BUCKET") ?: "")
+        // Las claves se obtienen automáticamente del google-services.json
+        // resValue("string", "google_app_id", env.getProperty("FIREBASE_APP_ID_ANDROID") ?: "")
+        // resValue("string", "google_api_key", env.getProperty("FIREBASE_API_KEY_ANDROID") ?: "")
+        // resValue("string", "project_id", env.getProperty("FIREBASE_PROJECT_ID") ?: "")
+        // resValue("string", "gcm_defaultSenderId", env.getProperty("FIREBASE_MESSAGING_SENDER_ID") ?: "")
+        // resValue("string", "google_storage_bucket", env.getProperty("FIREBASE_STORAGE_BUCKET") ?: "")
     }
 
     buildTypes {
