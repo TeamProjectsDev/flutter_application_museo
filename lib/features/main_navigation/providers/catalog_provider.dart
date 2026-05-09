@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -52,7 +52,10 @@ class CatalogItem {
   }
 
   /// Parsea un ítem desde el listado de archivos de Supabase
-  factory CatalogItem.fromSupabase(Map<String, dynamic> json) {
+  factory CatalogItem.fromSupabase(
+    Map<String, dynamic> json, [
+    Map<String, dynamic>? metadata,
+  ]) {
     final String fileName = json['name'] as String? ?? '';
     final String lower = fileName.toLowerCase();
 
@@ -65,30 +68,35 @@ class CatalogItem {
       type = CatalogItemType.environment360;
     }
 
-    // Adivinar sala según nombre (usando CLAVES de traducción para estabilidad)
-    String room = 'map_general';
-    if (lower.contains('mandibula') ||
-        lower.contains('fosil') ||
-        lower.contains('diente')) {
-      room = 'map_paleo';
-    } else if (lower.contains('animal') ||
-        lower.contains('ave') ||
-        lower.contains('insecto')) {
-      room = 'map_zoo';
-    } else if (lower.contains('vasija') ||
-        lower.contains('hacha') ||
-        lower.contains('romano')) {
-      room = 'map_archaeo';
-    } else if (lower.contains('auzoux') || lower.contains('anatomia')) {
-      room = 'map_anatomy';
-    } else if (lower.contains('telescopio') || lower.contains('fisica')) {
-      room = 'map_instruments';
+    // Buscar si hay metadatos específicos para este archivo
+    final extra = metadata?[fileName] as Map<String, dynamic>?;
+
+    // Adivinar sala según nombre (prioridad a metadatos)
+    String room = extra?['room'] ?? 'map_general';
+    if (extra == null) {
+      if (lower.contains('mandibula') ||
+          lower.contains('fosil') ||
+          lower.contains('diente')) {
+        room = 'map_paleo';
+      } else if (lower.contains('animal') ||
+          lower.contains('ave') ||
+          lower.contains('insecto')) {
+        room = 'map_zoo';
+      } else if (lower.contains('vasija') ||
+          lower.contains('hacha') ||
+          lower.contains('romano')) {
+        room = 'map_archaeo';
+      } else if (lower.contains('auzoux') || lower.contains('anatomia')) {
+        room = 'map_anatomy';
+      } else if (lower.contains('telescopio') || lower.contains('fisica')) {
+        room = 'map_instruments';
+      }
     }
 
-    // Limpiar nombre para mostrar
-    String prettyName = fileName.split('.').first;
+    // Limpiar nombre para mostrar (prioridad a metadatos)
+    String prettyName = extra?['name'] ?? fileName.split('.').first;
     prettyName = prettyName.replaceAll('_', ' ').replaceAll('-', ' ');
-    if (prettyName.isNotEmpty) {
+    if (prettyName.isNotEmpty && extra == null) {
       prettyName = prettyName[0].toUpperCase() + prettyName.substring(1);
     }
 
@@ -96,9 +104,10 @@ class CatalogItem {
       id: fileName.split('.').first.replaceAll(' ', '_'),
       name: prettyName,
       fileName: fileName,
-      description: type == CatalogItemType.piece3D
-          ? 'Pieza de la sala $room'
-          : 'Entorno virtual 360',
+      description: extra?['description'] ??
+          (type == CatalogItemType.piece3D
+              ? 'Pieza de la sala $room'
+              : 'Entorno virtual 360'),
       type: type,
       room: room,
     );
@@ -140,8 +149,11 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
   Future<void> fetchCatalog() async {
     state = CatalogState(items: state.items, isLoading: true);
     try {
+      // Cargar metadatos del inventario (local)
+      final metadata = await _loadMetadata();
+
       if (_r2BaseUrl != null && _supabaseKey != null) {
-        await _fetchFromSupabase();
+        await _fetchFromSupabase(metadata);
       } else {
         await _loadFromCache();
       }
@@ -151,7 +163,19 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
     }
   }
 
-  Future<void> _fetchFromSupabase() async {
+  Future<Map<String, dynamic>> _loadMetadata() async {
+    try {
+      final jsonStr = await rootBundle.loadString(
+        'assets/data/inventory/catalog_metadata.json',
+      );
+      return jsonDecode(jsonStr) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('[Catalog] No se pudo cargar catalog_metadata.json: $e');
+      return {};
+    }
+  }
+
+  Future<void> _fetchFromSupabase(Map<String, dynamic> metadata) async {
     // Usar la URL base directamente para el listado
     final listUrl = _r2BaseUrl!.replaceFirst('/public/', '/list/');
 
@@ -178,7 +202,12 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
         final items = data
-            .map((e) => CatalogItem.fromSupabase(e as Map<String, dynamic>))
+            .map(
+              (e) => CatalogItem.fromSupabase(
+                e as Map<String, dynamic>,
+                metadata,
+              ),
+            )
             .where((item) => item.type != CatalogItemType.unknown)
             .toList();
 

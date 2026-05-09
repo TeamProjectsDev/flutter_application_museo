@@ -1,0 +1,16 @@
+{
+  "mandibula_hombre.glb": {
+    "name": "Mandíbula Inferior Humana (Fondo Histórico)",
+    "room": "SALA I: Antropología y Paleontología",
+    "description": "Ejemplar histórico del siglo XIX perteneciente a la colección original del museo. Presenta una conservación excelente de la estructura ósea y dentaria.",
+    "date": "Segunda mitad s. XIX",
+    "origin": "Antigua Colección Museo"
+  },
+  "mandibula_mujer.glb": {
+    "name": "Mandíbula Humana Femenina",
+    "room": "SALA I: Antropología y Paleontología",
+    "description": "Parte de la serie de paleoantropología. Utilizada históricamente para el estudio de la morfología craneal en las aulas del instituto.",
+    "date": "1883-1885",
+    "origin": "Fondo Histórico Natural B/G"
+  }
+}
