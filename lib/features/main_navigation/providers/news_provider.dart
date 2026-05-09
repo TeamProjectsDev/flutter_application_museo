@@ -65,9 +65,14 @@ class NewsArticle {
       }
     }
 
-    // Si todo falla, usar una imagen de fallback (ejemplo: logo del museo o placeholder elegante)
+    // Si todo falla, usar una imagen de fallback
     imageUrl ??=
         'https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?q=80&w=800&auto=format&fit=crop';
+
+    // Para Web: Envolver la imagen en un proxy de CORS para evitar bloqueos del navegador
+    if (kIsWeb && imageUrl.isNotEmpty && !imageUrl.contains('unsplash.com')) {
+      imageUrl = 'https://corsproxy.io/?${Uri.encodeComponent(imageUrl)}';
+    }
 
     // Limpieza de descripción (quitar HTML si lo hay)
     String cleanDesc = item.description ?? '';
