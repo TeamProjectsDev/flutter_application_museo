@@ -12,10 +12,18 @@ import 'core/theme/app_theme.dart';
 
 import 'package:flutter/foundation.dart';
 
+import 'package:flutter/services.dart';
+
 void main() {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+
+      // Bloquear orientación en vertical para móviles
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
 
       // Cargar variables de entorno
       await dotenv.load(fileName: ".env");
