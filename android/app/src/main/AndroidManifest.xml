@@ -29,11 +29,20 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <!-- Deep Links: museo://pieza/[itemId] abre el visor 3D directamente -->
-            <intent-filter android:autoVerify="false">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="museo" android:host="pieza" />
+            </intent-filter>
+
+            <!-- Pago Success/Cancel: Intercepta las URLs de Firebase para volver a la App -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="museo-ac373.web.app" />
+                <data android:scheme="https" android:host="museo-ac373.firebaseapp.com" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

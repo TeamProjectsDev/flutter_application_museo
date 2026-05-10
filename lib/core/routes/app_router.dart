@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -47,7 +46,7 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
   final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
   final hasSelectedLanguage = prefs.getBool('has_selected_language') ?? false;
   final analytics = FirebaseAnalytics.instance;
-  
+
   // Observar el estado de autenticación para reaccionar a cambios
   ref.watch(authProvider);
 
@@ -58,15 +57,18 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: (kIsWeb && Uri.base.toString().contains('payment/success')) 
-        ? '/payment/success' 
-        : (kIsWeb && Uri.base.toString().contains('payment/cancel'))
+    initialLocation: (Uri.base.toString().contains('payment/success') ||
+            Uri.base.path.contains('payment/success'))
+        ? '/payment/success'
+        : (Uri.base.toString().contains('payment/cancel') ||
+                Uri.base.path.contains('payment/cancel'))
             ? '/payment/cancel'
             : initialRoute,
     observers: [FirebaseAnalyticsObserver(analytics: analytics)],
     // 🛡️ RED DE SEGURIDAD: Si la ruta no existe o hay un error, volvemos a casa
     errorBuilder: (context, state) {
-      debugPrint('🚨 [Router] Error detectado en ruta: ${state.error}. Redirigiendo a /home');
+      debugPrint(
+          '🚨 [Router] Error detectado en ruta: ${state.error}. Redirigiendo a /home');
       // Teletransporte automático a Home de forma segura
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) context.go('/home');
@@ -78,17 +80,16 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
       if (state.error != null) return '/home';
       final authState = ref.read(authProvider);
       final String loc = state.uri.path;
-      
+
       // 🕵️‍♂️ LOG DE EMERGENCIA: Ver qué está pasando realmente
       debugPrint('🔗 [Router] Ruta: $loc | URI: ${state.uri.toString()}');
 
-
       // Pantallas que NO requieren estar autenticado (o son públicas)
-      final bool isPublic = loc == '/language' || 
-                            loc == '/onboarding' || 
-                            loc == '/welcome' || 
-                            loc == '/auth' ||
-                            loc.startsWith('/payment');
+      final bool isPublic = loc == '/language' ||
+          loc == '/onboarding' ||
+          loc == '/welcome' ||
+          loc == '/auth' ||
+          loc.startsWith('/payment');
 
       if (!authState.isAuthenticated && !isPublic) {
         return '/welcome';
@@ -202,7 +203,8 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
       GoRoute(
         path: '/admin/scanner',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const TicketScannerScreen(), // We will create this next
+        builder: (context, state) =>
+            const TicketScannerScreen(), // We will create this next
       ),
       GoRoute(
         path: '/payment',
@@ -240,7 +242,8 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
       GoRoute(
         path: '/profile',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const ProfileScreen(), // We will create this next
+        builder: (context, state) =>
+            const ProfileScreen(), // We will create this next
       ),
       GoRoute(
         path: '/settings',
