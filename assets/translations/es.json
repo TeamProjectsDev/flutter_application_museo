@@ -237,5 +237,12 @@
   "admin_scanner_error_used": "Error: Esta entrada ya ha sido utilizada.",
   "admin_scanner_error_not_found": "Error: Entrada no encontrada.",
   "viewer_loading_title": "Descargando Artefacto...",
-  "viewer_loading_subtitle": "Preparando visualización 3D de alta calidad..."
+  "viewer_loading_subtitle": "Preparando visualización 3D de alta calidad...",
+  "invoice_title": "¡PAGO COMPLETADO!",
+  "invoice_order_id": "ID:",
+  "invoice_visit_date": "Fecha de Visita",
+  "invoice_total_paid": "TOTAL PAGADO",
+  "invoice_email_notice": "En breve recibirás tus entradas con código QR por email.",
+  "invoice_back_home": "VOLVER AL INICIO",
+  "shop_error_audio_limit": "Máximo de {} audioguías (una por visitante)."
 }

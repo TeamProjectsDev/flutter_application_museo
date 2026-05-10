@@ -287,7 +287,7 @@ class AdminOrdersScreen extends ConsumerWidget {
               ),
             ),
             title: Text(
-              req.itemName,
+              req.pieceName,
               style: theme.textTheme.displayMedium?.copyWith(fontSize: 16),
             ),
             subtitle: Text(

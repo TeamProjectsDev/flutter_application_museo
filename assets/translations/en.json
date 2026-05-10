@@ -237,5 +237,12 @@
   "admin_scanner_error_used": "Error: This ticket has already been used.",
   "admin_scanner_error_not_found": "Error: Ticket not found.",
   "viewer_loading_title": "Downloading Artifact...",
-  "viewer_loading_subtitle": "Preparing high-quality 3D visualization..."
+  "viewer_loading_subtitle": "Preparing high-quality 3D visualization...",
+  "invoice_title": "PAYMENT COMPLETED!",
+  "invoice_order_id": "ID:",
+  "invoice_visit_date": "Visit Date",
+  "invoice_total_paid": "TOTAL PAID",
+  "invoice_email_notice": "You will shortly receive your tickets with QR code by email.",
+  "invoice_back_home": "BACK TO HOME",
+  "shop_error_audio_limit": "Maximum of {} audioguides (one per visitor)."
 }

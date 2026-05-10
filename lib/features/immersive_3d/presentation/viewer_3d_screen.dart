@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:convert';
 import '../../../core/utils/artifact_details.dart';
 import '../../main_navigation/providers/catalog_provider.dart';
 
@@ -297,6 +298,11 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
 
           const SizedBox(height: 48),
 
+          // 🖨️ SECCIÓN DE IMPRESIÓN 3D (NUEVA)
+          _buildPrintSection(theme),
+
+          const SizedBox(height: 32),
+
           // Grid de detalles técnicos
           GridView.count(
             shrinkWrap: true,
@@ -313,6 +319,132 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPrintSection(ThemeData theme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.print_outlined, size: 40, color: theme.colorScheme.primary),
+          const SizedBox(height: 16),
+          Text(
+            'shop_3d_print_add'.tr(),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Obtén una reproducción física de esta pieza a escala.',
+            style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => _showPrintOptions(theme),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: Colors.black,
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('CONFIGURAR IMPRESIÓN', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPrintOptions(ThemeData theme) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        double selectedHeight = 50.0;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('shop_3d_height_select'.tr(), style: theme.textTheme.headlineSmall),
+                  const SizedBox(height: 24),
+                  _buildSizeOption(50, selectedHeight, (val) => setModalState(() => selectedHeight = val), theme),
+                  _buildSizeOption(100, selectedHeight, (val) => setModalState(() => selectedHeight = val), theme),
+                  _buildSizeOption(150, selectedHeight, (val) => setModalState(() => selectedHeight = val), theme),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () {
+                      final subtotal = 10.0 + (selectedHeight * 0.2);
+                      final fees = subtotal * 0.1;
+                      final total = subtotal + fees;
+                      final ticketsJson = json.encode({'print': selectedHeight.toInt()});
+                      
+                      context.pop(); // Cerrar modal
+                      context.push(
+                        Uri(
+                          path: '/payment',
+                          queryParameters: {
+                            'total': total.toStringAsFixed(2),
+                            'subtotal': subtotal.toStringAsFixed(2),
+                            'fees': fees.toStringAsFixed(2),
+                            'tickets': ticketsJson,
+                            'printPieceName': _details.title,
+                          },
+                        ).toString(),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: Colors.black,
+                      minimumSize: const Size(double.infinity, 56),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text('CONTINUAR AL PAGO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ],
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
+  Widget _buildSizeOption(double size, double current, Function(double) onSelect, ThemeData theme) {
+    final isSelected = size == current;
+    final price = 10.0 + (size * 0.2);
+    
+    return InkWell(
+      onTap: () => onSelect(size),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('${size.toInt()} mm', style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 16)),
+            Text('${price.toStringAsFixed(2)} €', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }

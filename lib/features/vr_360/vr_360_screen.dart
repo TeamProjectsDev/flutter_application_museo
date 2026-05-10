@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:panorama_viewer/panorama_viewer.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 import '../main_navigation/providers/catalog_provider.dart';
 
 class Vr360Screen extends StatelessWidget {
@@ -20,29 +20,47 @@ class Vr360Screen extends StatelessWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('vr_title'.tr()),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       extendBodyBehindAppBar: true,
-      body: PanoramaViewer(
-        animSpeed: 1.0,
-        sensorControl: SensorControl.orientation,
-        child: Image.network(
-          panoramaUrl,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                    : null,
+      body: Stack(
+        children: [
+          PanoramaViewer(
+            animSpeed: 1.0,
+            sensorControl: SensorControl.orientation,
+            child: Image.network(
+              panoramaUrl,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                        : null,
+                  ),
+                );
+              },
+            ),
+          ),
+          // 🛡️ BOTÓN VOLVER INMERSIVO
+          Positioned(
+            top: 40,
+            left: 20,
+            child: SafeArea(
+              child: InkWell(
+                onTap: () => Navigator.of(context).canPop() ? Navigator.of(context).pop() : context.go('/collection'),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  ),
+                  child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 24),
+                ),
               ),
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

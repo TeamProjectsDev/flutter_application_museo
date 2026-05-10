@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
+import '../providers/catalog_provider.dart';
 
 class ShopScreen extends ConsumerStatefulWidget {
   const ShopScreen({super.key});
@@ -17,9 +18,13 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   int _audioGuides = 0;
   double _printHeight = 50.0;
   bool _include3DPrint = false;
+  String? _selectedPiece;
 
   double get _subtotal {
-    return (_generalTickets * 25.0) + (_studentTickets * 15.0) + (_audioGuides * 8.0) + (_include3DPrint ? (10.0 + _printHeight * 0.2) : 0);
+    return (_generalTickets * 25.0) +
+        (_studentTickets * 15.0) +
+        (_audioGuides * 8.0) +
+        (_include3DPrint ? (10.0 + _printHeight * 0.2) : 0);
   }
 
   double get _fees => _subtotal * 0.1;
@@ -28,11 +33,16 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('shop_plan_visit'.tr(), style: theme.textTheme.displayMedium?.copyWith(fontSize: 20)),
+        title: Text('shop_plan_visit'.tr(),
+            style: theme.textTheme.displayMedium?.copyWith(fontSize: 20)),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => context.go('/home'),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -47,7 +57,8 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               const SizedBox(height: 8),
               Text(
                 'shop_plan_desc'.tr(),
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               ),
               const SizedBox(height: 40),
 
@@ -77,7 +88,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 onChanged: (val) => setState(() => _audioGuides = val),
                 icon: Icons.headphones_outlined,
               ),
-              
+
               const SizedBox(height: 32),
               const Divider(color: Colors.white10),
               const SizedBox(height: 32),
@@ -89,7 +100,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
 
               // 📊 Order Summary
               _buildOrderSummary(theme),
-              
+
               const SizedBox(height: 40),
             ],
           ),
@@ -126,7 +137,11 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text('MOST POPULAR', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey)),
+              child: const Text('MOST POPULAR',
+                  style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey)),
             ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,11 +154,21 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18)),
                     const SizedBox(height: 4),
-                    Text(desc, style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12)),
+                    Text(desc,
+                        style: TextStyle(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.5),
+                            fontSize: 12)),
                     const SizedBox(height: 16),
-                    Text('\$${price.toStringAsFixed(2)}', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text('\$${price.toStringAsFixed(2)}',
+                        style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18)),
                   ],
                 ),
               ),
@@ -155,9 +180,15 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 ),
                 child: Row(
                   children: [
-                    IconButton(onPressed: quantity > 0 ? () => onChanged(quantity - 1) : null, icon: const Icon(Icons.remove, size: 16)),
-                    Text('$quantity', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    IconButton(onPressed: () => onChanged(quantity + 1), icon: const Icon(Icons.add, size: 16)),
+                    IconButton(
+                        onPressed:
+                            quantity > 0 ? () => onChanged(quantity - 1) : null,
+                        icon: const Icon(Icons.remove, size: 16)),
+                    Text('$quantity',
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    IconButton(
+                        onPressed: () => onChanged(quantity + 1),
+                        icon: const Icon(Icons.add, size: 16)),
                   ],
                 ),
               ),
@@ -176,10 +207,12 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
           children: [
             Checkbox(
               value: _include3DPrint,
-              onChanged: (val) => setState(() => _include3DPrint = val ?? false),
+              onChanged: (val) =>
+                  setState(() => _include3DPrint = val ?? false),
               activeColor: theme.colorScheme.primary,
             ),
-            Text('shop_3d_print_add'.tr(), style: theme.textTheme.displayMedium?.copyWith(fontSize: 18)),
+            Text('shop_3d_print_add'.tr(),
+                style: theme.textTheme.displayMedium?.copyWith(fontSize: 18)),
           ],
         ),
         if (_include3DPrint) ...[
@@ -189,10 +222,40 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.2)),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 16),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final catalogState = ref.watch(catalogProvider);
+                    final pieces = catalogState.pieces3D;
+
+                    return DropdownButtonFormField<String>(
+                      initialValue: _selectedPiece,
+                      decoration: InputDecoration(
+                        labelText: 'Selecciona la pieza a imprimir',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.black.withValues(alpha: 0.2),
+                      ),
+                      dropdownColor: theme.colorScheme.surface,
+                      items: pieces.map((art) {
+                        return DropdownMenuItem(
+                          value: art.name,
+                          child: Text(art.name,
+                              style: const TextStyle(fontSize: 14)),
+                        );
+                      }).toList(),
+                      onChanged: (v) => setState(() => _selectedPiece = v),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
                 Text('shop_3d_height_select'.tr()),
                 Slider(
                   value: _printHeight,
@@ -202,7 +265,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                   label: '${_printHeight.toInt()}mm',
                   onChanged: (v) => setState(() => _printHeight = v),
                 ),
-                Text('Price: \$${(10 + _printHeight * 0.2).toStringAsFixed(2)}', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                Text('Price: \$${(10 + _printHeight * 0.2).toStringAsFixed(2)}',
+                    style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -222,12 +288,22 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('shop_order_summary'.tr(), style: theme.textTheme.displayMedium?.copyWith(fontSize: 22)),
+          Text('shop_order_summary'.tr(),
+              style: theme.textTheme.displayMedium?.copyWith(fontSize: 22)),
           const SizedBox(height: 24),
-          if (_generalTickets > 0) _summaryRow('${'shop_item_general_title'.tr()} x$_generalTickets', _generalTickets * 25.0),
-          if (_studentTickets > 0) _summaryRow('${'shop_item_student_title'.tr()} x$_studentTickets', _studentTickets * 15.0),
-          if (_audioGuides > 0) _summaryRow('${'shop_item_audio_title'.tr()} x$_audioGuides', _audioGuides * 8.0),
-          if (_include3DPrint) _summaryRow('3D Print ( ${_printHeight.toInt()}mm )', 10.0 + _printHeight * 0.2),
+          if (_generalTickets > 0)
+            _summaryRow('${'shop_item_general_title'.tr()} x$_generalTickets',
+                _generalTickets * 25.0),
+          if (_studentTickets > 0)
+            _summaryRow('${'shop_item_student_title'.tr()} x$_studentTickets',
+                _studentTickets * 15.0),
+          if (_audioGuides > 0)
+            _summaryRow('${'shop_item_audio_title'.tr()} x$_audioGuides',
+                _audioGuides * 8.0),
+          if (_include3DPrint)
+            _summaryRow(
+                '3D Print (${_selectedPiece ?? 'Pieza'}) ${_printHeight.toInt()}mm',
+                10.0 + _printHeight * 0.2),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(color: Colors.white10),
@@ -239,7 +315,11 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('shop_total'.tr(), style: const TextStyle(fontSize: 18)),
-              Text('\$${_total.toStringAsFixed(2)}', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 28)),
+              Text('\$${_total.toStringAsFixed(2)}',
+                  style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28)),
             ],
           ),
           const SizedBox(height: 32),
@@ -247,7 +327,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: _total > 0 ? () => _proceedToCheckout() : null,
+              onPressed:
+                  (_total > 0 && (!_include3DPrint || _selectedPiece != null))
+                      ? () => _proceedToCheckout()
+                      : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: Colors.black,
@@ -257,7 +340,8 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 children: [
                   const Icon(Icons.lock_outline, size: 18),
                   const SizedBox(width: 8),
-                  Text('shop_proceed'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('shop_proceed'.tr(),
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -278,7 +362,8 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
             child: Text(
               label,
               style: TextStyle(
-                color: theme.colorScheme.onSurface.withValues(alpha: isSmall ? 0.5 : 0.8),
+                color: theme.colorScheme.onSurface
+                    .withValues(alpha: isSmall ? 0.5 : 0.8),
                 fontSize: isSmall ? 12 : 14,
               ),
             ),
@@ -301,15 +386,17 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       Uri(
         path: '/payment',
         queryParameters: {
-          'total': _total.toString(),
-          'subtotal': _subtotal.toString(),
-          'fees': _fees.toString(),
+          'total': _total.toStringAsFixed(2),
+          'subtotal': _subtotal.toStringAsFixed(2),
+          'fees': _fees.toStringAsFixed(2),
           'tickets': json.encode({
             'general': _generalTickets,
             'student': _studentTickets,
             'audio': _audioGuides,
             'print': _include3DPrint ? _printHeight.toInt() : 0,
           }),
+          if (_include3DPrint && _selectedPiece != null)
+            'printPieceName': _selectedPiece!,
         },
       ).toString(),
     );
