@@ -49,9 +49,15 @@ class _My3DOrdersScreenState extends State<My3DOrdersScreen> {
 
           final sortedDocs = List<DocumentSnapshot>.from(docs);
           sortedDocs.sort((a, b) {
-            final tsA = (a.data() as Map)['timestamp'] as Timestamp?;
-            final tsB = (b.data() as Map)['timestamp'] as Timestamp?;
-            if (tsA == null || tsB == null) return 0;
+            final dataA = a.data() as Map<String, dynamic>;
+            final dataB = b.data() as Map<String, dynamic>;
+            final tsA = dataA['timestamp'] as Timestamp? ?? dataA['purchaseDate'] as Timestamp?;
+            final tsB = dataB['timestamp'] as Timestamp? ?? dataB['purchaseDate'] as Timestamp?;
+            
+            if (tsA == null && tsB == null) return 0;
+            if (tsA == null) return 1;
+            if (tsB == null) return -1;
+            
             return tsB.compareTo(tsA);
           });
 

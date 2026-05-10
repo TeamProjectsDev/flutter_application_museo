@@ -161,13 +161,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         final savedDate = prefs.getString('pending_date');
 
         // 🔐 CERROJO DE SEGURIDAD: Si estamos en éxito pero no hay rastro del pedido en la "caja fuerte"
-        // es que alguien ha intentado entrar escribiendo la URL a mano.
-        if (widget.stripeSuccess && savedTotal == null && savedName == null) {
-          debugPrint('🚨 [Seguridad] Intento de bypass detectado. Redirigiendo...');
+        // es que alguien ha intentado entrar escribiendo la URL a mano o los datos no se guardaron.
+        if (widget.stripeSuccess && (savedTotal == null || savedName == null || savedTickets == null)) {
+          debugPrint('🚨 [Seguridad] Fallo de recuperación de datos. Total=$savedTotal, Name=$savedName, Tickets=${savedTickets != null}');
           if (mounted) {
              context.go('/shop');
              ScaffoldMessenger.of(context).showSnackBar(
-               const SnackBar(content: Text('Acceso no autorizado. No se encontró ningún pago pendiente.'), backgroundColor: Colors.red),
+               const SnackBar(content: Text('Error: No se pudieron recuperar los datos del pago. Revisa tu historial de pedidos.'), backgroundColor: Colors.red),
              );
           }
           return;
@@ -655,13 +655,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         productName: 'Reserva Museo Padre Suárez',
         amountInCents: (double.parse(widget.total) * 100).toInt(),
         currency: 'eur',
-        // 🔗 URL de retorno segura vinculada a tu proyecto Firebase
+        // 🔗 URL de retorno segura vinculada a tu proyecto Firebase (Sin almohadilla para mejor soporte de Deep Links en Android)
         successUrl: kIsWeb 
             ? '${Uri.base.origin}/#/payment/success' 
-            : 'https://${dotenv.env['FIREBASE_PROJECT_ID']}.web.app/#/payment/success',
+            : 'https://${dotenv.env['FIREBASE_PROJECT_ID']}.web.app/payment/success',
         cancelUrl: kIsWeb 
             ? '${Uri.base.origin}/#/payment/cancel' 
-            : 'https://${dotenv.env['FIREBASE_PROJECT_ID']}.web.app/#/payment/cancel',
+            : 'https://${dotenv.env['FIREBASE_PROJECT_ID']}.web.app/payment/cancel',
       );
 
       ref.read(paymentProvider.notifier).setLoading(false);
@@ -1006,6 +1006,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             'service_id': serviceId,
             'template_id': templateId,
             'user_id': userId,
+            'accessToken': dotenv.env['EMAILJS_PRIVATE_KEY'] ?? '', // 🔐 Clave privada para modo estricto
             'template_params': finalParams,
           }),
         );

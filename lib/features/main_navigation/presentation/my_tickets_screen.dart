@@ -116,7 +116,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
             return ts?.toDate() ?? DateTime(2000);
           }
 
-          allItems.sort((a, b) => getSortDate(a).compareTo(getSortDate(b)));
+          allItems.sort((a, b) => getSortDate(b).compareTo(getSortDate(a)));
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
