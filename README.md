@@ -18,18 +18,29 @@ Aquí puedes encontrar acceso directo a toda la infraestructura y documentación
 ---
 
 ## 📋 Índice
-1. [Requisitos Previos](#1-requisitos-previos)
-2. [Configuración del Archivo `.env`](#2-configuración-del-archivo-env)
-3. [Configuración de Firebase (Base de Datos y Usuarios)](#3-configuración-de-firebase-base-de-datos-y-usuarios)
-4. [Configuración de EmailJS (Correos Automáticos)](#4-configuración-de-emailjs-correos-automáticos)
-5. [Configuración de Pagos Reales (Stripe)](#5-configuración-de-pagos-reales-stripe)
-6. [Almacenamiento de Activos Digitales (Cloudinary DAM)](#6-almacenamiento-de-activos-digitales-cloudinary-dam)
-7. [Códigos QR para las Piezas del Museo](#7-códigos-qr-para-las-piezas-del-museo)
-8. [Lanzar la Aplicación](#8-lanzar-la-aplicación)
-9. [Modo Tester (Pruebas sin pagar)](#9--modo-tester-para-tribunal-y-exposiciones-sin-gasto)
-10. [🏛️ Sistema de Gestión Administrativa (Panel Admin)](#10-sistema-de-gestión-administrativa-panel-admin)
-11. [🛒 Ecosistema de Comercio y Producción 3D](#11-ecosistema-de-comercio-y-producción-3d)
-12. [✨ Características de Pulido Comercial](#12--características-de-pulido-comercial)
+- [Museo Histórico Padre Suárez - App 🏛️](#museo-histórico-padre-suárez---app-️)
+  - [🌐 Enlaces del Proyecto](#-enlaces-del-proyecto)
+  - [📋 Índice](#-índice)
+  - [1. Requisitos Previos](#1-requisitos-previos)
+  - [2. Configuración del Archivo `.env`](#2-configuración-del-archivo-env)
+  - [3. Configuración de Firebase (Base de Datos y Usuarios)](#3-configuración-de-firebase-base-de-datos-y-usuarios)
+    - [📊 Eventos de Analíticas Integrados](#-eventos-de-analíticas-integrados)
+  - [4. Configuración de EmailJS (Correos Automáticos)](#4-configuración-de-emailjs-correos-automáticos)
+  - [5. Configuración de Pagos Reales (Stripe)](#5-configuración-de-pagos-reales-stripe)
+  - [6. Configuración de Activos Digitales (Cloudinary DAM)](#6-configuración-de-activos-digitales-cloudinary-dam)
+  - [7. Códigos QR para las Piezas del Museo](#7-códigos-qr-para-las-piezas-del-museo)
+    - [¿Qué texto debe contener el QR?](#qué-texto-debe-contener-el-qr)
+    - [Ejemplos reales](#ejemplos-reales)
+    - [Comportamiento en la app al escanear](#comportamiento-en-la-app-al-escanear)
+    - [Cómo generar los QR físicos (gratis)](#cómo-generar-los-qr-físicos-gratis)
+    - [Añadir una nueva pieza al museo (proceso completo)](#añadir-una-nueva-pieza-al-museo-proceso-completo)
+  - [8. Lanzar la Aplicación](#8-lanzar-la-aplicación)
+  - [9. 🎮 MODO TESTER (Para Tribunal y Exposiciones sin Gasto)](#9--modo-tester-para-tribunal-y-exposiciones-sin-gasto)
+  - [11. 🛒 Ecosistema de Comercio y Producción 3D](#11--ecosistema-de-comercio-y-producción-3d)
+    - [💳 Flujo de Compra Blindado](#-flujo-de-compra-blindado)
+    - [🏭 Gestión de Producción para el Administrador](#-gestión-de-producción-para-el-administrador)
+  - [12. ✨ Características de Pulido Comercial](#12--características-de-pulido-comercial)
+    - [🛠️ Nota Técnica: Entorno de Compilación](#️-nota-técnica-entorno-de-compilación)
 
 ---
 
@@ -54,7 +65,7 @@ La app utiliza un archivo secreto llamado `.env` para almacenar contraseñas y c
 **Resumen de todas las variables:**
 
 | Variable                       | Descripción                                       |
-|--------------------------------|---------------------------------------------------|
+| ------------------------------ | ------------------------------------------------- |
 | `FIREBASE_API_KEY`             | Clave API Firebase (Web)                          |
 | `FIREBASE_APP_ID_WEB`          | App ID Firebase Web                               |
 | `FIREBASE_APP_ID_ANDROID`      | App ID Firebase Android                           |
@@ -160,12 +171,14 @@ La app está preconfigurada de fábrica para enviar estadísticas de uso super c
   * `ecommerce_error`: Se dispara de forma invisible si hay fallos en Firestore guardando un pedido físico.
 
 **🔐 Gestión Administrativa y Seguridad**
-La aplicación incluye un sistema de administración dinámico que permite gestionar el museo en tiempo real:
-* **Admin Panel**: Acceso exclusivo para el administrador (`ADMIN_EMAIL` en `.env`) desde la pantalla de Ajustes.
-* **Control de Aforo**: Capacidad de limitar el número de entradas diarias globalmente o por fechas específicas. Soporta **reservas de grupos** validando el total de entradas del carrito frente al espacio disponible.
-* **Cierre Inteligente**: Interruptor maestro para abrir/cerrar el museo instantáneamente en todos los dispositivos de los usuarios.
-* **Excepciones de Calendario**: Gestión de cierres por festivos o eventos privados.
-* **Seguridad en Firestore**: Las reglas protegen la colección `museum_config` para que solo el administrador pueda modificar los ajustes.
+La aplicación incluye un sistema de administración dinámico y profesional:
+* **Admin Smart Scanner (v2026)**: Validación inteligente por colores:
+    *   🟢 **Válida**: Entrada para hoy, se marca como usada al instante.
+    *   🟠 **Futuro**: Detecta tickets para fechas próximas y avisa sin consumirlos.
+    *   🔴 **Error**: Alerta visual si el ticket ha caducado o ya fue validado.
+* **Control de Aforo y Grupos**: Gestión de capacidad diaria y validación de reservas masivas con desglose de ítems (General, Estudiante, Audioguía).
+* **Cierre Maestro**: Interruptor para abrir/cerrar el museo globalmente desde los ajustes.
+* **Seguridad Firestore**: Reglas blindadas que solo permiten al administrador (`ADMIN_EMAIL`) modificar la configuración.
 
 Para que un usuario sea reconocido como administrador:
 1. El correo electrónico debe estar incluido en la variable `ADMIN_EMAIL` del archivo `.env`.
@@ -189,18 +202,8 @@ La app envía correos reales (tickets digitales, avisos de impresión 3D) a los 
        El usuario {{user_email}} ha solicitado la impresión 3D del objeto: {{object_name}}.
        Fecha de la solicitud: {{request_date}}
        ```
-   * **Plantilla 2 (Entradas Digitales):** Crea otra plantilla para los códigos QR. Anota su "Template ID" en `EMAILJS_TICKET_TEMPLATE_ID`.
-     * **Ejemplo de contenido de la plantilla:**
-       ```html
-       Asunto: Tu Entrada Digital - Museo Histórico Padre Suárez
-       
-       ¡Hola! Gracias por tu compra.
-       Aquí tienes el identificador único de tu entrada digital:
-       {{ticket_code}}
-       
-       Muéstralo en la puerta de acceso al recinto.
-       (Comprado el: {{purchase_date}})
-       ```
+   * **Plantilla 2 (Entradas Digitales):** Envío automático del ticket con QR minimalista.
+     * **Variables Sincronizadas:** `{{subject}}` (Asunto dinámico), `{{name}}`, `{{qr_image_url}}` (Imagen del QR), `{{ticket_id}}`, `{{visit_date}}` y `{{tickets_details}}` (Lista traducida).
 4. Ve a la pestaña **Account** arriba a la derecha para ver tu "Public Key". Ese es tu `EMAILJS_USER_ID` para el `.env`.
 
 ---
@@ -245,10 +248,10 @@ Esta sección explica cómo crear los códigos QR físicos que se colocan en cad
 
 El escáner de la app acepta **dos formatos** como contenido del QR:
 
-| Formato                              | Ejemplo                 | Cuándo usarlo           |
-|--------------------------------------|-------------------------|-------------------------|
-| **ID de pieza**                      | `mandibula_hombre`      | Recomendado — más corto |
-| **Nombre del fichero completo**      | `mandibula_hombre.glb`  | También válido          |
+| Formato                         | Ejemplo                | Cuándo usarlo           |
+| ------------------------------- | ---------------------- | ----------------------- |
+| **ID de pieza**                 | `mandibula_hombre`     | Recomendado — más corto |
+| **Nombre del fichero completo** | `mandibula_hombre.glb` | También válido          |
 
 > ⚠️ El ID de pieza es el **nombre del fichero sin extensión**, con espacios convertidos en guiones bajos (`_`). Si el fichero se llama `mandibula hombre.glb`, el ID es `mandibula_hombre`.
 
@@ -258,13 +261,13 @@ El escáner de la app acepta **dos formatos** como contenido del QR:
 
 Supongamos que tienes estos archivos en tu repositorio o bucket R2:
 
-| Archivo                           | Texto del QR                      |
-|-----------------------------------|-----------------------------------|
-| `mandibula_hombre.glb`            | `mandibula_hombre`                |
-| `fosil_ammonite.glb`              | `fosil_ammonite`                  |
-| `vasija_romana.glb`               | `vasija_romana`                   |
-| `sala_paleontologia.jpg`          | `sala_paleontologia`              |
-| `modelo_auzoux.glb`               | `modelo_auzoux`                   |
+| Archivo                  | Texto del QR         |
+| ------------------------ | -------------------- |
+| `mandibula_hombre.glb`   | `mandibula_hombre`   |
+| `fosil_ammonite.glb`     | `fosil_ammonite`     |
+| `vasija_romana.glb`      | `vasija_romana`      |
+| `sala_paleontologia.jpg` | `sala_paleontologia` |
+| `modelo_auzoux.glb`      | `modelo_auzoux`      |
 
 El QR de la vitrina de la mandíbula humana debe contener **exclusivamente** el texto:
 ```
@@ -295,10 +298,10 @@ Una vez desbloqueada, la pieza queda disponible en la pestaña **Colección** pa
 
 ### Cómo generar los QR físicos (gratis)
 
-| Herramienta       | URL                                                        | Notas                          |
-|-------------------|------------------------------------------------------------|--------------------------------|
-| QR Code Generator | [qr-code-generator.com](https://www.qr-code-generator.com) | Más opciones de diseño         |
-| GoQR              | [goqr.me](https://goqr.me)                                 | Simple y rápido                |
+| Herramienta       | URL                                                        | Notas                              |
+| ----------------- | ---------------------------------------------------------- | ---------------------------------- |
+| QR Code Generator | [qr-code-generator.com](https://www.qr-code-generator.com) | Más opciones de diseño             |
+| GoQR              | [goqr.me](https://goqr.me)                                 | Simple y rápido                    |
 | QRCode Monkey     | [qrcode-monkey.com](https://www.qrcode-monkey.com)         | Permite logo / color personalizado |
 
 **Pasos:**
@@ -400,12 +403,12 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
   * **Cobertura:** Los archivos `en.json` y `es.json` cubren más de 150 etiquetas, asegurando que no queden textos sin traducir.
 
 * **💰 Gamificación — Sistema de Rangos:** A medida que el usuario desbloquea piezas escaneando, sube de rango:
-  | Rango            | Piezas | Color |
-  |------------------|--------|-------|
-  | Visitante        | 0      | Gris  |
-  | Explorador       | 1–2    | Bronce|
-  | Académico        | 3–5    | Plata |
-  | Conservador Jefe | 6+     | Oro   |
+  | Rango            | Piezas | Color  |
+  | ---------------- | ------ | ------ |
+  | Visitante        | 0      | Gris   |
+  | Explorador       | 1–2    | Bronce |
+  | Académico        | 3–5    | Plata  |
+  | Conservador Jefe | 6+     | Oro    |
   El rango aparece en la pantalla de perfil y en el inicio.
 
 * **📰 Bio-Revista Científica:** Sección de noticias con feeds RSS en tiempo real de fuentes científicas (Agencia SINC y otras). Las imágenes se almacenan en caché local con `cached_network_image` — la segunda visita carga instantáneamente sin red.
