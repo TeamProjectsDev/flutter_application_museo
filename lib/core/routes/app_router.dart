@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
-import 'package:web/web.dart' as web;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -59,9 +58,9 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: (kIsWeb && web.window.location.href.contains('payment/success')) 
+    initialLocation: (kIsWeb && Uri.base.toString().contains('payment/success')) 
         ? '/payment/success' 
-        : (kIsWeb && web.window.location.href.contains('payment/cancel'))
+        : (kIsWeb && Uri.base.toString().contains('payment/cancel'))
             ? '/payment/cancel'
             : initialRoute,
     observers: [FirebaseAnalyticsObserver(analytics: analytics)],

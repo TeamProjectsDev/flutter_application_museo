@@ -12,10 +12,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import '../../../core/utils/web_utils.dart';
 import '../../../core/providers/config_provider.dart';
 import '../../../core/models/museum_config.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:web/web.dart' as web;
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final String total;
@@ -69,12 +69,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     // 🕵️‍♂️ DETECCIÓN DE ÉXITO (Doble seguridad: Parámetro o URL real)
     bool isActuallySuccess = widget.stripeSuccess;
     if (kIsWeb) {
-      final currentUrl = web.window.location.href;
+      final currentUrl = Uri.base.toString();
       if (currentUrl.contains('payment/success')) {
         isActuallySuccess = true;
       }
     }
-    final isCancel = kIsWeb && web.window.location.href.contains('payment/cancel');
+    final isCancel = kIsWeb && Uri.base.toString().contains('payment/cancel');
 
     if (isCancel) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -665,8 +665,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       if (stripeUrl != null && stripeUrl.isNotEmpty) {
         debugPrint('🛫 [PaymentScreen] Redirigiendo a Stripe: $stripeUrl');
         if (kIsWeb) {
-          // En la web, forzamos el cambio en la misma pestaña
-          web.window.location.href = stripeUrl;
+          // En la web, forzamos el cambio en la misma pestaña mediante utilidad segura
+          await redirectToUrl(stripeUrl);
         } else {
           // En móviles usamos el lanzador estándar
           await launchUrlString(stripeUrl, mode: LaunchMode.externalApplication);
