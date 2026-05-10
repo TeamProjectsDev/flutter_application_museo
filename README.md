@@ -28,7 +28,8 @@ Aquí puedes encontrar acceso directo a toda la infraestructura y documentación
 8. [Lanzar la Aplicación](#8-lanzar-la-aplicación)
 9. [Modo Tester (Pruebas sin pagar)](#9--modo-tester-para-tribunal-y-exposiciones-sin-gasto)
 10. [🏛️ Sistema de Gestión Administrativa (Panel Admin)](#10-sistema-de-gestión-administrativa-panel-admin)
-11. [✨ Características de Pulido Comercial](#11--características-de-pulido-comercial)
+11. [🛒 Ecosistema de Comercio y Producción 3D](#11-ecosistema-de-comercio-y-producción-3d)
+12. [✨ Características de Pulido Comercial](#12--características-de-pulido-comercial)
 
 ---
 
@@ -351,7 +352,7 @@ TESTER=1
 
 **¿Qué hace el modo Tester (`TESTER=1`)?**
 * Añade un botón rápido en la cámara AR (`ar_screen.dart`) que simula que has escaneado exitosamente un código, para que puedas ver el objeto 3D sin moverte de la silla.
-* Al donar dinero o comprar merchandising, se simula una compra exitosa (aparece una barra verde) sin tocar Stripe ni tarjetas de crédito, por lo que puedes demostrar todo el flujo de compra tranquilamente en público.
+* Al donar dinero o comprar merchandising, se simula una compra exitosa (aparece una barra verde) sin tocar Stripe ni tarjetas de crédito. **Importante**: El sistema sigue guardando el pedido real en Firestore (con el nombre de la pieza y tamaño exacto) para que puedas demostrar todo el flujo de gestión del administrador.
 * Desbloquea todos los visores de candados de la Galería 3D.
 * Muestra un letrero amarillo de "TESTER" arriba a la derecha.
 
@@ -359,7 +360,27 @@ Cuando vayas a subir la App a Google Play (Producción) para la gente real en la
 
 ---
 
-## 10. ✨ Características de Pulido Comercial
+## 11. 🛒 Ecosistema de Comercio y Producción 3D
+
+La aplicación integra un flujo completo de venta y fabricación de reproducciones 3D del museo, diseñado para una gestión industrial sin errores:
+
+### 💳 Flujo de Compra Blindado
+*   **Checkout Adaptativo**: El sistema detecta si el pedido es solo 3D y oculta campos innecesarios (como la fecha de visita) para agilizar la compra.
+*   **Persistencia de Artefactos**: Implementa un sistema de "Caja Fuerte" (`SharedPreferences`) que asegura que el nombre de la pieza elegida nunca se pierda, incluso si el usuario refresca la página o vuelve de una pasarela externa.
+*   **Unificación de Datos (`pieceName`)**: Estándar de nomenclatura unificado en todo el ecosistema (Tienda, Perfil, Admin y Firestore) para una trazabilidad perfecta.
+
+### 🏭 Gestión de Producción para el Administrador
+*   **Cola de Fabricación**: Panel exclusivo donde el administrador ve los pedidos en tiempo real con el nombre exacto del artefacto y el tamaño solicitado.
+*   **Estados de Pedido**: Control total sobre el ciclo de vida de la pieza:
+    *   🕒 **Pendiente**: Pedido recibido y en espera de impresión.
+    *   🖨️ **Imprimiendo**: La pieza está físicamente en la impresora.
+    *   🧪 **En Cura**: Proceso de post-procesado y endurecimiento.
+    *   ✅ **Listo**: Pieza finalizada para entrega o envío.
+*   **Notificaciones Inteligentes**: El sistema envía emails automáticos al taller detallando la pieza, la referencia del pedido y la **altura exacta en milímetros**.
+
+---
+
+## 12. ✨ Características de Pulido Comercial
 
 Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de producción comercial listas para distribuirse en las tiendas de apps:
 
