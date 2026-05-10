@@ -224,7 +224,7 @@
   "tickets_status_visited": "Visitado",
   "tickets_visitor_anonymous": "Visitante Anónimo",
   "ar_visit_success": "¡Visita registrada! Has sumado puntos para tu rango.",
-  "auth_pieces_visited": "Has visitado {0} de {1} piezas",
+  "auth_pieces_visited": "Has visitado {} de {} piezas",
   "shop_tester_title": "Simulación de Pago",
   "shop_tester_desc": "En el modo TESTER, simulamos la pasarela de Stripe. El pago se marcará como completado y se generarán tus entradas en Firestore y EmailJS.",
   "shop_tester_cancel": "Cancelar",
