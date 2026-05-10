@@ -244,5 +244,20 @@
   "invoice_total_paid": "TOTAL PAGADO",
   "invoice_email_notice": "En breve recibirás tus entradas con código QR por email.",
   "invoice_back_home": "VOLVER AL INICIO",
-  "shop_error_audio_limit": "Máximo de {} audioguías (una por visitante)."
+  "shop_error_audio_limit": "Máximo de {} audioguías (una por visitante).",
+  "admin_scanner_warning_future": "¡ATENCIÓN! Esta entrada es para otro día. No se ha validado todavía.",
+  "admin_scanner_total_people": "Total Personas: {}",
+  "admin_scanner_status_used": "YA ESCANEADA",
+  "admin_scanner_status_valid": "VÁLIDA",
+  "admin_scanner_status_future": "DÍA FUTURO",
+  "admin_scanner_visit_date": "Fecha Visita",
+  "admin_scanner_label_general": "General",
+  "admin_scanner_label_student": "Estudiante/Reducida",
+  "admin_scanner_label_audio": "Audioguía",
+  "common_error": "Error",
+  "common_attention": "¡ATENCIÓN!",
+  "common_visitor": "Visitante",
+  "common_museum_entrance": "Entrada Museo",
+  "common_audio_guide": "Audioguía",
+  "email_ticket_subject": "Tu Entrada Digital del Museo - Ref: {}"
 }

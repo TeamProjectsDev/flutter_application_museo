@@ -167,11 +167,17 @@ class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
       }
 
       bool isExpired = false;
+      bool isFuture = false;
+      
       if (visitDate != null) {
         final now = DateTime.now();
+        final startOfVisitDay = DateTime(visitDate.year, visitDate.month, visitDate.day, 0, 0, 0);
         final endOfVisitDay = DateTime(visitDate.year, visitDate.month, visitDate.day, 23, 59, 59);
+        
         if (now.isAfter(endOfVisitDay)) {
           isExpired = true;
+        } else if (now.isBefore(startOfVisitDay)) {
+          isFuture = true;
         }
       }
 
@@ -181,8 +187,18 @@ class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
       } else if (isExpired) {
         FirebaseAnalytics.instance.logEvent(name: 'admin_scan_error', parameters: {'reason': 'expired'});
         await _showResultDialog('tickets_status_expired'.tr(), isError: true, data: data, status: 'expired');
+      } else if (isFuture) {
+        // ⚠️ AVISO DE DÍA FUTURO (No se marca como usada)
+        FirebaseAnalytics.instance.logEvent(name: 'admin_scan_warning', parameters: {'reason': 'future_date'});
+        await _showResultDialog(
+          'admin_scanner_warning_future'.tr(), 
+          isError: false, 
+          isWarning: true,
+          data: data, 
+          status: 'future'
+        );
       } else {
-        // ✅ Validar y marcar como usado
+        // ✅ Validar y marcar como usado (SÓLO SI ES HOY)
         final isAudio = ticketDoc.reference.path.contains('audio_guides');
         await ticketDoc.reference.update({
           'status': 'used',
@@ -194,11 +210,11 @@ class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
           parameters: {'visitor': data['visitorName'] ?? 'unknown'},
         );
         
-        await _showResultDialog('admin_scanner_success'.tr(), isError: false, data: data, isAudio: isAudio, status: status);
+        await _showResultDialog('admin_scanner_success'.tr(), isError: false, data: data, isAudio: isAudio, status: 'active');
       }
     } catch (e) {
       FirebaseAnalytics.instance.logEvent(name: 'admin_scan_error', parameters: {'reason': 'exception', 'error': e.toString()});
-      await _showResultDialog('Error: $e', isError: true);
+      await _showResultDialog('${'common_error'.tr()}: $e', isError: true);
     } finally {
       // 🔄 Reiniciar la cámara para el siguiente visitante
       await controller.start();
@@ -206,7 +222,7 @@ class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
     }
   }
 
-  Future<void> _showResultDialog(String message, {required bool isError, Map<String, dynamic>? data, bool isAudio = false, String? status}) async {
+  Future<void> _showResultDialog(String message, {required bool isError, bool isWarning = false, Map<String, dynamic>? data, bool isAudio = false, String? status}) async {
     
     await showDialog(
       context: context,
@@ -216,14 +232,14 @@ class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
         title: Column(
           children: [
             Icon(
-              isError ? Icons.error_outline : Icons.check_circle_outline,
-              color: isError ? Colors.red : Colors.green,
+              isError ? Icons.error_outline : (isWarning ? Icons.warning_amber_rounded : Icons.check_circle_outline),
+              color: isError ? Colors.red : (isWarning ? Colors.orange : Colors.green),
               size: 60,
             ),
             const SizedBox(height: 8),
             Text(
-              isError ? 'Error' : 'admin_scanner_success'.tr(),
-              style: TextStyle(color: isError ? Colors.red : Colors.green, fontWeight: FontWeight.bold),
+              isError ? 'common_error'.tr() : (isWarning ? 'common_attention'.tr() : 'admin_scanner_success'.tr()),
+              style: TextStyle(color: isError ? Colors.red : (isWarning ? Colors.orange : Colors.green), fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -232,11 +248,40 @@ class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
           children: [
             if (data != null) ...[
               const Divider(),
-              _infoDetail(Icons.person, data['visitorName'] ?? data['userName'] ?? 'Visitante'),
-              _infoDetail(isAudio ? Icons.headset_mic : Icons.confirmation_number, isAudio ? 'Audio-guía' : 'Entrada Museo'),
-              _infoDetail(Icons.people, 'Cantidad: ${data['quantity'] ?? 1}'),
-              _infoDetail(Icons.calendar_today, 'Fecha: ${data['visitDate'] ?? '---'}'),
-              _infoDetail(Icons.info_outline, 'Estado: ${status == 'used' ? 'USADA (ERROR)' : 'ACTIVA (VALIDADA)'}'),
+              _infoDetail(Icons.person, data['visitorName'] ?? data['userName'] ?? 'common_visitor'.tr()),
+              _infoDetail(isAudio ? Icons.headset_mic : Icons.confirmation_number, isAudio ? 'common_audio_guide'.tr() : 'common_museum_entrance'.tr()),
+              
+              // 👥 CANTIDAD DINÁMICA (Especial Grupos 2026)
+              _infoDetail(
+                Icons.groups, 
+                'admin_scanner_total_people'.tr(args: [(data['totalTickets'] ?? data['quantity'] ?? 1).toString()]),
+                isHighlighted: true
+              ),
+
+              // 📊 DESGLOSE DE ITEMS
+              if (data['items'] != null) ...[
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(left: 24),
+                  child: Column(
+                    children: (data['items'] as Map<String, dynamic>).entries.map((e) {
+                      if (e.value == 0) return const SizedBox.shrink();
+                      String label = e.key;
+                      if (label == 'general') label = 'admin_scanner_label_general'.tr();
+                      if (label == 'student') label = 'admin_scanner_label_student'.tr();
+                      if (label == 'audio') label = 'admin_scanner_label_audio'.tr();
+                      return _infoDetail(Icons.arrow_right, '$label: x${e.value}', isSmall: true);
+                    }).toList(),
+                  ),
+                ),
+              ],
+
+              _infoDetail(Icons.calendar_today, '${'admin_scanner_visit_date'.tr()}: ${data['visitDate'] ?? '---'}'),
+              _infoDetail(
+                Icons.info_outline, 
+                '${'admin_v2_change_status'.tr().split(' ')[0]}: ${status == 'used' ? 'admin_scanner_status_used'.tr() : (status == 'future' ? 'admin_scanner_status_future'.tr() : 'admin_scanner_status_valid'.tr())}',
+                color: status == 'used' ? Colors.red : (status == 'future' ? Colors.orange : Colors.green)
+              ),
               const Divider(),
             ],
             const SizedBox(height: 10),
@@ -261,13 +306,22 @@ class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
     );
   }
 
-  Widget _infoDetail(IconData icon, String text) => Padding(
+  Widget _infoDetail(IconData icon, String text, {bool isHighlighted = false, bool isSmall = false, Color? color}) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
-        const SizedBox(width: 8),
-        Expanded(child: Text(text, style: const TextStyle(fontWeight: FontWeight.w500))),
+        Icon(icon, size: isSmall ? 12 : 18, color: color ?? Colors.grey[600]),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text, 
+            style: TextStyle(
+              fontWeight: isHighlighted ? FontWeight.bold : FontWeight.w500,
+              fontSize: isHighlighted ? 18 : (isSmall ? 12 : 14),
+              color: color,
+            )
+          )
+        ),
       ],
     ),
   );

@@ -244,5 +244,20 @@
   "invoice_total_paid": "TOTAL PAID",
   "invoice_email_notice": "You will shortly receive your tickets with QR code by email.",
   "invoice_back_home": "BACK TO HOME",
-  "shop_error_audio_limit": "Maximum of {} audioguides (one per visitor)."
+  "shop_error_audio_limit": "Maximum of {} audioguides (one per visitor).",
+  "admin_scanner_warning_future": "ATTENTION! This ticket is for another day. It has not been validated yet.",
+  "admin_scanner_total_people": "Total People: {}",
+  "admin_scanner_status_used": "ALREADY SCANNED",
+  "admin_scanner_status_valid": "VALID",
+  "admin_scanner_status_future": "FUTURE DAY",
+  "admin_scanner_visit_date": "Visit Date",
+  "admin_scanner_label_general": "General",
+  "admin_scanner_label_student": "Student/Reduced",
+  "admin_scanner_label_audio": "Audioguide",
+  "common_error": "Error",
+  "common_attention": "ATTENTION!",
+  "common_visitor": "Visitor",
+  "common_museum_entrance": "Museum Entrance",
+  "common_audio_guide": "Audioguide",
+  "email_ticket_subject": "Your Digital Museum Ticket - Ref: {}"
 }

@@ -910,51 +910,59 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       final int audio = int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0;
 
       if (general > 0) {
-        ticketsList.add('$general x Entrada General');
+        ticketsList.add('$general x ${'shop_item_general_title'.tr()}');
       }
       if (student > 0) {
-        ticketsList.add('$student x Entrada Estudiante/Reducida');
+        ticketsList.add('$student x ${'shop_item_student_title'.tr()}');
       }
       if (audio > 0) {
-        ticketsList.add('$audio x Audioguía');
+        ticketsList.add('$audio x ${'shop_item_audio_title'.tr()}');
       }
 
       final dateStr = _selectedDate != null
           ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
-          : 'Pendiente';
+          : 'admin_v2_status_pendiente'.tr();
       final ticketId = 'TK-$orderId';
+      final expeditionDate = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
 
-      final qrText =
-          '🎟️ ENTRADA DE MUSEO\nID: $ticketId\nVisitante: $targetName\nFecha: $dateStr';
-      final qrUrlEncoded = Uri.encodeComponent(qrText);
-      final qrUrl = 'https://quickchart.io/qr?text=$qrUrlEncoded&size=400';
+      // 🎫 El QR solo debe contener el ID puro para que el escáner lo encuentre en Firestore
+      final qrUrl = 'https://quickchart.io/qr?text=$ticketId&size=400';
 
       try {
         await FirebaseFirestore.instance.collection('tickets').add({
           'ticketId': ticketId,
           'orderId': orderId,
-          'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest', // CRÍTICO: Añadido userId
+          'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest',
           'visitorName': targetName,
           'visitorEmail': targetEmail,
           'visitDate': dateStr,
           'visitDateTimestamp': _selectedDate != null 
               ? Timestamp.fromDate(_selectedDate!) 
-              : null, // Guardado para lógica de 24h
+              : null,
+          'items': {
+            'general': general,
+            'student': student,
+            'audio': audio,
+          },
+          'totalTickets': general + student,
           'purchaseDate': FieldValue.serverTimestamp(),
-          'status': 'active', // Estado inicial
+          'status': 'active',
         });
       } catch (e) {
         debugPrint('Error guardando ticket individual: $e');
       }
 
+      // 📧 Sincronización EXACTA con tu plantilla de EmailJS
       await _triggerEmailJS(serviceId, templateId, userId, {
         'to_email': targetEmail,
-        'from_name': 'Museo Padre Suárez',
-        'to_name': targetName,
-        'order_id': orderId,
-        'visit_date': dateStr,
+        'from_name': 'app_title'.tr(),
+        'subject': 'email_ticket_subject'.tr(args: [orderId]), 
+        'name': targetName,            // {{name}}
+        'qr_image_url': qrUrl,         // {{qr_image_url}}
+        'ticket_id': orderId,          // {{ticket_id}}
+        'visit_date': dateStr,         // {{visit_date}}
+        'purchase_date': expeditionDate, // {{purchase_date}}
         'tickets_details': ticketsList.join('\n'),
-        'qr_data': qrUrl,
       });
     }
   }
