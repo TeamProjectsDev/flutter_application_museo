@@ -25,8 +25,8 @@ void main() {
         DeviceOrientation.portraitDown,
       ]);
 
-      // Cargar variables de entorno
-      await dotenv.load(fileName: ".env");
+      // Cargar variables de entorno (Nombre cambiado para evitar bloqueos en servidores web)
+      await dotenv.load(fileName: "env_config");
       await EasyLocalization.ensureInitialized();
       
       // Un margen de tiempo generoso para que el navegador cargue los JSON y el Router se estabilice

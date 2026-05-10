@@ -60,7 +60,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - .env
+    - env_config
     - assets/models/
     - assets/vr/
     - assets/icon.png
