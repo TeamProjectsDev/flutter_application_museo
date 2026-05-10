@@ -202,8 +202,33 @@ La app envía correos reales (tickets digitales, avisos de impresión 3D) a los 
        El usuario {{user_email}} ha solicitado la impresión 3D del objeto: {{object_name}}.
        Fecha de la solicitud: {{request_date}}
        ```
-   * **Plantilla 2 (Entradas Digitales):** Envío automático del ticket con QR minimalista.
-     * **Variables Sincronizadas:** `{{subject}}` (Asunto dinámico), `{{name}}`, `{{qr_image_url}}` (Imagen del QR), `{{ticket_id}}`, `{{visit_date}}` y `{{tickets_details}}` (Lista traducida).
+   * **Plantilla 2 (Entradas Digitales):** Ticket oficial premium con QR.
+     * **Configuración del Asunto:** Pon exactamente `{{subject}}` en el campo "Subject" de EmailJS.
+     * **Código HTML Recomendado (Copiar y Pegar):** 
+       ```html
+       <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; padding: 40px 10px; text-align: center;">
+         <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+           <div style="background-color: #311b92; padding: 30px 20px;">
+             <h1 style="color: #ffffff; margin: 0; font-size: 24px;">MUSEO PADRE SUÁREZ</h1>
+             <p style="color: #b39ddb; margin: 5px 0 0 0;">Entrada Oficial Digital</p>
+           </div>
+           <div style="padding: 40px 30px;">
+             <h2 style="color: #2c3e50;">¡Hola, {{name}}!</h2>
+             <p style="color: #607d8b;">Presenta este código QR en el control de entrada:</p>
+             <img src="{{qr_image_url}}" style="width: 200px; height: 200px; border: 4px solid #f4f6f9; padding: 10px; border-radius: 12px;">
+             <div style="margin-top: 20px; color: #607d8b; font-size: 14px;">
+               <p>ID: <strong>{{ticket_id}}</strong></p>
+               <p>Fecha Visita: <strong>{{visit_date}}</strong></p>
+               <p>Expedido: <strong>{{purchase_date}}</strong></p>
+             </div>
+             <div style="text-align: left; background-color: #f8f9fa; padding: 20px; border-radius: 12px; margin-top: 30px;">
+               <h3 style="color: #311b92; font-size: 16px;">Detalle de entradas:</h3>
+               <p style="color: #2c3e50; font-size: 14px; white-space: pre-wrap;">{{tickets_details}}</p>
+             </div>
+           </div>
+         </div>
+       </div>
+       ```
 4. Ve a la pestaña **Account** arriba a la derecha para ver tu "Public Key". Ese es tu `EMAILJS_USER_ID` para el `.env`.
 
 ---
