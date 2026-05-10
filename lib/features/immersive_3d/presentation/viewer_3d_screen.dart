@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/utils/artifact_details.dart';
+import '../../main_navigation/providers/catalog_provider.dart';
 
 class Viewer3DScreen extends StatefulWidget {
   final String? modelFileName;
@@ -33,9 +33,8 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
   }
 
   void _setupModel() {
-    final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
     setState(() {
-      _modelUrl = '$baseUrl/${Uri.encodeComponent(_modelFileName)}';
+      _modelUrl = CatalogItem.buildCloudinaryUrl(_modelFileName);
     });
     
     // Forzamos una espera mínima de 1.5 segundos para una transición suave

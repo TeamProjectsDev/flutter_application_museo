@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:panorama_viewer/panorama_viewer.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../main_navigation/providers/catalog_provider.dart';
 
 class Vr360Screen extends StatelessWidget {
   final String? panoramaFileName;
@@ -10,10 +10,9 @@ class Vr360Screen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
-    final String panoramaUrl = panoramaFileName != null 
-        ? '$baseUrl/$panoramaFileName'
-        : '$baseUrl/entorno_360.jpg'; // Fallback a un archivo que debería estar en tu Supabase
+    final String panoramaUrl = CatalogItem.buildCloudinaryUrl(
+      panoramaFileName ?? 'entorno_360.jpg',
+    );
 
     FirebaseAnalytics.instance.logEvent(
       name: 'view_item_360',

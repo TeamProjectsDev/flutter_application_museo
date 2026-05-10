@@ -98,15 +98,15 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
                 children: [
                   _buildGridGallery(context, collectionState, favoritesState, pieces3D, true),
                   _buildGridGallery(context, collectionState, favoritesState, environments360, false),
-                  _buildGridGallery(context, collectionState, favoritesState, favoriteItems, true),
+                  _buildGridGallery(context, collectionState, favoritesState, favoriteItems, null), // null significa "determinar por item"
                 ],
               ),
       ),
     );
   }
 
-  Widget _buildGridGallery(BuildContext context, CollectionState state, Set<String> favorites, List<CatalogItem> items, bool is3D) {
-    if (items.isEmpty) return Center(child: Text(is3D ? 'collection_no_3d'.tr() : 'collection_no_360'.tr()));
+  Widget _buildGridGallery(BuildContext context, CollectionState state, Set<String> favorites, List<CatalogItem> items, bool? is3D) {
+    if (items.isEmpty) return Center(child: Text((is3D ?? true) ? 'collection_no_3d'.tr() : 'collection_no_360'.tr()));
 
     return GridView.builder(
       padding: const EdgeInsets.all(20),
@@ -122,17 +122,17 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
         final bool isTester = int.tryParse(dotenv.env['TESTER'] ?? '0') == 1;
         final bool isVisited = state.unlockedItems.contains(item.id) || isTester;
         final bool isFav = favorites.contains(item.id);
-
-        return _buildArtifactCard(context, item, isVisited, isFav, is3D);
+        final bool isReally3D = is3D ?? item.fileName.toLowerCase().endsWith('.glb');
+        return _buildArtifactCard(context, item, isVisited, isFav, isReally3D);
       },
     );
   }
 
-  Widget _buildArtifactCard(BuildContext context, CatalogItem item, bool isVisited, bool isFav, bool is3D) {
+  Widget _buildArtifactCard(BuildContext context, CatalogItem item, bool isVisited, bool isFav, bool isReally3D) {
     final theme = Theme.of(context);
     return InkWell(
       // Ahora todas las piezas son clicables por defecto
-      onTap: () => context.push(is3D ? '/3d?model=${item.fileName}&room=${item.room}' : '/vr_explore?file=${item.fileName}'),
+      onTap: () => context.push(isReally3D ? '/3d?model=${item.fileName}&room=${item.room}' : '/vr_explore?file=${item.fileName}'),
       child: Container(
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
@@ -186,7 +186,7 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
                       Text(item.room.tr(), style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13)),
                       Row(
                         children: [
-                          if (is3D)
+                          if (isReally3D)
                             GestureDetector(
                               onTap: () => _handle3DRequest(context, item),
                               child: Icon(Icons.print_outlined, size: 24, color: theme.colorScheme.primary),
@@ -210,14 +210,13 @@ class _CollectionScreenState extends ConsumerState<CollectionScreen> {
   }
 
   void _handle3DRequest(BuildContext context, CatalogItem item) {
-    final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
     context.push(
       Uri(
         path: '/shop',
         queryParameters: {
           'id': item.id,
           'name': item.name,
-          'stl': '$baseUrl/${item.fileName}',
+          'stl': item.url,
         },
       ).toString(),
     );

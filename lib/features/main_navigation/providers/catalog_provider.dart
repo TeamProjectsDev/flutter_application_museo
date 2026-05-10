@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +25,21 @@ class CatalogItem {
     required this.type,
     required this.room,
   });
+
+  static String buildCloudinaryUrl(String fileName) {
+    final cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? 'ds0vozscv';
+    final lower = fileName.toLowerCase();
+    
+    if (lower.endsWith('.glb') || lower.endsWith('.gltf')) {
+      // Para modelos 3D usamos la ruta directa que acabamos de probar
+      return 'https://res.cloudinary.com/$cloudName/image/upload/$fileName';
+    } else {
+      // Para fotos 360, añadimos optimización automática
+      return 'https://res.cloudinary.com/$cloudName/image/upload/f_auto,q_auto/$fileName';
+    }
+  }
+
+  String get url => buildCloudinaryUrl(fileName);
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -115,13 +129,6 @@ class CatalogState {
 }
 
 class CatalogNotifier extends StateNotifier<CatalogState> {
-  final Dio _dio = Dio();
-
-  final String? _r2BaseUrl = (dotenv.env['R2_PUBLIC_URL'] ?? '').isNotEmpty
-      ? dotenv.env['R2_PUBLIC_URL']
-      : null;
-
-  final String? _supabaseKey = dotenv.env['SUPABASE_ANON_KEY'];
 
   CatalogNotifier() : super(CatalogState(isLoading: true)) {
     fetchCatalog();
@@ -130,16 +137,46 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
   Future<void> fetchCatalog() async {
     state = CatalogState(items: state.items, isLoading: true);
     try {
-      // Cargar metadatos del inventario (local)
+      // Cargar metadatos del inventario (local) - Fuente de verdad
       final metadata = await _loadMetadata();
-
-      if (_r2BaseUrl != null && _supabaseKey != null) {
-        await _fetchFromSupabase(metadata);
-      } else {
+      
+      if (metadata.isEmpty) {
         await _loadFromCache();
+        return;
       }
+
+      // Construir los ítems basados en el catálogo local y Cloudinary
+      final List<CatalogItem> items = [];
+      
+      metadata.forEach((fileName, data) {
+        final Map<String, dynamic> itemData = data as Map<String, dynamic>;
+        final String lower = fileName.toLowerCase();
+        
+        CatalogItemType type = CatalogItemType.unknown;
+        if (lower.endsWith('.glb') || lower.endsWith('.gltf')) {
+          type = CatalogItemType.piece3D;
+        } else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png')) {
+          type = CatalogItemType.environment360;
+        }
+
+        if (type != CatalogItemType.unknown) {
+          items.add(CatalogItem(
+            id: fileName.split('.').first.replaceAll(' ', '_'),
+            name: itemData['name'] ?? fileName,
+            fileName: fileName,
+            description: itemData['description'] ?? '',
+            type: type,
+            room: itemData['room'] ?? 'map_general',
+          ));
+        }
+      });
+
+      await _saveToCache(items);
+      state = CatalogState(items: items, isLoading: false);
+      debugPrint('[Catalog] Sincronizado con Cloudinary: ${items.length} ítems configurados.');
+      
     } catch (e) {
-      debugPrint('[Catalog] Error de red: $e — intentando caché local');
+      debugPrint('[Catalog] Error procesando catálogo: $e');
       await _loadFromCache();
     }
   }
@@ -153,53 +190,6 @@ class CatalogNotifier extends StateNotifier<CatalogState> {
     } catch (e) {
       debugPrint('[Catalog] No se pudo cargar catalog_metadata.json: $e');
       return {};
-    }
-  }
-
-  Future<void> _fetchFromSupabase(Map<String, dynamic> metadata) async {
-    // Usar la URL base directamente para el listado
-    final listUrl = _r2BaseUrl!.replaceFirst('/public/', '/list/');
-
-    debugPrint('[Catalog] Listando Supabase Storage (REST) → $listUrl');
-
-    try {
-      final response = await _dio.post(
-        listUrl,
-        data: {
-          "prefix": "",
-          "limit": 100,
-          "offset": 0,
-          "sortBy": {"column": "name", "order": "asc"}
-        },
-        options: Options(
-          headers: {
-            'apikey': _supabaseKey,
-            'Authorization': 'Bearer $_supabaseKey',
-            'Content-Type': 'application/json',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        final items = data
-            .map(
-              (e) => CatalogItem.fromSupabase(
-                e as Map<String, dynamic>,
-                metadata,
-              ),
-            )
-            .where((item) => item.type != CatalogItemType.unknown)
-            .toList();
-
-        await _saveToCache(items);
-        state = CatalogState(items: items, isLoading: false);
-      } else {
-        await _loadFromCache();
-      }
-    } catch (e) {
-      debugPrint('[Catalog] Error Supabase List: $e — cargando caché');
-      await _loadFromCache();
     }
   }
 

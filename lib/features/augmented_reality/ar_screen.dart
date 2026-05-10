@@ -67,9 +67,8 @@ class _ArScreenState extends ConsumerState<ArScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('ar_visit_success'.tr())),
             );
-            final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
             setState(() {
-              _scannedModelUrl = Uri.encodeFull('$baseUrl/${item.fileName}');
+              _scannedModelUrl = item.url;
               _isScanning = false;
             });
           }
@@ -115,9 +114,8 @@ class _ArScreenState extends ConsumerState<ArScreen> {
       parameters: {'item_id': first3DItem.id},
     );
 
-    final baseUrl = dotenv.env['R2_PUBLIC_URL'] ?? '';
     setState(() {
-      _scannedModelUrl = Uri.encodeFull('$baseUrl/${first3DItem.fileName}');
+      _scannedModelUrl = first3DItem.url;
       _isScanning = false;
     });
   }

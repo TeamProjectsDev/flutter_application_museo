@@ -28,6 +28,9 @@ void main() {
       // Cargar variables de entorno
       await dotenv.load(fileName: ".env");
       await EasyLocalization.ensureInitialized();
+      
+      // Un pequeño respiro para que el sistema de archivos termine de cargar los JSON
+      await Future.delayed(const Duration(milliseconds: 200));
 
       // Inicialización de Firebase detectando la plataforma
       await Firebase.initializeApp(options: _getFirebaseOptions());
@@ -100,11 +103,10 @@ class MuseoApp extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     final routerAsyncValue = ref.watch(routerProvider);
 
-    // Pantalla de carga mientras se inicializa el Router o las Traducciones
+    // Pantalla de carga mientras se inicializa el Router
     if (routerAsyncValue.isLoading ||
         routerAsyncValue.hasError ||
-        routerAsyncValue.value == null ||
-        context.locale.languageCode.isEmpty) {
+        routerAsyncValue.value == null) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
