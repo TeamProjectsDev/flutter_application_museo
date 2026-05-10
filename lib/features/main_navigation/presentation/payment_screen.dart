@@ -655,9 +655,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         productName: 'Reserva Museo Padre Suárez',
         amountInCents: (double.parse(widget.total) * 100).toInt(),
         currency: 'eur',
-        // 🔗 URL súper limpia usando PATH en lugar de QUERY para evitar errores de GoRouter
-        successUrl: '${Uri.base.origin}/#/payment/success',
-        cancelUrl: '${Uri.base.origin}/#/payment/cancel',
+        // 🔗 URL de retorno segura vinculada a tu proyecto Firebase
+        successUrl: kIsWeb 
+            ? '${Uri.base.origin}/#/payment/success' 
+            : 'https://${dotenv.env['FIREBASE_PROJECT_ID']}.web.app/#/payment/success',
+        cancelUrl: kIsWeb 
+            ? '${Uri.base.origin}/#/payment/cancel' 
+            : 'https://${dotenv.env['FIREBASE_PROJECT_ID']}.web.app/#/payment/cancel',
       );
 
       ref.read(paymentProvider.notifier).setLoading(false);
