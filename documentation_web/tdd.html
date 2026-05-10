@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TDD — Arquitectura y Backend — Museo Padre Suárez</title>
-    <meta name="description" content="Documento de Diseño Técnico (TDD). Ingeniería de software, base de datos Firestore/Supabase, APIs y DevOps profesional para el proyecto Museo Padre Suárez.">
+    <meta name="description" content="Documento de Diseño Técnico (TDD). Ingeniería de software, activos digitales Cloudinary, APIs y DevOps profesional para el proyecto Museo Padre Suárez.">
     <meta name="author" content="Alberto Ortiz Sánchez">
     <meta name="publisher" content="Alberto Ortiz Sánchez">
     <link rel="canonical" href="https://museo-padre-suarez.infinityfreeapp.com/tdd.html">
@@ -26,7 +26,7 @@
       "@context": "https://schema.org",
       "@type": "TechArticle",
       "headline": "TDD — Arquitectura y Backend — Museo Padre Suárez",
-      "description": "Ingeniería de software, base de datos Firestore/Supabase y DevOps del proyecto.",
+      "description": "Ingeniería de software, activos digitales Cloudinary y DevOps del proyecto.",
       "image": "media/icon.png",
       "author": {"@type": "Person", "name": "Alberto Ortiz Sánchez"}
     }
@@ -79,7 +79,7 @@
 
         <section id="arquitectura">
             <h2><span>02</span> Arquitectura del Sistema</h2>
-            <p>La aplicación sigue un modelo de <strong>arquitectura en capas</strong> con separación clara entre Presentation, Domain y Data.</p>
+            <p>La aplicación sigue un modelo de <strong>arquitectura en capas</strong> con separación clara entre Presentation, Domain y Data, utilizando <strong>Cloudinary DAM</strong> para la persistencia de activos pesados.</p>
             <div class="grid">
                 <div class="card">
                     <h3>Presentation Layer</h3>
@@ -91,14 +91,14 @@
                 </div>
                 <div class="card">
                     <h3>Data Layer</h3>
-                    <p>Servicios de Firebase, Supabase Storage y Stripe.</p>
+                    <p>Servicios de Firebase, Cloudinary DAM y Stripe.</p>
                 </div>
             </div>
         </section>
 
         <section id="data">
             <h2><span>03</span> Arquitectura de Datos</h2>
-            <p>Estrategia híbrida: Firestore para datos en tiempo real y Supabase para activos multimedia.</p>
+            <p>Estrategia híbrida: Firestore para datos en tiempo real y Cloudinary para activos multimedia.</p>
             <div class="grid">
                 <div class="card">
                     <h3>Firestore (Cerebro NoSQL)</h3>
@@ -113,7 +113,7 @@
                     </table>
                 </div>
                 <div class="card">
-                    <h3>Supabase Storage (CDN)</h3>
+                    <h3>Cloudinary DAM (CDN)</h3>
                     <table class="dtable">
                         <thead><tr><th>Bucket</th><th>Contenido</th></tr></thead>
                         <tbody>

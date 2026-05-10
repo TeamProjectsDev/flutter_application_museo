@@ -23,7 +23,7 @@ Aquí puedes encontrar acceso directo a toda la infraestructura y documentación
 3. [Configuración de Firebase (Base de Datos y Usuarios)](#3-configuración-de-firebase-base-de-datos-y-usuarios)
 4. [Configuración de EmailJS (Correos Automáticos)](#4-configuración-de-emailjs-correos-automáticos)
 5. [Configuración de Pagos Reales (Stripe)](#5-configuración-de-pagos-reales-stripe)
-6. [Almacenamiento de Modelos 3D (Supabase / R2 / GitHub)](#6-almacenamiento-de-modelos-3d-supabase--r2--github)
+6. [Almacenamiento de Activos Digitales (Cloudinary DAM)](#6-almacenamiento-de-activos-digitales-cloudinary-dam)
 7. [Códigos QR para las Piezas del Museo](#7-códigos-qr-para-las-piezas-del-museo)
 8. [Lanzar la Aplicación](#8-lanzar-la-aplicación)
 9. [Modo Tester (Pruebas sin pagar)](#9--modo-tester-para-tribunal-y-exposiciones-sin-gasto)
@@ -217,19 +217,18 @@ La aplicación utiliza la API de **Stripe** para procesar todos los pagos y dona
    ```
 ¡Y ya está! La aplicación generará una plataforma de pago virtual *al vuelo* redirigiendo al usuario para proteger sus datos, avisando al éxito para enviarle su Ticket por correo.
 
-## 6. Configuración de Modelos 3D y Entornos 360 (Supabase Storage)
+## 6. Configuración de Activos Digitales (Cloudinary DAM)
 
-La aplicación gestiona automáticamente el catálogo de piezas listando los archivos desde un bucket de **Supabase Storage**. No necesitas mantener archivos JSON manuales.
+La aplicación gestiona automáticamente el catálogo de piezas y entornos inmersivos utilizando **Cloudinary** como Content Delivery Network (CDN) y sistema de almacenamiento. 
 
-1. Crea un proyecto en [Supabase](https://supabase.com/).
-2. Ve a la sección **Storage** y crea un nuevo Bucket llamado `museo-assets`. Asegúrate de que sea **Público**.
-3. Sube tus archivos `.glb` (modelos 3D) e imágenes `.jpg`/`.png` (entornos 360) a ese bucket.
-4. En la configuración de tu proyecto de Supabase, obtén tu **Project URL** y tu **anon key**.
-5. Configura tu archivo `.env` así:
+1. Crea una cuenta gratuita en [Cloudinary](https://cloudinary.com/).
+2. Obtén tu **Cloud Name** desde el Dashboard.
+3. Asegúrate de que los archivos (.glb y .jpg) en tu Media Library tengan nombres coincidentes con el `fileName` definido en `catalog_metadata.json`.
+4. Configura la variable en tu archivo `.env`:
    ```env
-   R2_PUBLIC_URL=https://tu_proyecto.supabase.co/storage/v1/object/public/museo-assets
-   SUPABASE_ANON_KEY=tu_clave_anon_aqui
+   CLOUDINARY_CLOUD_NAME=tu_cloud_name_aqui
    ```
+   *Nota: Ya no se requieren las claves de Supabase ni R2_PUBLIC_URL.*
 
 La aplicación clasificará automáticamente los archivos: los `.glb` aparecerán en la sección 3D y las imágenes en la sección de Visitas Virtuales.
 

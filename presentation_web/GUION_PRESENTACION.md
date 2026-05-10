@@ -24,7 +24,7 @@
 ## Bloque 2: Arquitectura y Desarrollo Técnico (3:30 min)
 
 ### 06. Arquitectura del Sistema (40s)
-- **Mensaje:** "Usamos una arquitectura híbrida robusta. **Firebase** gestiona la identidad del usuario y las notificaciones, mientras que **Supabase** se encarga de la base de datos persistente y el almacenamiento de assets 3D."
+- **Mensaje:** "Usamos una arquitectura híbrida robusta. **Firebase** gestiona la identidad del usuario y las notificaciones, mientras que **Cloudinary** se encarga del almacenamiento y entrega optimizada de assets 3D mediante su sistema DAM."
 
 ### 07. Gestión de Estado - Riverpod (30s)
 - **Mensaje:** "Para la lógica de negocio hemos elegido **Riverpod**. Nos permite una gestión de estado reactiva, segura y desacoplada de la interfaz, facilitando el mantenimiento a largo plazo."
