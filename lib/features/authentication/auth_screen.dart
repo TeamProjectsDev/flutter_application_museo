@@ -33,7 +33,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, rellena todos los campos.')),
+        SnackBar(content: Text('auth_fill_fields'.tr())),
       );
       return;
     }
@@ -134,7 +134,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         const Icon(Icons.check_circle_outline, size: 80, color: Color(0xFFCBA35C)),
         const SizedBox(height: 24),
         Text(
-          name == 'Invitado' ? 'auth_hello_guest'.tr() : 'auth_hi'.tr(args: [name ?? '']),
+          name == null ? 'home_guest'.tr() : 'auth_hi'.tr(args: [name]),
           style: theme.textTheme.displayLarge?.copyWith(fontSize: 28),
           textAlign: TextAlign.center,
         ),
@@ -177,7 +177,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          _isLoginMode ? 'auth_access'.tr() : 'Únete al Museo',
+          _isLoginMode ? 'auth_access'.tr() : 'auth_join'.tr(),
           style: theme.textTheme.displayLarge?.copyWith(
             fontSize: 24, 
             fontWeight: FontWeight.bold,
@@ -229,26 +229,26 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             children: [
               _buildButton(
                 context,
-                text: _isLoginMode ? 'auth_login'.tr() : 'Registrarse',
+                text: _isLoginMode ? 'auth_login'.tr() : 'auth_register'.tr(),
                 onPressed: _submit,
                 isPrimary: true,
               ),
               const SizedBox(height: 10),
               _buildButton(
                 context,
-                text: 'Continuar con Google',
+                text: 'auth_continue_google'.tr(),
                 onPressed: () => ref.read(authProvider.notifier).loginWithGoogle(),
                 isPrimary: false,
                 icon: Image.asset(
                   'assets/images/google_logo.png',
-                  height: 40, // 3 veces más grande que el estándar de 14-16px
+                  height: 40,
                   cacheHeight: 120,
                 ),
               ),
               const SizedBox(height: 10),
               _buildButton(
                 context,
-                text: 'Entrar como Invitado',
+                text: 'auth_enter_guest'.tr(),
                 onPressed: () => ref.read(authProvider.notifier).loginAsGuest(),
                 isPrimary: false,
                 icon: const Icon(Icons.person_outline, size: 32, color: Colors.white70),
@@ -374,7 +374,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                labelText: 'Correo Electrónico',
+                labelText: 'auth_email'.tr(),
                 prefixIcon: const Icon(Icons.email_outlined),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -396,7 +396,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('auth_reset_sent'.tr()), backgroundColor: Colors.green));
               } catch (e) {
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${'common_error'.tr()}: ${e.toString()}'), backgroundColor: Colors.red));
               }
             },
             child: Text('auth_send_link'.tr()),

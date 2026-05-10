@@ -259,5 +259,11 @@
   "common_visitor": "Visitante",
   "common_museum_entrance": "Entrada Museo",
   "common_audio_guide": "Audioguía",
-  "email_ticket_subject": "Tu Entrada Digital del Museo - Ref: {}"
+  "email_ticket_subject": "Tu Entrada Digital del Museo - Ref: {}",
+  "auth_join": "Únete al Museo",
+  "auth_register": "Registrarse",
+  "auth_continue_google": "Continuar con Google",
+  "auth_enter_guest": "Entrar como Invitado",
+  "auth_fill_fields": "Por favor, rellena todos los campos.",
+  "auth_user": "Usuario"
 }

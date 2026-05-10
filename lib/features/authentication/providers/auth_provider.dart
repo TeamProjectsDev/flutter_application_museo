@@ -41,7 +41,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isAuthenticated: true,
           isAdmin: isAdmin,
           userId: user.uid,
-          userName: user.isAnonymous ? 'Invitado' : (user.email ?? 'Usuario'),
+          userName: user.isAnonymous ? null : (user.email?.split('@')[0] ?? ''),
         );
       } else {
         state = const AuthState(isAuthenticated: false);
