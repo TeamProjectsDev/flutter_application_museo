@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class StripeService {
   static const String _apiUrl = 'https://api.stripe.com/v1/checkout/sessions';
@@ -35,6 +36,12 @@ class StripeService {
       'success_url': successUrl,
       'cancel_url': cancelUrl,
     };
+
+    // Añadimos el email si el usuario está logueado para que Stripe le mande recibo
+    final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+    if (currentUserEmail != null) {
+      body['customer_email'] = currentUserEmail;
+    }
 
     try {
       final response = await http.post(

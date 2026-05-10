@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
+import 'package:web/web.dart' as web;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -57,31 +59,53 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: initialRoute,
+    initialLocation: (kIsWeb && web.window.location.href.contains('payment/success')) 
+        ? '/payment/success' 
+        : (kIsWeb && web.window.location.href.contains('payment/cancel'))
+            ? '/payment/cancel'
+            : initialRoute,
     observers: [FirebaseAnalyticsObserver(analytics: analytics)],
+    // 🛡️ RED DE SEGURIDAD: Si la ruta no existe o hay un error, volvemos a casa
+    errorBuilder: (context, state) {
+      debugPrint('🚨 [Router] Error detectado en ruta: ${state.error}. Redirigiendo a /home');
+      // Teletransporte automático a Home de forma segura
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) context.go('/home');
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    },
     redirect: (context, state) {
+      // 🛡️ Segundo nivel de seguridad: Si hay error crítico en el estado, forzamos Home
+      if (state.error != null) return '/home';
       final authState = ref.read(authProvider);
-      final String loc = state.matchedLocation;
+      final String loc = state.uri.path;
+      
+      // 🕵️‍♂️ LOG DE EMERGENCIA: Ver qué está pasando realmente
+      debugPrint('🔗 [Router] Ruta: $loc | URI: ${state.uri.toString()}');
 
-      // Pantallas que NO requieren estar autenticado (Onboarding y Auth)
-      final bool isConfiguring = loc == '/language' || 
-                                 loc == '/onboarding' || 
-                                 loc == '/welcome' || 
-                                 loc == '/auth';
 
-      // Si no está autenticado y trata de entrar a la App (Home, Mapa, etc.), a Welcome
-      if (!authState.isAuthenticated && !isConfiguring) {
+      // Pantallas que NO requieren estar autenticado (o son públicas)
+      final bool isPublic = loc == '/language' || 
+                            loc == '/onboarding' || 
+                            loc == '/welcome' || 
+                            loc == '/auth' ||
+                            loc.startsWith('/payment');
+
+      if (!authState.isAuthenticated && !isPublic) {
         return '/welcome';
       }
 
-      // Si ya está autenticado e intenta volver atrás a Onboarding o Login, a la Home
-      if (authState.isAuthenticated && isConfiguring) {
+      if (authState.isAuthenticated && (loc == '/welcome' || loc == '/auth')) {
         return '/home';
       }
 
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/',
+        redirect: (context, state) => initialRoute,
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return MainScaffold(navigationShell: navigationShell);
@@ -189,11 +213,28 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
           final subtotal = state.uri.queryParameters['subtotal'] ?? '0';
           final fees = state.uri.queryParameters['fees'] ?? '0';
           final tickets = state.uri.queryParameters['tickets'] ?? '{}';
+          final printPieceName = state.uri.queryParameters['printPieceName'];
           return PaymentScreen(
             total: total,
             subtotal: subtotal,
             fees: fees,
             ticketsJson: tickets,
+            printPieceName: printPieceName,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/payment/:status',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final status = state.pathParameters['status'] ?? '';
+          return PaymentScreen(
+            total: '0',
+            subtotal: '0',
+            fees: '0',
+            ticketsJson: '{}',
+            stripeSuccess: status == 'success',
+            printPieceName: state.uri.queryParameters['printPieceName'],
           );
         },
       ),

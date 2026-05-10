@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:convert';
@@ -9,16 +10,23 @@ import '../../../core/services/stripe_service.dart';
 import '../providers/payment_provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/providers/config_provider.dart';
 import '../../../core/models/museum_config.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:web/web.dart' as web;
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final String total;
   final String subtotal;
   final String fees;
   final String ticketsJson;
+  final bool stripeSuccess;
+  final String? customerName;
+  final String? customerEmail;
+  final String? stripeDate;
+  final String? printPieceName;
 
   const PaymentScreen({
     super.key,
@@ -26,6 +34,11 @@ class PaymentScreen extends ConsumerStatefulWidget {
     this.subtotal = "0",
     this.fees = "0",
     this.ticketsJson = "{}",
+    this.stripeSuccess = false,
+    this.customerName,
+    this.customerEmail,
+    this.stripeDate,
+    this.printPieceName,
   });
 
   @override
@@ -40,11 +53,45 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   final _expiryController = TextEditingController();
   final _cvcController = TextEditingController();
   DateTime? _selectedDate;
+  String? _recoveredTicketsJson;
+  bool _isProcessing = false;
 
   @override
   void initState() {
     super.initState();
+    // ⚡ Activamos el cargador inmediatamente si venimos de Stripe para evitar parpadeos
+    if (widget.stripeSuccess) {
+      _isProcessing = true;
+    }
+    
     FirebaseAnalytics.instance.logEvent(name: 'view_payment_screen');
+    
+    // 🕵️‍♂️ DETECCIÓN DE ÉXITO (Doble seguridad: Parámetro o URL real)
+    bool isActuallySuccess = widget.stripeSuccess;
+    if (kIsWeb) {
+      final currentUrl = web.window.location.href;
+      if (currentUrl.contains('payment/success')) {
+        isActuallySuccess = true;
+      }
+    }
+    final isCancel = kIsWeb && web.window.location.href.contains('payment/cancel');
+
+    if (isCancel) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('El pago fue cancelado o no se pudo completar. Inténtalo de nuevo.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      });
+    }
+
+    debugPrint('📱 [PaymentScreen] Inicializada con éxito=$isActuallySuccess');
+    if (isActuallySuccess) {
+      // Eliminamos la llamada directa aquí para usar solo la de addPostFrameCallback
+    }
+
     _nameController.addListener(() => setState(() {}));
     _emailController.addListener(() => setState(() {}));
 
@@ -53,6 +100,109 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       _emailController.text = user.email ?? '';
       _nameController.text = user.displayName ?? '';
     }
+
+    // 🔄 RECUPERAR DATOS TRAS VOLVER DE STRIPE
+    if (widget.customerName != null) {
+      _nameController.text = Uri.decodeComponent(widget.customerName!);
+    }
+    if (widget.customerEmail != null) {
+      _emailController.text = Uri.decodeComponent(widget.customerEmail!);
+    }
+
+    // 🔄 RECUPERAR FECHA
+    if (widget.stripeDate != null && widget.stripeDate!.isNotEmpty) {
+      try {
+        _selectedDate = DateFormat('yyyy-MM-dd').parse(widget.stripeDate!);
+      } catch (e) {
+        debugPrint('Error parseando fecha: $e');
+      }
+    }
+
+    // 🚀 SI VOLVEMOS DE STRIPE CON ÉXITO
+    if (widget.stripeSuccess) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleStripeSuccess();
+      });
+    }
+  }
+
+  void _handleStripeSuccess() async {
+    // Ya no mostramos diálogo manual aquí, usamos el velo de carga del Stack
+
+    // 📦 RECUPERAR DATOS DE LA CAJA FUERTE
+    final prefs = await SharedPreferences.getInstance();
+    final savedName = prefs.getString('pending_name');
+    final savedEmail = prefs.getString('pending_email');
+    final savedDate = prefs.getString('pending_date');
+    final savedTotal = prefs.getString('pending_total');
+    // final savedTickets = prefs.getString('pending_tickets'); // Eliminado por no usarse aquí
+
+    final savedPrintPiece = prefs.getString('pending_print_piece');
+    if (savedName != null) _nameController.text = savedName;
+    if (savedEmail != null) _emailController.text = savedEmail;
+    if (savedDate != null && savedDate.isNotEmpty) {
+      try {
+        _selectedDate = DateFormat('yyyy-MM-dd').parse(savedDate);
+      } catch (e) {
+        debugPrint('Error parseando fecha guardada: $e');
+      }
+    }
+    
+    debugPrint('👉 [PaymentScreen] Datos recuperados: $savedName, $savedEmail, Total=$savedTotal, Pieza=$savedPrintPiece, Fecha=$savedDate');
+
+    // Procesamos el pedido de forma asíncrona
+    Future.delayed(const Duration(seconds: 1), () async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final savedName = prefs.getString('pending_name');
+        final savedEmail = prefs.getString('pending_email');
+        final savedTotal = prefs.getString('pending_total');
+        final savedTickets = prefs.getString('pending_tickets');
+        final savedDate = prefs.getString('pending_date');
+
+        // 🔐 CERROJO DE SEGURIDAD: Si estamos en éxito pero no hay rastro del pedido en la "caja fuerte"
+        // es que alguien ha intentado entrar escribiendo la URL a mano.
+        if (widget.stripeSuccess && savedTotal == null && savedName == null) {
+          debugPrint('🚨 [Seguridad] Intento de bypass detectado. Redirigiendo...');
+          if (mounted) {
+             context.go('/shop');
+             ScaffoldMessenger.of(context).showSnackBar(
+               const SnackBar(content: Text('Acceso no autorizado. No se encontró ningún pago pendiente.'), backgroundColor: Colors.red),
+             );
+          }
+          return;
+        }
+
+        // Actualizamos el estado para que la pantalla se dibuje con los datos recuperados
+        if (mounted && savedTotal != null) {
+          setState(() {
+            _recoveredTicketsJson = savedTickets;
+            _nameController.text = savedName ?? "";
+            _emailController.text = savedEmail ?? "";
+            if (savedDate != null && savedDate.isNotEmpty) {
+              _selectedDate = DateFormat('yyyy-MM-dd').parse(savedDate);
+            }
+          });
+        }
+
+        // Usamos los datos guardados si los widgets vienen vacíos (por el recargo de página)
+        final effectiveTotal = savedTotal ?? widget.total;
+        final effectiveTickets = savedTickets ?? widget.ticketsJson;
+
+        await _processOrderWithData(effectiveTotal, effectiveTickets);
+        
+        // Limpiamos la caja fuerte después de usarla
+        await prefs.clear();
+
+      } catch (e) {
+        debugPrint('❌ Error en el proceso automático: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al procesar: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    });
   }
 
   @override
@@ -69,7 +219,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final paymentState = ref.watch(paymentProvider);
-    final tickets = json.decode(widget.ticketsJson);
+    
+    // 🛡️ Blindaje de datos: Priorizamos lo que hay en los controladores o lo recuperado
+    // para que la pantalla no se vea vacía ($0.00) tras el refresco de Stripe
+    Map<String, dynamic> tickets = {};
+
+    try {
+      final String sourceJson = (_recoveredTicketsJson != null && _recoveredTicketsJson!.length > 5)
+          ? _recoveredTicketsJson!
+          : (widget.ticketsJson.length > 5 ? widget.ticketsJson : "{}");
+      tickets = json.decode(sourceJson);
+    } catch (_) {
+      tickets = {};
+    }
+    
+    final bool isOnly3D = (int.tryParse(tickets['general']?.toString() ?? '0') ?? 0) == 0 &&
+                         (int.tryParse(tickets['student']?.toString() ?? '0') ?? 0) == 0;
+    
     final isTester = int.tryParse(dotenv.env['TESTER'] ?? '0') == 1;
 
     return Scaffold(
@@ -77,10 +243,21 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         title: Text('checkout_title'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: _isProcessing 
+            ? null 
+            : () {
+                if (GoRouter.of(context).canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
         ),
       ),
-      body: SingleChildScrollView(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            physics: _isProcessing ? const NeverScrollableScrollPhysics() : null,
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -96,7 +273,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               const SizedBox(height: 40),
 
               // 💳 Payment Details Form
-              _buildPaymentForm(theme),
+              _buildPaymentForm(theme, isOnly3D),
 
               const SizedBox(height: 40),
 
@@ -161,9 +338,17 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   }
 
                   // 🚩 Comprobación 3: Aforo Máximo (Priorizar aforo especial del día)
-                  final Map<String, dynamic> ticketsMap = json.decode(widget.ticketsJson);
-                  final int totalRequested = (ticketsMap['general'] ?? 0) + (ticketsMap['student'] ?? 0);
+                  Map<String, dynamic> ticketsMap = {};
+                  try {
+                    ticketsMap = json.decode(widget.ticketsJson.isEmpty ? '{}' : widget.ticketsJson);
+                  } catch (_) {}
+
+                  final int gReq = int.tryParse(ticketsMap['general']?.toString() ?? '0') ?? 0;
+                  final int sReq = int.tryParse(ticketsMap['student']?.toString() ?? '0') ?? 0;
+                  final int totalRequested = gReq + sReq;
                   
+                  debugPrint('📊 [PaymentScreen] Comprobando aforo: Solicitados=$totalRequested (G:$gReq, S:$sReq)');
+
                   if (config != null) {
                     int effectiveCapacity = config.maxDailyCapacity;
                     
@@ -176,7 +361,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       }
                     }
 
+                    debugPrint('🏛️ [PaymentScreen] Aforo efectivo para hoy: $effectiveCapacity');
+
                     if (totalRequested > effectiveCapacity) {
+                      debugPrint('🚨 [PaymentScreen] ¡AFORO EXCEDIDO!');
                       return _buildWarningBox(
                         theme, 
                         'museum_capacity_exceeded'.tr(args: [effectiveCapacity.toString()]), 
@@ -185,21 +373,32 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                     }
                   }
 
+                  // 🚩 Comprobación 4: Audioguías vs Visitantes
+                  final int audioRequested = int.tryParse(ticketsMap['audio']?.toString() ?? '0') ?? 0;
+                  if (audioRequested > totalRequested && totalRequested > 0) {
+                    return _buildWarningBox(
+                      theme, 
+                      'shop_error_audio_limit'.tr(args: [totalRequested.toString()]), 
+                      Icons.headset_mic_outlined
+                    );
+                  }
+
                   return SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
                       onPressed: (paymentState.isLoading ||
+                              _isProcessing ||
                               _nameController.text.trim().isEmpty ||
                               !_emailController.text.contains('@') ||
-                              (_selectedDate == null && !isTester))
+                              (!isOnly3D && _selectedDate == null && !isTester))
                           ? null
                           : _handlePayment,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.primary,
                         foregroundColor: Colors.black,
                       ),
-                      child: paymentState.isLoading
+                      child: (paymentState.isLoading || _isProcessing)
                           ? const CircularProgressIndicator(color: Colors.black)
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -225,10 +424,19 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           ),
         ),
       ),
-    );
+      if (_isProcessing)
+        Container(
+          color: Colors.black.withValues(alpha: 0.5),
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+    ],
+  ),
+);
   }
 
-  Widget _buildPaymentForm(ThemeData theme) {
+  Widget _buildPaymentForm(ThemeData theme, bool isOnly3D) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -254,45 +462,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             ),
             const SizedBox(height: 24),
             _buildFieldLabel('checkout_cardholder'.tr()),
-            _buildSimpleField(controller: _nameController, hint: 'JOHN DOE'),
-            const SizedBox(height: 20),
-            _buildFieldLabel('checkout_card_num'.tr()),
-            _buildSimpleField(
-                controller: _cardController,
-                hint: '0000 0000 0000 0000',
-                icon: Icons.credit_card),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildFieldLabel('checkout_expiry'.tr()),
-                      _buildSimpleField(
-                          controller: _expiryController, hint: 'MM/YY'),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildFieldLabel('checkout_cvc'.tr()),
-                      _buildSimpleField(
-                          controller: _cvcController, hint: '123'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            _buildSimpleField(controller: _nameController, hint: 'p. ej. Alberto Ortiz'),
             const SizedBox(height: 20),
             _buildFieldLabel('checkout_email'.tr()),
             _buildSimpleField(
-                controller: _emailController, hint: 'john.doe@example.com'),
-            const SizedBox(height: 20),
-            _buildFieldLabel('VISIT DATE'),
+                controller: _emailController, hint: 'ejemplo@correo.com'),
+            if (!isOnly3D) ...[
+              const SizedBox(height: 20),
+              _buildFieldLabel('VISIT DATE'),
             InkWell(
               onTap: _selectDate,
               child: Container(
@@ -321,10 +498,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                         size: 16,
                         color:
                             theme.colorScheme.onSurface.withValues(alpha: 0.3)),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -391,20 +569,20 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           Text('shop_order_summary'.tr(),
               style: theme.textTheme.displayMedium?.copyWith(fontSize: 20)),
           const SizedBox(height: 20),
-          if (tickets['general'] > 0)
+          if ((int.tryParse(tickets['general']?.toString() ?? '0') ?? 0) > 0)
             _summaryRow(
                 '${'shop_item_general_title'.tr()} x${tickets['general']}',
-                (tickets['general'] * 25.0).toStringAsFixed(2)),
-          if (tickets['student'] > 0)
+                ((int.tryParse(tickets['general']?.toString() ?? '0') ?? 0) * 25.0).toStringAsFixed(2)),
+          if ((int.tryParse(tickets['student']?.toString() ?? '0') ?? 0) > 0)
             _summaryRow(
                 '${'shop_item_student_title'.tr()} x${tickets['student']}',
-                (tickets['student'] * 15.0).toStringAsFixed(2)),
-          if (tickets['audio'] > 0)
+                ((int.tryParse(tickets['student']?.toString() ?? '0') ?? 0) * 15.0).toStringAsFixed(2)),
+          if ((int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0) > 0)
             _summaryRow('${'shop_item_audio_title'.tr()} x${tickets['audio']}',
-                (tickets['audio'] * 8.0).toStringAsFixed(2)),
-          if (tickets['print'] > 0)
-            _summaryRow('3D Print (${tickets['print']}mm)',
-                (10.0 + tickets['print'] * 0.2).toStringAsFixed(2)),
+                ((int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0) * 8.0).toStringAsFixed(2)),
+          if ((int.tryParse(tickets['print']?.toString() ?? '0') ?? 0) > 0)
+            _summaryRow('3D Print (${widget.printPieceName ?? 'Pieza'}) ${tickets['print']}mm',
+                (10.0 + (int.tryParse(tickets['print']?.toString() ?? '0') ?? 0) * 0.2).toStringAsFixed(2)),
           const Divider(color: Colors.white10, height: 32),
           _summaryRow('shop_subtotal'.tr(), widget.subtotal, isSmall: true),
           _summaryRow('shop_fee'.tr(), widget.fees, isSmall: true),
@@ -460,19 +638,41 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     try {
       ref.read(paymentProvider.notifier).setLoading(true);
 
+      // 📦 GUARDAR DATOS EN LA "CAJA FUERTE" (Memoria local)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('pending_name', _nameController.text.trim());
+      await prefs.setString('pending_email', _emailController.text.trim());
+      await prefs.setString('pending_date', _selectedDate != null ? DateFormat('yyyy-MM-dd').format(_selectedDate!) : "");
+      await prefs.setString('pending_total', widget.total);
+      await prefs.setString('pending_subtotal', widget.subtotal);
+      await prefs.setString('pending_fees', widget.fees);
+      await prefs.setString('pending_tickets', widget.ticketsJson);
+      if (widget.printPieceName != null) {
+        await prefs.setString('pending_print_piece', widget.printPieceName!);
+      }
+
       final stripeUrl = await StripeService().createCheckoutSession(
         productName: 'Reserva Museo Padre Suárez',
         amountInCents: (double.parse(widget.total) * 100).toInt(),
         currency: 'eur',
-        successUrl: 'https://museo-padre-suarez.web.app/#/home',
-        cancelUrl: 'https://museo-padre-suarez.web.app/#/shop',
+        // 🔗 URL súper limpia usando PATH en lugar de QUERY para evitar errores de GoRouter
+        successUrl: '${Uri.base.origin}/#/payment/success',
+        cancelUrl: '${Uri.base.origin}/#/payment/cancel',
       );
 
       ref.read(paymentProvider.notifier).setLoading(false);
 
       if (stripeUrl != null && stripeUrl.isNotEmpty) {
-        await launchUrlString(stripeUrl, mode: LaunchMode.externalApplication);
-        if (mounted) context.pop();
+        debugPrint('🛫 [PaymentScreen] Redirigiendo a Stripe: $stripeUrl');
+        if (kIsWeb) {
+          // En la web, forzamos el cambio en la misma pestaña
+          web.window.location.href = stripeUrl;
+        } else {
+          // En móviles usamos el lanzador estándar
+          await launchUrlString(stripeUrl, mode: LaunchMode.externalApplication);
+        }
+      } else {
+        debugPrint('🚨 [PaymentScreen] Error: No se pudo generar la URL de Stripe');
       }
     } catch (e) {
       ref.read(paymentProvider.notifier).setLoading(false);
@@ -548,18 +748,32 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     }
   }
 
-  void _processOrder() async {
+  Future<void> _processOrder() async {
+    await _processOrderWithData(widget.total, widget.ticketsJson);
+  }
+
+  Future<void> _processOrderWithData(String total, String ticketsJson) async {
     final targetEmail = _emailController.text.trim();
     final targetName = _nameController.text.trim();
-    final tickets = json.decode(widget.ticketsJson);
+    final tickets = json.decode(ticketsJson);
     final dateStr = _selectedDate != null
         ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
         : 'Pendiente';
     final orderId =
         'ORD-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
 
-    // 1. Guardar COMPRA INTEGRAL en Firestore para el Admin
+    debugPrint('🚀 Iniciando proceso de pedido: $orderId');
+
+    setState(() => _isProcessing = true);
+
     try {
+      // 📦 RECUPERAR EL NOMBRE DE LA PIEZA DE LA CAJA FUERTE (Prioridad máxima)
+      final prefs = await SharedPreferences.getInstance();
+      final finalPieceName = prefs.getString('pending_print_piece') ?? widget.printPieceName ?? 'Pieza Museo';
+      
+      debugPrint('📦 [PaymentScreen] Nombre final de la pieza para Firestore: $finalPieceName');
+
+      // 1. Guardar COMPRA INTEGRAL en Firestore para el Admin
       await FirebaseFirestore.instance.collection('purchases').add({
         'orderId': orderId,
         'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest',
@@ -568,57 +782,117 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         'visitDate': dateStr,
         'purchaseDate': FieldValue.serverTimestamp(),
         'items': {
-          'general_tickets': tickets['general'] ?? 0,
-          'student_tickets': tickets['student'] ?? 0,
-          'audio_guides': tickets['audio'] ?? 0,
-          'print_3d_height': tickets['print'] ?? 0,
+          'general_tickets': int.tryParse(tickets['general']?.toString() ?? '0') ?? 0,
+          'student_tickets': int.tryParse(tickets['student']?.toString() ?? '0') ?? 0,
+          'audio_guides': int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0,
+          'print_3d_height': int.tryParse(tickets['print']?.toString() ?? '0') ?? 0,
+          'print_3d_piece': finalPieceName,
         },
-        'totalAmount': widget.total,
+        'totalAmount': total,
         'status': 'completado',
       });
-      
-      FirebaseAnalytics.instance.logEvent(
-        name: 'purchase_completed',
-        parameters: {
-          'value': double.tryParse(widget.total) ?? 0.0,
-          'currency': 'EUR',
-          'items_count': tickets['general'] + tickets['student'] + tickets['audio'],
-        },
-      );
-    } catch (e) {
-      debugPrint('Error guardando compra integral: $e');
-    }
+      debugPrint('✅ Compra guardada en Firestore');
 
-    // 2. Procesar Entradas (Email con QR al usuario y notificación a admin)
-    if (tickets['general'] > 0 || tickets['student'] > 0) {
-      _sendTicketEmail(targetEmail, targetName, orderId);
-    }
+      // 2. Procesar Entradas (Email con QR al usuario y notificación a admin)
+      final int generalCount = int.tryParse(tickets['general']?.toString() ?? '0') ?? 0;
+      final int studentCount = int.tryParse(tickets['student']?.toString() ?? '0') ?? 0;
+      final int printCount = int.tryParse(tickets['print']?.toString() ?? '0') ?? 0;
+      final int audioCount = int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0;
 
-    // 3. Procesar Impresión 3D (Notificación específica si existe)
-    if (tickets['print'] > 0) {
-      _sendPrintRequestEmail(
-          targetEmail, targetName, tickets['print'].toString(), orderId);
-    }
+      if (generalCount > 0 || studentCount > 0) {
+        debugPrint('🎟️ Procesando tickets...');
+        await _sendTicketEmail(targetEmail, targetName, orderId, tickets);
+      }
 
-    // 4. Procesar Audio-Guías (Guardar en colección propia por seguridad)
-    if (tickets['audio'] > 0) {
-      try {
-        await FirebaseFirestore.instance.collection('audio_guides').add({
-          'orderId': orderId,
-          'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest', // Añadido userId
-          'userEmail': targetEmail,
-          'quantity': tickets['audio'],
-          'timestamp': FieldValue.serverTimestamp(),
-          'status': 'active', // Cambiado de 'completado' a 'active' para el flujo de uso
+          // 3. Procesar Impresión 3D (Registro en cola y notificación)
+          if (printCount > 0) {
+            debugPrint('🖨️ Procesando impresión 3D...');
+            final prefs = await SharedPreferences.getInstance();
+            final savedPieceName = prefs.getString('pending_print_piece') ?? widget.printPieceName ?? 'Pieza Museo';
+
+            await FirebaseFirestore.instance.collection('print_requests').add({
+              'orderId': orderId,
+              'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest',
+              'pieceName': savedPieceName,
+              'height': printCount,
+              'customerName': targetName,
+              'customerEmail': targetEmail,
+              'status': 'pendiente',
+              'timestamp': FieldValue.serverTimestamp(),
+              'notes': 'Tamaño: ${printCount}mm | Ref: $orderId', // 📐 Añadida la altura a las notas
+            });
+
+          await _sendPrintRequestEmail(
+              targetEmail, targetName, printCount.toString(), orderId, savedPieceName);
+        }
+
+      // 4. Procesar Audio-Guías (Guardar en colección propia por seguridad)
+      if (audioCount > 0) {
+        try {
+          await FirebaseFirestore.instance.collection('audio_guides').add({
+            'orderId': orderId,
+            'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest',
+            'userEmail': targetEmail,
+            'quantity': audioCount,
+            'timestamp': FieldValue.serverTimestamp(),
+            'status': 'active',
+          });
+          debugPrint('🎧 Audioguía guardada en Firestore');
+        } catch (e) {
+          debugPrint('Error guardando audio-guía: $e');
+        }
+      }
+
+      // 🎉 ÉXITO FINAL
+      if (mounted) {
+        debugPrint('🎊 ¡Proceso completado con éxito! Mostrando factura...');
+        setState(() => _isProcessing = false);
+        
+        // 🚀 USAR POST FRAME CALLBACK PARA EVITAR ERRORES DE NAVEGACIÓN
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _showSuccessDialog(orderId, total, tickets, dateStr);
+          }
         });
-      } catch (e) {
-        debugPrint('Error guardando audio-guía: $e');
+      }
+
+    } catch (e) {
+      debugPrint('❌ ERROR en el proceso de pedido: $e');
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        
+        // 💡 Si el error es de permisos en 3D_prints o audioguías, pero la compra se guardó,
+        // podríamos considerarlo un éxito parcial, pero para seguridad del usuario,
+        // mostramos el error y le pedimos que contacte con soporte.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        // Limpiamos la caja fuerte para evitar duplicados
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('pending_name');
+        await prefs.remove('pending_email');
+        await prefs.remove('pending_total');
+        await prefs.remove('pending_tickets');
+        await prefs.remove('pending_date');
       }
     }
   }
 
-  void _sendTicketEmail(
-      String targetEmail, String targetName, String orderId) async {
+  Future<void> _sendTicketEmail(String targetEmail, String targetName,
+      String orderId, Map<String, dynamic> tickets) async {
     final serviceId = dotenv.env['EMAILJS_SERVICE_ID'] ?? '';
     final templateId = dotenv.env['EMAILJS_TICKET_TEMPLATE_ID'] ?? '';
     final userId = dotenv.env['EMAILJS_USER_ID'] ?? '';
@@ -626,6 +900,21 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     if (serviceId.isNotEmpty &&
         templateId.isNotEmpty &&
         targetEmail.isNotEmpty) {
+      final List<String> ticketsList = [];
+      final int general = int.tryParse(tickets['general']?.toString() ?? '0') ?? 0;
+      final int student = int.tryParse(tickets['student']?.toString() ?? '0') ?? 0;
+      final int audio = int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0;
+
+      if (general > 0) {
+        ticketsList.add('$general x Entrada General');
+      }
+      if (student > 0) {
+        ticketsList.add('$student x Entrada Estudiante/Reducida');
+      }
+      if (audio > 0) {
+        ticketsList.add('$audio x Audioguía');
+      }
+
       final dateStr = _selectedDate != null
           ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
           : 'Pendiente';
@@ -654,51 +943,38 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         debugPrint('Error guardando ticket individual: $e');
       }
 
-      // Solo enviar email si hay fecha, o enviar aviso de que debe elegirla
-      _triggerEmailJS(serviceId, templateId, userId, {
+      await _triggerEmailJS(serviceId, templateId, userId, {
         'to_email': targetEmail,
-        'name': targetName,
-        'ticket_id': ticketId,
-        'qr_image_url': qrUrl,
+        'from_name': 'Museo Padre Suárez',
+        'to_name': targetName,
+        'order_id': orderId,
         'visit_date': dateStr,
-        'purchase_date': DateFormat('dd/MM/yyyy').format(DateTime.now()),
+        'tickets_details': ticketsList.join('\n'),
+        'qr_data': qrUrl,
       });
     }
   }
 
-  void _sendPrintRequestEmail(String targetEmail, String targetName,
-      String height, String orderId) async {
+  Future<void> _sendPrintRequestEmail(String targetEmail, String targetName,
+      String height, String orderId, String pieceName) async {
     final serviceId = dotenv.env['EMAILJS_SERVICE_ID'] ?? '';
     final templateId = dotenv.env['EMAILJS_TEMPLATE_ID'] ?? '';
     final userId = dotenv.env['EMAILJS_USER_ID'] ?? '';
 
     if (serviceId.isNotEmpty && templateId.isNotEmpty) {
-      // Guardar en print_requests para la pestaña de producción del Admin
-      try {
-        await FirebaseFirestore.instance.collection('print_requests').add({
-          'orderId': orderId,
-          'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest',
-          'userEmail': targetEmail,
-          'itemName': 'Reproducción 3D ($height mm)',
-          'status': 'pendiente',
-          'timestamp': FieldValue.serverTimestamp(),
-          'notes': 'Pedido integral: $orderId',
-        });
-      } catch (e) {
-        debugPrint('Error guardando petición 3D: $e');
-      }
+      // 🕵️‍♂️ ELIMINADO EL GUARDADO DUPLICADO AQUÍ (YA SE HACE EN LA FUNCIÓN PRINCIPAL)
 
-      // Notificación de producción al Admin
-      _triggerEmailJS(serviceId, templateId, userId, {
+      // Notificación de producción al Admin con el nombre real de la pieza
+      await _triggerEmailJS(serviceId, templateId, userId, {
         'to_email': dotenv.env['ADMIN_EMAIL'] ?? targetEmail,
         'name': targetName,
-        'item_name': 'Reproducción 3D ($height mm) - Ref: $orderId',
-        'user_notes': 'Solicitud de impresión 3D vinculada al pedido $orderId.',
+        'item_name': '$pieceName (${height}mm) - Ref: $orderId',
+        'user_notes': 'Solicitud de impresión 3D para $pieceName. Altura: ${height}mm. Pedido $orderId.',
       });
     }
   }
 
-  void _triggerEmailJS(String serviceId, String templateId, String userId,
+  Future<void> _triggerEmailJS(String serviceId, String templateId, String userId,
       Map<String, dynamic> params) async {
     final adminEmailsStr = dotenv.env['ADMIN_EMAIL'] ?? '';
     final List<String> recipients = [params['to_email']];
@@ -738,6 +1014,142 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         debugPrint('Error EmailJS to $email: $e');
       }
     }
+  }
+
+  void _showSuccessDialog(String orderId, String total,
+      Map<String, dynamic> tickets, String visitDate) {
+    final theme = Theme.of(context);
+    final goldColor = const Color(0xFFEBC154);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check_circle_outline_rounded,
+                  color: Colors.green, size: 80),
+              const SizedBox(height: 16),
+              Text(
+                'invoice_title'.tr(),
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 22,
+                  letterSpacing: 1.2,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${'invoice_order_id'.tr()} $orderId',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
+                  borderRadius: BorderRadius.circular(12),
+                  border:
+                      Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                ),
+                child: Column(
+                  children: [
+                    _buildInvoiceRow('invoice_visit_date'.tr(), visitDate, theme,
+                        isBold: true),
+                    const Divider(height: 24),
+                    ..._buildInvoiceItems(tickets, theme),
+                    const Divider(height: 24),
+                    _buildInvoiceRow('invoice_total_paid'.tr(), '$total €', theme,
+                        color: goldColor, isBold: true, fontSize: 18),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'invoice_email_notice'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                context.go('/home');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: goldColor,
+                foregroundColor: Colors.black,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(
+                'invoice_back_home'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildInvoiceItems(
+      Map<String, dynamic> tickets, ThemeData theme) {
+    final List<Widget> items = [];
+    final int general = int.tryParse(tickets['general']?.toString() ?? '0') ?? 0;
+    final int student = int.tryParse(tickets['student']?.toString() ?? '0') ?? 0;
+    final int audio = int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0;
+    final int print3d = int.tryParse(tickets['print']?.toString() ?? '0') ?? 0;
+
+    if (general > 0) items.add(_buildInvoiceRow('shop_item_general_title'.tr(), 'x$general', theme));
+    if (student > 0) items.add(_buildInvoiceRow('shop_item_student_title'.tr(), 'x$student', theme));
+    if (audio > 0) items.add(_buildInvoiceRow('shop_item_audio_title'.tr(), 'x$audio', theme));
+    if (print3d > 0) items.add(_buildInvoiceRow('admin_v2_label_prints'.tr(), 'x1', theme));
+
+    return items;
+  }
+
+  Widget _buildInvoiceRow(String label, String value, ThemeData theme,
+      {Color? color, bool isBold = false, double fontSize = 14}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                fontSize: 13,
+              )),
+          Text(value,
+              style: TextStyle(
+                color: color ?? theme.colorScheme.onSurface,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                fontSize: fontSize,
+              )),
+        ],
+      ),
+    );
   }
 
   Widget _buildWarningBox(ThemeData theme, String message, IconData icon) {

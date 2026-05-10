@@ -10,11 +10,12 @@ enum PrintStatus { pendiente, enCura, imprimiendo, listo }
 class PrintRequest {
   final String id;
   final String catalogItemId;
-  final String itemName;
+  final String pieceName; // 🏺 Unificado
   final String itemImageUrl;
   final String stlUrl;
   final String userId;
   final String userEmail;
+  final String? orderId; // 🆔 Añadido para seguimiento
   final PrintStatus status;
   final DateTime timestamp;
   final String? notes;
@@ -22,11 +23,12 @@ class PrintRequest {
   PrintRequest({
     required this.id,
     required this.catalogItemId,
-    required this.itemName,
+    required this.pieceName,
     required this.itemImageUrl,
     required this.stlUrl,
     required this.userId,
     required this.userEmail,
+    this.orderId,
     required this.status,
     required this.timestamp,
     this.notes,
@@ -37,18 +39,20 @@ class PrintRequest {
     return PrintRequest(
       id: doc.id,
       catalogItemId: data['catalogItemId'] ?? '',
-      itemName: data['itemName'] ?? 'Objeto desconocido',
+      // 🕵️‍♂️ BÚSQUEDA INTELIGENTE: itemName o pieceName
+      pieceName: data['pieceName'] ?? data['itemName'] ?? 'Objeto desconocido',
       itemImageUrl: data['itemImageUrl'] ?? '',
       stlUrl: data['stlUrl'] ?? '',
       userId: data['userId'] ?? '',
       userEmail: data['userEmail'] ?? '',
+      orderId: data['orderId'],
       status: PrintStatus.values.firstWhere(
         (e) => e.name == (data['status'] ?? 'pendiente'),
         orElse: () => PrintStatus.pendiente,
       ),
       timestamp: data['timestamp'] != null
           ? (data['timestamp'] as Timestamp).toDate()
-          : DateTime.now(), // Fallback temporal mientras Firestore confirma el serverTimestamp
+          : DateTime.now(),
       notes: data['notes'],
     );
   }
@@ -56,11 +60,12 @@ class PrintRequest {
   Map<String, dynamic> toFirestore() {
     return {
       'catalogItemId': catalogItemId,
-      'itemName': itemName,
+      'pieceName': pieceName,
       'itemImageUrl': itemImageUrl,
       'stlUrl': stlUrl,
       'userId': userId,
       'userEmail': userEmail,
+      'orderId': orderId,
       'status': status.name,
       'timestamp': FieldValue.serverTimestamp(),
       'notes': notes,
@@ -157,9 +162,10 @@ class ShopNotifier extends StateNotifier<ShopState> {
 
   Future<bool> createRequest({
     required String itemId,
-    required String itemName,
+    required String pieceName,
     required String imageUrl,
     required String stlUrl,
+    String? orderId,
     String? notes,
   }) async {
     try {
@@ -171,11 +177,12 @@ class ShopNotifier extends StateNotifier<ShopState> {
       final request = PrintRequest(
         id: '', // Firestore genera el ID
         catalogItemId: itemId,
-        itemName: itemName,
+        pieceName: pieceName,
         itemImageUrl: imageUrl,
         stlUrl: stlUrl,
         userId: user.uid,
         userEmail: user.email ?? 'Anónimo',
+        orderId: orderId,
         status: PrintStatus.pendiente,
         timestamp: DateTime.now(),
         notes: notes,
@@ -187,7 +194,7 @@ class ShopNotifier extends StateNotifier<ShopState> {
 
       FirebaseAnalytics.instance.logEvent(
         name: 'add_to_cart',
-        parameters: {'item_id': itemId, 'item_name': itemName},
+        parameters: {'item_id': itemId, 'item_name': pieceName},
       );
 
       return true;

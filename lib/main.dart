@@ -29,8 +29,8 @@ void main() {
       await dotenv.load(fileName: ".env");
       await EasyLocalization.ensureInitialized();
       
-      // Un pequeño respiro para que el sistema de archivos termine de cargar los JSON
-      await Future.delayed(const Duration(milliseconds: 200));
+      // Un margen de tiempo generoso para que el navegador cargue los JSON y el Router se estabilice
+      await Future.delayed(const Duration(milliseconds: 2500));
 
       // Inicialización de Firebase detectando la plataforma
       await Firebase.initializeApp(options: _getFirebaseOptions());
@@ -50,9 +50,9 @@ void main() {
           supportedLocales: const [Locale('en'), Locale('es')],
           path: 'assets/translations',
           fallbackLocale: const Locale('es'),
-          startLocale: const Locale('es'),
+          // Eliminamos startLocale para que use el guardado (saveLocale)
           useOnlyLangCode: true,
-          saveLocale: false,
+          saveLocale: true, // 💾 AHORA SÍ: Guardará el idioma tras F5
           child: const ProviderScope(
             child: MuseoApp(),
           ),
@@ -103,16 +103,20 @@ class MuseoApp extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     final routerAsyncValue = ref.watch(routerProvider);
 
-    // Pantalla de carga mientras se inicializa el Router
+    // 🛡️ BLINDAJE ANTI-KEYS: Si el router o las traducciones no están listas, no mostramos nada
     if (routerAsyncValue.isLoading ||
         routerAsyncValue.hasError ||
-        routerAsyncValue.value == null) {
+        routerAsyncValue.value == null ||
+        context.locale.languageCode.isEmpty) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
+        // Forzamos que ignore cualquier ruta inicial mientras carga el router real
+        onGenerateRoute: (_) => MaterialPageRoute(
+          builder: (context) => const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
         ),
       );
