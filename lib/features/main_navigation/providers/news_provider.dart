@@ -41,74 +41,93 @@ class NewsNotifier extends StateNotifier<NewsState> {
     'https://www.eurekalert.org/rss/science_news.xml',
   ];
 
-
   NewsNotifier() : super(NewsState(isLoading: true)) {
     fetchNews();
   }
 
-
   Future<void> fetchNews() async {
     try {
       state = NewsState(articles: state.articles, isLoading: true);
-
       List<NewsArticle> allArticles = [];
 
-      // Para Web, usamos un conversor de RSS a JSON profesional que salta el CORS
-      // Para nativo, podemos ir directo o usar el mismo conversor para unificar
       for (String feedUrl in _feedUrls) {
         try {
           final apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=${Uri.encodeComponent(feedUrl)}';
           var response = await http.get(Uri.parse(apiUrl)).timeout(const Duration(seconds: 15));
 
-          // 🔄 MOTOR DE RESCATE MULTI-PROXY (Si rss2json falla)
+          // 🔄 MATRIZ DE REDUNDANCIA QUÍNTUPLE 2026 (Blindaje Total)
           if (response.statusCode != 200 || response.body.contains('"status":"error"')) {
-             debugPrint('⚠️ Rescate Nivel 1 activado para $feedUrl');
-             
-             // Intentar con Proxy 1: AllOrigins
+             debugPrint('⚠️ Rescate 2026 activado para $feedUrl');
              String? xml;
+             
+             // PROXY 1: BLOOPLE
              try {
-               final p1Url = 'https://api.allorigins.win/get?url=${Uri.encodeComponent(feedUrl)}';
-               final p1Res = await http.get(Uri.parse(p1Url)).timeout(const Duration(seconds: 10));
+               final p1Url = 'https://rss.bloople.net/?url=${Uri.encodeComponent(feedUrl)}&format=json';
+               final p1Res = await http.get(Uri.parse(p1Url)).timeout(const Duration(seconds: 8));
                if (p1Res.statusCode == 200) {
-                 xml = json.decode(p1Res.body)['contents'];
+                 final jsonRes = json.decode(p1Res.body);
+                 for (var item in jsonRes) {
+                   _processItem(allArticles, {
+                     'title': item['title'],
+                     'link': item['link'],
+                     'description': item['description'],
+                     'thumbnail': item['image_url'] ?? '',
+                     'pubDate': item['pubDate'] ?? '',
+                   });
+                 }
+                 continue; 
                }
-             } catch (e) {
-               debugPrint('❌ Proxy 1 falló, intentando Proxy 2...');
-             }
+             } catch (e) { debugPrint('❌ Bloople falló'); }
 
-             // Intentar con Proxy 2: CodeTabs (Si el 1 falló)
+             // PROXY 2: CORS.LOL
+             try {
+               final p2Url = 'https://api.cors.lol/?url=${Uri.encodeComponent(feedUrl)}';
+               final p2Res = await http.get(Uri.parse(p2Url)).timeout(const Duration(seconds: 8));
+               if (p2Res.statusCode == 200) xml = p2Res.body;
+             } catch (e) { debugPrint('❌ CORS.lol falló'); }
+
+             // PROXY 3: COD ETABS
              if (xml == null) {
                try {
-                 final p2Url = 'https://api.codetabs.com/v1/proxy?quest=${Uri.encodeComponent(feedUrl)}';
-                 final p2Res = await http.get(Uri.parse(p2Url)).timeout(const Duration(seconds: 10));
-                 if (p2Res.statusCode == 200) {
-                   xml = p2Res.body;
-                 }
-               } catch (e) {
-                 debugPrint('❌ Proxy 2 también falló para $feedUrl');
-               }
+                 final p3Url = 'https://api.codetabs.com/v1/proxy?quest=${Uri.encodeComponent(feedUrl)}';
+                 final p3Res = await http.get(Uri.parse(p3Url)).timeout(const Duration(seconds: 8));
+                 if (p3Res.statusCode == 200) xml = p3Res.body;
+               } catch (e) { debugPrint('❌ CodeTabs falló'); }
+             }
+
+             // PROXY 4: ALLORIGINS
+             if (xml == null) {
+               try {
+                 final p4Url = 'https://api.allorigins.win/get?url=${Uri.encodeComponent(feedUrl)}';
+                 final p4Res = await http.get(Uri.parse(p4Url)).timeout(const Duration(seconds: 8));
+                 if (p4Res.statusCode == 200) xml = json.decode(p4Res.body)['contents'];
+               } catch (e) { debugPrint('❌ AllOrigins falló'); }
+             }
+
+             // PROXY 5: THINGPROXY
+             if (xml == null) {
+               try {
+                 final p5Url = 'https://thingproxy.freeboard.io/fetch/${Uri.encodeComponent(feedUrl)}';
+                 final p5Res = await http.get(Uri.parse(p5Url)).timeout(const Duration(seconds: 8));
+                 if (p5Res.statusCode == 200) xml = p5Res.body;
+               } catch (e) { debugPrint('❌ ThingProxy falló'); }
              }
 
              if (xml != null && xml.isNotEmpty) {
                 final itemRegex = RegExp(r'<item>(.*?)</item>', dotAll: true);
                 final items = itemRegex.allMatches(xml);
-                
                 for (var match in items) {
                    final content = match.group(1)!;
-                   final title = RegExp(r'<title>(.*?)</title>').firstMatch(content)?.group(1) ?? 'Noticia';
-                   final link = RegExp(r'<link>(.*?)</link>').firstMatch(content)?.group(1) ?? '';
-                   final desc = RegExp(r'<description>(.*?)</description>', dotAll: true).firstMatch(content)?.group(1) ?? '';
-                   
                    String img = '';
-                   final imgM = RegExp(r'''url=["']([^"']+\.(?:jpg|jpeg|png|webp))["']''').firstMatch(content);
-                   if (imgM != null) img = imgM.group(1)!;
+                   final mediaMatch = RegExp(r'''<(?:media:content|media:thumbnail|enclosure)[^>]+url=["']([^"']+)["']''').firstMatch(content);
+                   if (mediaMatch != null) img = mediaMatch.group(1)!;
                    
                    _processItem(allArticles, {
-                     'title': title,
-                     'link': link,
-                     'description': desc,
+                     'title': RegExp(r'<title>(.*?)</title>').firstMatch(content)?.group(1) ?? 'Noticia',
+                     'link': RegExp(r'<link>(.*?)</link>').firstMatch(content)?.group(1) ?? '',
+                     'description': RegExp(r'<description>(.*?)</description>', dotAll: true).firstMatch(content)?.group(1) ?? '',
                      'thumbnail': img,
-                     'content': desc,
+                     'content': content,
                      'pubDate': RegExp(r'<pubDate>(.*?)</pubDate>').firstMatch(content)?.group(1) ?? '',
                    });
                 }
@@ -129,92 +148,62 @@ class NewsNotifier extends StateNotifier<NewsState> {
         }
       }
 
-      // Ordenar por fecha descendente
       allArticles.sort((a, b) => b.date.compareTo(a.date));
-
       state = NewsState(
         articles: allArticles,
         isLoading: false,
-        error: allArticles.isEmpty
-            ? 'No se pudieron cargar noticias. Inténtalo de nuevo más tarde.'
-            : null,
+        error: allArticles.isEmpty ? 'No se pudieron cargar noticias.' : null,
       );
     } catch (e) {
-      state = NewsState(
-        articles: state.articles,
-        isLoading: false,
-        error: 'Error de red: $e',
-      );
+      state = NewsState(articles: state.articles, isLoading: false, error: 'Error de red: $e');
     }
   }
 
   void _processItem(List<NewsArticle> allArticles, Map<String, dynamic> item) {
-    // 🕵️‍♂️ RADAR DE IMÁGENES DE ALTA PRECISIÓN (ESPECIAL SINC)
     String imageUrl = item['thumbnail'] ?? '';
     final String rawDescription = item['description'] ?? '';
     final String content = item['content'] ?? '';
     final String fullText = "$rawDescription $content";
 
-    if (imageUrl.isEmpty || imageUrl.contains('unsplash.com')) {
-      // 1. Buscar el patrón de almacenamiento interno de SINC (el más fiable)
-      final sincPathRegex = RegExp(r'''(/[a-zA-Z0-9_/.-]+/storage/images/[^"']+\.(?:jpg|jpeg|png|webp))''', caseSensitive: false);
-      final sincMatch = sincPathRegex.firstMatch(fullText);
-      
-      if (sincMatch != null) {
-        imageUrl = sincMatch.group(1)!;
-        if (imageUrl.startsWith('/')) {
-          imageUrl = "https://www.agenciasinc.es$imageUrl";
+    if (imageUrl.isEmpty || imageUrl.contains('unsplash.com') || imageUrl.length < 15) {
+      final deepSearchRegex = RegExp(
+        r'''(?:src|url|data-src|srcset)=["']([^"']+\.(?:jpg|jpeg|png|webp|avif)(?:\?[^"']+)?)["']''', 
+        caseSensitive: false
+      );
+      final matches = deepSearchRegex.allMatches(fullText);
+      for (var m in matches) {
+        String foundUrl = m.group(1)!;
+        if (!foundUrl.contains('logo') && !foundUrl.contains('icon') && !foundUrl.contains('tracker')) {
+          imageUrl = foundUrl;
+          break;
         }
-      } else {
-        // 2. Fallback: Buscar cualquier etiqueta <img> estándar
-        final imgRegex = RegExp(r'''<img[^>]+src=["']([^"']+)["']''', caseSensitive: false);
-        final match = imgRegex.firstMatch(fullText);
-        if (match != null) {
-          imageUrl = match.group(1)!;
-        }
+      }
+      if (imageUrl.isEmpty || imageUrl.contains('unsplash.com')) {
+        final sincRegex = RegExp(r'''(/[a-zA-Z0-9_/.-]+/storage/images/[^"']+\.(?:jpg|jpeg|png|webp))''', caseSensitive: false);
+        final sincMatch = sincRegex.firstMatch(fullText);
+        if (sincMatch != null) imageUrl = sincMatch.group(1)!;
       }
     }
 
-    // 3. Normalizar URLs relativas
-    if (imageUrl.startsWith('/')) {
-      imageUrl = "https://www.agenciasinc.es$imageUrl";
-    }
+    if (imageUrl.startsWith('/')) imageUrl = "https://www.agenciasinc.es$imageUrl";
+    if (imageUrl.isEmpty && item['enclosure'] != null) imageUrl = item['enclosure']['link'] ?? '';
+    if (imageUrl.isEmpty) imageUrl = 'https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?q=80&w=800&auto=format&fit=crop';
 
-    if (imageUrl.isEmpty) {
-      if (item['enclosure'] != null && item['enclosure']['link'] != null) {
-        imageUrl = item['enclosure']['link'];
-      }
-    }
-
-    // Fallback si sigue vacío
-    if (imageUrl.isEmpty) {
-      imageUrl = 'https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?q=80&w=800&auto=format&fit=crop';
-    }
-
-    // 🛡️ PROXY DE IMAGENES PARA WEB (Weserv es súper estable para esto)
     if (kIsWeb && imageUrl.isNotEmpty && !imageUrl.contains('unsplash.com')) {
-       imageUrl = 'https://images.weserv.nl/?url=${Uri.encodeComponent(imageUrl)}&default=${Uri.encodeComponent('https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?q=80&w=800&auto=format&fit=crop')}';
+       imageUrl = 'https://images.weserv.nl/?url=${Uri.encodeComponent(imageUrl)}&w=800&fit=cover&default=${Uri.encodeComponent('https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?q=80&w=800&auto=format&fit=crop')}';
     }
 
-    // 🧼 LIMPIEZA DE DESCRIPCIÓN
     String description = rawDescription;
-    description = description.replaceAll(RegExp(r'<[^>]*>'), ''); // Quitar HTML
-    description = description.replaceAll('&nbsp;', ' ');
-    description = description.replaceAll('&#8230;', '...');
-    description = description.trim();
-
-    if (description.length > 200) {
-      description = '${description.substring(0, 197)}...';
-    }
+    description = description.replaceAll(RegExp(r'<[^>]*>'), '');
+    description = description.replaceAll('&nbsp;', ' ').replaceAll('&#8230;', '...').trim();
+    if (description.length > 200) description = '${description.substring(0, 197)}...';
 
     allArticles.add(NewsArticle(
       title: item['title'] ?? 'Sin título',
       link: item['link'] ?? '',
       description: description,
       imageUrl: imageUrl,
-      category: (item['categories'] as List?)?.isNotEmpty == true 
-          ? item['categories'][0] 
-          : 'Ciencia',
+      category: (item['categories'] as List?)?.isNotEmpty == true ? item['categories'][0] : 'Ciencia',
       date: DateTime.tryParse(item['pubDate'] ?? '') ?? DateTime.now(),
     ));
   }
