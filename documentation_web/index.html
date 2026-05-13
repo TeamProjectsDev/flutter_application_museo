@@ -81,7 +81,7 @@
             <li><a href="#roadmap" title="Consultar Roadmap Futuro">16. Roadmap</a></li>
             <li><a href="#glosario" title="Ver Glosario de Términos">17. Glosario</a></li>
             <li><a href="#enlaces" title="Ir a Enlaces y Recursos">18. Enlaces</a></li>
-            <li><a href="#ai-assistant" title="Ver Asistente de IA con Groq">19. 🤖 Asistente IA</a></li>
+            <li><a href="#ai-assistant" title="Ver Asistente de IA con Groq">19. Asistente IA</a></li>
         </ul>
     </nav>
 
@@ -435,7 +435,7 @@
                             <td>Piezas desbloqueadas (scan, donación)</td>
                         </tr>
                         <tr>
-                             <td><code>paymentProvider</code></td>
+                            <td><code>paymentProvider</code></td>
                             <td>StateNotifierProvider</td>
                             <td>Orquestación de pagos Stripe</td>
                         </tr>
@@ -635,7 +635,8 @@ class UserUnlocksNotifier
                         <circle cx="400" cy="180" r="50" fill="rgba(248, 113, 113, 0.2)" stroke="#f87171"
                             stroke-width="2" />
                         <text x="400" y="183" text-anchor="middle" font-size="11" fill="currentColor">Stripe API</text>
-                        <text x="400" y="197" text-anchor="middle" font-size="9" fill="currentColor">Payment Handler</text>
+                        <text x="400" y="197" text-anchor="middle" font-size="9" fill="currentColor">Payment
+                            Handler</text>
 
                         <!-- App Store -->
                         <circle cx="550" cy="180" r="50" fill="rgba(74, 222, 128, 0.2)" stroke="#4ade80"
@@ -680,8 +681,10 @@ class UserUnlocksNotifier
                         <text x="50" y="300" font-size="10" fill="currentColor">① Usuario toca botón "Donar 5€"</text>
                         <text x="50" y="318" font-size="10" fill="currentColor">② Se abre el cuadro de diálogo StoreKit
                             (iOS) o Billing (Android)</text>
-                        <text x="50" y="336" font-size="10" fill="currentColor">③ Stripe maneja la transacción de forma segura</text>
-                        <text x="50" y="354" font-size="10" fill="currentColor">④ Si es exitoso, Stripe confirma el pago</text>
+                        <text x="50" y="336" font-size="10" fill="currentColor">③ Stripe maneja la transacción de forma
+                            segura</text>
+                        <text x="50" y="354" font-size="10" fill="currentColor">④ Si es exitoso, Stripe confirma el
+                            pago</text>
 
                         <text x="500" y="300" font-size="10" fill="currentColor">⑤ Firestore registra la donación en
                             BD</text>
@@ -1278,33 +1281,69 @@ class UserUnlocksNotifier
         <!-- SECCION: ASISTENTE IA -->
         <section id="ai-assistant">
             <h2><span>19</span> 🤖 Asistente de IA (Groq)</h2>
-            <img src="media/ai_assistant_hero.png" alt="Asistente Virtual AI" style="width:100%;max-width:760px;border-radius:16px;margin:1rem auto;display:block;box-shadow:0 10px 40px rgba(99,102,241,0.35);">
+            <img src="media/ai_assistant_hero.png" alt="Asistente Virtual AI"
+                style="width:100%;max-width:760px;border-radius:16px;margin:1rem auto;display:block;box-shadow:0 10px 40px rgba(99,102,241,0.35);">
             <div class="ibox blue">
-                <strong>Concepto:</strong> Widget flotante accesible desde cualquier pantalla que responde en lenguaje natural sobre las piezas del catálogo y las funcionalidades de la app, usando la API de Groq con arquitectura <strong>Tool Calling</strong> para minimizar el uso de tokens.
+                <strong>Concepto:</strong> Widget flotante accesible desde cualquier pantalla que responde en lenguaje
+                natural sobre las piezas del catálogo y las funcionalidades de la app, usando la API de Groq con
+                arquitectura <strong>Tool Calling</strong> para minimizar el uso de tokens.
             </div>
             <div class="grid">
                 <div class="card">
                     <h3>Flujo de Tool Calling</h3>
                     <ol class="step-list">
-                        <li><strong>1ª llamada:</strong> Índice compacto de piezas (~1.000 tokens) + herramienta <code>get_piece_details(piece_id)</code>.</li>
-                        <li><strong>La IA decide:</strong> Si necesita info de una pieza concreta, invoca la herramienta con su ID.</li>
-                        <li><strong>Búsqueda local:</strong> Se consulta <code>catalog_metadata.json</code> en el dispositivo (0 tokens extra).</li>
-                        <li><strong>2ª llamada:</strong> Solo el detalle de esa pieza → respuesta final enriquecida con Markdown.</li>
+                        <li><strong>1ª llamada:</strong> Índice compacto de piezas (~1.000 tokens) + herramienta
+                            <code>get_piece_details(piece_id)</code>.</li>
+                        <li><strong>La IA decide:</strong> Si necesita info de una pieza concreta, invoca la herramienta
+                            con su ID.</li>
+                        <li><strong>Búsqueda local:</strong> Se consulta <code>catalog_metadata.json</code> en el
+                            dispositivo (0 tokens extra).</li>
+                        <li><strong>2ª llamada:</strong> Solo el detalle de esa pieza → respuesta final enriquecida con
+                            Markdown.</li>
                     </ol>
                 </div>
                 <div class="card">
                     <h3>Parámetros Técnicos</h3>
                     <table class="dtable">
-                        <thead><tr><th>Parámetro</th><th>Valor</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Parámetro</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            <tr><td>Modelo</td><td><code>openai/gpt-oss-120b</code></td></tr>
-                            <tr><td>Velocidad</td><td>500 tokens/segundo</td></tr>
-                            <tr><td>Ventana contexto</td><td>131.072 tokens</td></tr>
-                            <tr><td>Historial chat</td><td>5 mensajes máximo</td></tr>
-                            <tr><td>Configuración</td><td><code>GROQ_API_KEY</code> en <code>.env</code></td></tr>
-                            <tr><td>HTTP Client</td><td><code>dio</code></td></tr>
-                            <tr><td>Estado</td><td><code>StateNotifierProvider</code> (Riverpod)</td></tr>
-                            <tr><td>Markdown</td><td><code>flutter_markdown</code></td></tr>
+                            <tr>
+                                <td>Modelo</td>
+                                <td><code>openai/gpt-oss-120b</code></td>
+                            </tr>
+                            <tr>
+                                <td>Velocidad</td>
+                                <td>500 tokens/segundo</td>
+                            </tr>
+                            <tr>
+                                <td>Ventana contexto</td>
+                                <td>131.072 tokens</td>
+                            </tr>
+                            <tr>
+                                <td>Historial chat</td>
+                                <td>5 mensajes máximo</td>
+                            </tr>
+                            <tr>
+                                <td>Configuración</td>
+                                <td><code>GROQ_API_KEY</code> en <code>.env</code></td>
+                            </tr>
+                            <tr>
+                                <td>HTTP Client</td>
+                                <td><code>dio</code></td>
+                            </tr>
+                            <tr>
+                                <td>Estado</td>
+                                <td><code>StateNotifierProvider</code> (Riverpod)</td>
+                            </tr>
+                            <tr>
+                                <td>Markdown</td>
+                                <td><code>flutter_markdown</code></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
