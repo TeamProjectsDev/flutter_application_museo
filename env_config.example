@@ -55,3 +55,5 @@ STRIPE_SECRET_KEY=clave_privada_aqui
 # 0 = MODO REAL. Obliga al usuario a pagar con tarjeta y caminar por el museo para escanear AR reales.
 # 1 = MODO EXPOSICIÓN. Simula los pagos de la tienda en verde y permite saltarse la cámara AR desde casa.
 TESTER=1
+
+GROQ_API_KEY=api_key_qroq

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../core/providers/locale_provider.dart';
+import 'widgets/ai_assistant_widget.dart';
 
 class MainScaffold extends ConsumerWidget {
   const MainScaffold({super.key, required this.navigationShell});
@@ -20,7 +21,12 @@ class MainScaffold extends ConsumerWidget {
     }
 
     return Scaffold(
-      body: navigationShell,
+      body: Stack(
+        children: [
+          navigationShell,
+          const AiAssistantWidget(),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) {
