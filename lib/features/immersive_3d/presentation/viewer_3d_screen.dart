@@ -308,7 +308,7 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
-            childAspectRatio: 2.2,
+            childAspectRatio: 1.8, // Ajustado para permitir 2 líneas
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
             children: [
@@ -486,7 +486,7 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.fade),
         ],
       ),
     );
