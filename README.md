@@ -481,7 +481,7 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 ---
 
 ### 🛠️ Nota Técnica: Entorno de Compilación
-Este proyecto ha sido actualizado para cumplir con los estándares de seguridad y rendimiento de 2024/2025:
+Este proyecto ha sido actualizado para cumplir con los estándares de seguridad y rendimiento de 2025/2026:
 * **Gradle:** 8.11.1
 * **Android Gradle Plugin (AGP):** 8.9.1
 * **Kotlin:** 2.1.0
