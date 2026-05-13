@@ -81,6 +81,7 @@
             <li><a href="#roadmap" title="Consultar Roadmap Futuro">16. Roadmap</a></li>
             <li><a href="#glosario" title="Ver Glosario de Términos">17. Glosario</a></li>
             <li><a href="#enlaces" title="Ir a Enlaces y Recursos">18. Enlaces</a></li>
+            <li><a href="#ai-assistant" title="Ver Asistente de IA con Groq">19. 🤖 Asistente IA</a></li>
         </ul>
     </nav>
 
@@ -1271,6 +1272,54 @@ class UserUnlocksNotifier
                 <p><strong>JWT:</strong> JSON Web Token usado para sesiones seguras.</p>
                 <p><strong>RLS:</strong> Row Level Security (Seguridad por fila en base de datos).</p>
                 <p><strong>IAP:</strong> In-App Purchases (Compras dentro de la aplicación).</p>
+            </div>
+        </section>
+
+        <!-- SECCION: ASISTENTE IA -->
+        <section id="ai-assistant">
+            <h2><span>19</span> 🤖 Asistente de IA (Groq)</h2>
+            <img src="media/ai_assistant_hero.png" alt="Asistente Virtual AI" style="width:100%;max-width:760px;border-radius:16px;margin:1rem auto;display:block;box-shadow:0 10px 40px rgba(99,102,241,0.35);">
+            <div class="ibox blue">
+                <strong>Concepto:</strong> Widget flotante accesible desde cualquier pantalla que responde en lenguaje natural sobre las piezas del catálogo y las funcionalidades de la app, usando la API de Groq con arquitectura <strong>Tool Calling</strong> para minimizar el uso de tokens.
+            </div>
+            <div class="grid">
+                <div class="card">
+                    <h3>Flujo de Tool Calling</h3>
+                    <ol class="step-list">
+                        <li><strong>1ª llamada:</strong> Índice compacto de piezas (~1.000 tokens) + herramienta <code>get_piece_details(piece_id)</code>.</li>
+                        <li><strong>La IA decide:</strong> Si necesita info de una pieza concreta, invoca la herramienta con su ID.</li>
+                        <li><strong>Búsqueda local:</strong> Se consulta <code>catalog_metadata.json</code> en el dispositivo (0 tokens extra).</li>
+                        <li><strong>2ª llamada:</strong> Solo el detalle de esa pieza → respuesta final enriquecida con Markdown.</li>
+                    </ol>
+                </div>
+                <div class="card">
+                    <h3>Parámetros Técnicos</h3>
+                    <table class="dtable">
+                        <thead><tr><th>Parámetro</th><th>Valor</th></tr></thead>
+                        <tbody>
+                            <tr><td>Modelo</td><td><code>openai/gpt-oss-120b</code></td></tr>
+                            <tr><td>Velocidad</td><td>500 tokens/segundo</td></tr>
+                            <tr><td>Ventana contexto</td><td>131.072 tokens</td></tr>
+                            <tr><td>Historial chat</td><td>5 mensajes máximo</td></tr>
+                            <tr><td>Configuración</td><td><code>GROQ_API_KEY</code> en <code>.env</code></td></tr>
+                            <tr><td>HTTP Client</td><td><code>dio</code></td></tr>
+                            <tr><td>Estado</td><td><code>StateNotifierProvider</code> (Riverpod)</td></tr>
+                            <tr><td>Markdown</td><td><code>flutter_markdown</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <h3>Conocimiento del Asistente</h3>
+                    <ul class="list-check">
+                        <li>✓ Todas las piezas del catálogo (Tool Calling bajo demanda)</li>
+                        <li>✓ Salas del museo y su ubicación</li>
+                        <li>✓ Cómo comprar entradas y usar la pasarela Stripe</li>
+                        <li>✓ Sistema de rangos y gamificación</li>
+                        <li>✓ Realidad Aumentada y escaneo de QR</li>
+                        <li>✓ Visitas virtuales 360° e impresión 3D</li>
+                        <li>✓ Idioma adaptativo (español / inglés)</li>
+                    </ul>
+                </div>
             </div>
         </section>
 
