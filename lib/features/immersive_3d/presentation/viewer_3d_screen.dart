@@ -194,43 +194,6 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
           ),
         ),
 
-        // 🎮 Controles flotantes inferiores
-        Positioned(
-          bottom: 30,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.white10),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildControlButton(Icons.rotate_left_outlined),
-                  _buildDivider(),
-                  _buildControlButton(Icons.remove),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.center_focus_strong, size: 20, color: Colors.black),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildControlButton(Icons.add),
-                  _buildDivider(),
-                  _buildControlButton(Icons.rotate_right_outlined),
-                ],
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -449,23 +412,6 @@ class _Viewer3DScreenState extends State<Viewer3DScreen> {
     );
   }
 
-  Widget _buildControlButton(IconData icon) {
-    return IconButton(
-      onPressed: () {},
-      icon: Icon(icon, color: Colors.white70, size: 18),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Container(
-      height: 20,
-      width: 1,
-      color: Colors.white10,
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-    );
-  }
 
   Widget _buildDetailCard(ThemeData theme, String label, String value, IconData icon) {
     return Container(
