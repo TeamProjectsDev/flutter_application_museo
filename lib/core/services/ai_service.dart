@@ -20,8 +20,6 @@ class AiService {
 
   // Catálogo cacheado en memoria para búsquedas locales rápidas
   Map<String, dynamic>? _catalogCache;
-  // Índice compacto: solo nombres e IDs para el system prompt
-  String? _catalogIndexCache;
 
   /// Carga el catálogo una sola vez y lo cachea en memoria
   Future<Map<String, dynamic>> _loadCatalog() async {
@@ -31,20 +29,6 @@ class AiService {
     return _catalogCache!;
   }
 
-  /// Genera un índice compacto: "id -> nombre (sala)" para el system prompt
-  Future<String> _buildCompactIndex() async {
-    if (_catalogIndexCache != null) return _catalogIndexCache!;
-    final catalog = await _loadCatalog();
-    final buffer = StringBuffer();
-    catalog.forEach((fileName, data) {
-      final id = fileName.split('.').first.replaceAll(' ', '_');
-      final name = data['name'] ?? id;
-      final room = data['room'] ?? 'General';
-      buffer.writeln('- $id: $name ($room)');
-    });
-    _catalogIndexCache = buffer.toString();
-    return _catalogIndexCache!;
-  }
 
   /// Busca localmente los detalles de una pieza por su ID
   Future<String> _getPieceDetails(String pieceId) async {
@@ -72,22 +56,59 @@ class AiService {
     return jsonEncode({'error': 'Pieza no encontrada con ID: $pieceId'});
   }
 
-  /// Definición de la herramienta para Groq Function Calling
+  /// Herramientas quirúrgicas para ahorrar tokens
   static const _tools = [
     {
       'type': 'function',
       'function': {
-        'name': 'get_piece_details',
-        'description':
-            'Obtiene los detalles completos de una pieza del museo: descripción, historia, material, sala, fecha y origen. Úsala cuando el visitante pregunte por una pieza específica.',
+        'name': 'search_catalog',
+        'description': 'Busca piezas por nombre o palabras clave. Devuelve IDs y nombres.',
         'parameters': {
           'type': 'object',
           'properties': {
-            'piece_id': {
-              'type': 'string',
-              'description':
-                  'El ID de la pieza del museo (nombre del archivo sin extensión, con guiones bajos en lugar de espacios). Ejemplo: mandibula_hombre, Pez_globo_enano',
-            }
+            'query': {'type': 'string', 'description': 'Término de búsqueda (ej: "cráneo", "coral")'}
+          },
+          'required': ['query'],
+        },
+      },
+    },
+    {
+      'type': 'function',
+      'function': {
+        'name': 'get_room_inventory',
+        'description': 'Lista todas las piezas de una sala específica.',
+        'parameters': {
+          'type': 'object',
+          'properties': {
+            'room_id': {'type': 'string', 'enum': ['room_anatomy', 'room_zoology', 'room_paleontology', 'room_physics', 'room_archaeology']}
+          },
+          'required': ['room_id'],
+        },
+      },
+    },
+    {
+      'type': 'function',
+      'function': {
+        'name': 'get_inventory_by_type',
+        'description': 'Lista piezas filtrando por tipo (3D o 360).',
+        'parameters': {
+          'type': 'object',
+          'properties': {
+            'type': {'type': 'string', 'enum': ['3D', '360']}
+          },
+          'required': ['type'],
+        },
+      },
+    },
+    {
+      'type': 'function',
+      'function': {
+        'name': 'get_piece_details',
+        'description': 'Obtiene detalles completos de una pieza específica usando su ID.',
+        'parameters': {
+          'type': 'object',
+          'properties': {
+            'piece_id': {'type': 'string', 'description': 'ID de la pieza (ej: mandibula_hombre)'}
           },
           'required': ['piece_id'],
         },
@@ -95,52 +116,63 @@ class AiService {
     }
   ];
 
+  Future<String> _handleToolCall(String name, Map<String, dynamic> args) async {
+    final catalog = await _loadCatalog();
+    switch (name) {
+      case 'search_catalog':
+        final query = (args['query'] as String).toLowerCase();
+        final results = catalog.entries
+            .where((e) => e.key.toLowerCase().contains(query) || (e.value['name'] as String).toLowerCase().contains(query))
+            .map((e) => '- ${e.key.split('.').first}: ${e.value['name']}')
+            .join('\n');
+        return results.isEmpty ? 'No hay resultados.' : 'Resultados:\n$results';
+
+      case 'get_room_inventory':
+        final roomId = args['room_id'];
+        final results = catalog.entries
+            .where((e) => e.value['room'] == roomId)
+            .map((e) => '- ${e.key.split('.').first}: ${e.value['name']}')
+            .join('\n');
+        return 'Inventario de la sala:\n$results';
+
+      case 'get_inventory_by_type':
+        final is3DRequested = args['type'] == '3D';
+        final results = catalog.entries
+            .where((e) => e.key.toLowerCase().endsWith(is3DRequested ? '.glb' : '.jpg'))
+            .map((e) => '- ${e.key.split('.').first}: ${e.value['name']}')
+            .join('\n');
+        return 'Inventario por tipo:\n$results';
+
+      case 'get_piece_details':
+        return await _getPieceDetails(args['piece_id']);
+        
+      default:
+        return 'Error: Herramienta no implementada.';
+    }
+  }
+
   Future<String> getChatResponse(List<ChatMessage> history) async {
     final apiKey = dotenv.env['GROQ_API_KEY'];
-    if (apiKey == null || apiKey.isEmpty || apiKey == 'tu_api_key_aqui') {
-      return 'Error: GROQ_API_KEY no configurada en env_config';
-    }
+    if (apiKey == null || apiKey.isEmpty) return 'Error: API Key faltante.';
 
     try {
-      final compactIndex = await _buildCompactIndex();
+      final catalog = await _loadCatalog();
+      int count3D = catalog.keys.where((k) => k.toLowerCase().endsWith('.glb')).length;
+      int count360 = catalog.keys.where((k) => k.toLowerCase().endsWith('.jpg')).length;
 
       final systemMessage = {
         'role': 'system',
-        'content': '''Eres el asistente inteligente del Museo Histórico Padre Suárez.
-Ayuda a los visitantes con información sobre piezas, salas, la historia del museo y cómo usar la app.
-Sé amable, culto y profesional. Responde en el idioma del visitante (español o inglés).
+        'content': '''Eres el guía virtual del Museo Padre Suárez. 
+RESUMEN DE COLECCIÓN: $count3D modelos 3D y $count360 entornos 360°.
+SALAS: room_anatomy, room_zoology, room_paleontology, room_physics, room_archaeology.
 
-INFORMACIÓN DE LA APP:
-- ENTRADAS: Se compran en la sección "Tienda" (icono carrito). Se elige la fecha, número de visitantes (General, Estudiante, Audioguía) y se paga con tarjeta mediante Stripe. Tras el pago se envía un QR al correo y queda guardado en "Mis Entradas".
-- ACCESO AL MUSEO: En la puerta hay un escáner. El personal escanea el QR de tu entrada (desde la app en "Mis Entradas" o desde el correo).
-- AR / REALIDAD AUMENTADA: En la pestaña con icono de cámara puedes escanear los QR físicos de las vitrinas para ver las piezas en 3D sobre el mundo real.
-- VISITAS VIRTUALES 360°: En la sección Colección > Entornos puedes recorrer las salas del museo de forma inmersiva desde casa.
-- SISTEMA DE RANGOS (Gamificación):
-  * Visitante (0 piezas escaneadas) - Gris
-  * Explorador (1-2 piezas) - Bronce
-  * Académico (3-5 piezas) - Plata
-  * Conservador Jefe (6+ piezas) - Oro
-- FAVORITOS: Puedes marcar piezas con ♥ en la galería para guardarlas.
-- BUSCADOR: En la Colección hay un campo de búsqueda para filtrar piezas por nombre o sala.
-- MAPA INTERACTIVO: Muestra el plano del museo con las salas y sus piezas.
-- IDIOMA: Cambiable en Ajustes (Español / English).
-- DONACIONES: Disponibles en la sección Tienda.
-- IMPRESIÓN 3D: Puedes solicitar réplicas físicas de las piezas 3D desde la galería.
-
-SALAS DEL MUSEO:
-- room_anatomy: Sala de Anatomía (mandíbulas, cráneos)
-- room_zoology: Sala de Zoología/Biodiversidad (animales, corales)
-- room_paleontology: Sala de Paleontología/Antropología (fósiles, evolución)
-- room_physics: Laboratorio / Sala de Física e Instrumental
-- room_archaeology: Sala de Mineralogía / Arqueología
-
-LISTA DE PIEZAS DEL MUSEO (ID: nombre (sala)):
-$compactIndex
-
-INSTRUCCIONES:
-- Si preguntan por una pieza específica, usa get_piece_details con su ID.
-- Para preguntas sobre la app, responde directamente con la información de arriba.
-- Mantén las respuestas concisas pero informativas.'''
+INSTRUCCIONES DE TOKENS:
+- NO inventes piezas.
+- Si preguntan por una sala, usa get_room_inventory.
+- Si preguntan por tipo, usa get_inventory_by_type.
+- Si preguntan por algo genérico, usa search_catalog.
+- Una vez tengas el ID de lo que le interesa al usuario, usa get_piece_details para darle la historia completa.
+- Responde de forma breve y profesional.'''
       };
 
       // --- 1ª LLAMADA: con el índice compacto y las herramientas ---
@@ -173,11 +205,11 @@ INSTRUCCIONES:
       if (finishReason == 'tool_calls') {
         final toolCalls = firstChoice['message']['tool_calls'] as List;
         final toolCall = toolCalls.first;
+        final functionName = toolCall['function']['name'];
         final args = jsonDecode(toolCall['function']['arguments']) as Map<String, dynamic>;
-        final pieceId = args['piece_id'] as String;
 
-        // Búsqueda LOCAL (sin tokens extra)
-        final pieceDetails = await _getPieceDetails(pieceId);
+        // Ejecutar la herramienta solicitada
+        final toolResult = await _handleToolCall(functionName, args);
 
         // --- 2ª LLAMADA: con los detalles de la pieza encontrada ---
         final secondResponse = await _dio.post(
@@ -197,7 +229,7 @@ INSTRUCCIONES:
               {
                 'role': 'tool',
                 'tool_call_id': toolCall['id'],
-                'content': pieceDetails,
+                'content': toolResult,
               },
             ],
             'temperature': 0.7,
