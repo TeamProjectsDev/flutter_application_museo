@@ -55,6 +55,7 @@
             <li><a href="#analytics" title="Ver Analítica y KPIs">09. Analítica</a></li>
             <li><a href="#devops" title="Consultar CI/CD y GitHub Actions">10. DevOps</a></li>
             <li><a href="#qa" title="Ver Control de Calidad">11. QA</a></li>
+            <li><a href="#ai-assistant" title="Ver Asistente de IA con Groq">12. 🤖 IA Groq</a></li>
         </ul>
     </nav>
 
@@ -150,6 +151,40 @@ final userRankProvider = Provider<UserRank>((ref) {
                 <div class="card api-card">
                     <h3>📧 Email Automático</h3>
                     <p>Integración con <strong>EmailJS</strong> para el envío de entradas digitales sin necesidad de servidor propio.</p>
+                </div>
+                <div class="card api-card">
+                    <h3>🤖 IA Conversacional (Groq)</h3>
+                    <p>Integrado con <strong>Groq API</strong> usando el modelo <code>openai/gpt-oss-120b</code> (500 T/s). Arquitectura Tool Calling: la IA recibe solo un índice compacto y pide detalles de piezas bajo demanda mediante búsqueda local.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="ai-assistant">
+            <h2><span>12</span> Asistente de IA (Groq)</h2>
+            <img src="media/ai_assistant_hero.png" alt="Asistente Virtual AI" style="width:100%;max-width:700px;border-radius:16px;margin:1rem auto;display:block;box-shadow:0 10px 30px rgba(99,102,241,0.3);">
+            <div class="grid">
+                <div class="card">
+                    <h3>Arquitectura: Tool Calling</h3>
+                    <ol class="step-list">
+                        <li><strong>1ª llamada:</strong> Índice compacto de piezas + herramienta <code>get_piece_details(piece_id)</code>.</li>
+                        <li><strong>La IA decide:</strong> Si necesita info de una pieza, llama a la herramienta con su ID.</li>
+                        <li><strong>Búsqueda local:</strong> Se consulta <code>catalog_metadata.json</code> (0 tokens extra).</li>
+                        <li><strong>2ª llamada:</strong> Solo el detalle de esa pieza → respuesta final enriquecida.</li>
+                    </ol>
+                </div>
+                <div class="card">
+                    <h3>Parámetros Técnicos</h3>
+                    <table class="dtable">
+                        <thead><tr><th>Parámetro</th><th>Valor</th></tr></thead>
+                        <tbody>
+                            <tr><td>Modelo</td><td><code>openai/gpt-oss-120b</code></td></tr>
+                            <tr><td>Velocidad</td><td>500 tokens/segundo</td></tr>
+                            <tr><td>Historial</td><td>5 mensajes máximo</td></tr>
+                            <tr><td>Config</td><td><code>GROQ_API_KEY</code> en <code>.env</code></td></tr>
+                            <tr><td>HTTP Client</td><td><code>dio</code></td></tr>
+                            <tr><td>Estado</td><td><code>StateNotifierProvider</code></td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>

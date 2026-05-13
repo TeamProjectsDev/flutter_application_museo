@@ -82,6 +82,7 @@ La app utiliza un archivo secreto llamado `.env` para almacenar contraseñas y c
 | `GITHUB_RAW_URL`               | URL raw de GitHub para modelos 3D (fallback)      |
 | `R2_PUBLIC_URL`                | URL pública del bucket Cloudflare R2 (opcional)   |
 | `TESTER`                       | `1` activa el Modo Tester (ver sección 8)         |
+| `GROQ_API_KEY`                 | Clave de API de Groq para el Asistente de IA      |
 
 ---
 
@@ -467,6 +468,15 @@ Esta aplicación no es un simple prototipo; incluye funcionalidades de nivel de 
 * **♿ Accesibilidad (a11y):** Los elementos interactivos principales incluyen `Semantics` con etiquetas descriptivas y `ExcludeSemantics` en íconos y elementos decorativos. La app es compatible con lectores de pantalla TalkBack (Android) y VoiceOver (iOS).
 
 * **⚙️ GitHub Actions (CI/CD):** Pipeline automático en `.github/workflows/flutter_ci.yml` que se ejecuta en cada push a `main` o `dev`. Pasos: `flutter analyze`, `flutter test`, `flutter build apk --debug`. El APK de debug se sube como artifact de 7 días.
+
+* **🤖 Asistente de IA Integrado (Groq):** Un asistente virtual flotante accesible desde cualquier pantalla de la app, disponible tanto en Web como en Android.
+  * **Motor**: Utiliza la API de [Groq](https://groq.com/) con el modelo `openai/gpt-oss-120b` (500 T/s), uno de los más rápidos del mercado.
+  * **Arquitectura Tool Calling**: En lugar de enviar el catálogo completo en cada petición, la IA recibe un índice compacto de las piezas y llama a una herramienta local `get_piece_details(piece_id)` cuando necesita información detallada de una pieza concreta. Esto minimiza el uso de tokens y elimina errores de payload.
+  * **Conocimiento del Museo**: Conoce todas las piezas del catálogo, las salas, la historia y todas las funcionalidades de la app (compra de entradas, AR, rangos, favoritos, etc.).
+  * **Contexto de Conversación**: Mantiene memoria de los últimos 5 mensajes para conversaciones coherentes sin disparar el coste en tokens.
+  * **Renderizado Markdown**: Las respuestas de la IA se muestran con formato enriquecido: **negrita**, *cursiva*, listas y `código`.
+  * **Adaptativo**: La interfaz del chat cambia automáticamente entre Modo Claro y Modo Oscuro.
+  * **Configuración**: Requiere añadir `GROQ_API_KEY` en el archivo `env_config`. La clave se obtiene gratis en [console.groq.com](https://console.groq.com/).
 
 ---
 
