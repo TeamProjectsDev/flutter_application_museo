@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'dart:ui' as ui;
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -87,28 +88,29 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
                 fit: BoxFit.contain,
                 child: SizedBox(
                   width: 1000,
-                  height: 600,
+                  height: 1000,
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      // Imagen del Mapa Base
+                      // 🏛️ Plano Vectorial Dinámico
                       Positioned.fill(
-                        child: Image.asset(
-                          isDark ? 'assets/images/museum_map.png' : 'assets/images/museum_map_light.png',
-                          fit: BoxFit.fill,
-                          errorBuilder: (context, error, stackTrace) => Image.asset(
-                            'assets/images/museum_map.png',
-                            fit: BoxFit.fill,
+                        child: CustomPaint(
+                          painter: MuseumMapPainter(
+                            isDark: isDark,
+                            accentColor: iconColor,
                           ),
                         ),
                       ),
 
-                      // Pines con coordenadas fijas (Búnker)
-                      _buildPin(context, x: 220, y: 260, roomKey: 'room_paleontology', color: Colors.amber, icon: Icons.pest_control_rodent_outlined),
-                      _buildPin(context, x: 480, y: 180, roomKey: 'room_zoology', color: Colors.greenAccent, icon: Icons.pets),
-                      _buildPin(context, x: 820, y: 190, roomKey: 'room_archaeology', color: Colors.orangeAccent, icon: Icons.account_balance),
-                      _buildPin(context, x: 530, y: 460, roomKey: 'room_anatomy', color: Colors.redAccent, icon: Icons.accessibility_new),
-                      _buildPin(context, x: 830, y: 420, roomKey: 'room_physics', color: Colors.cyanAccent, icon: Icons.science),
+                      // 📍 Pines de las Salas (Posicionamiento Vectorial)
+                      _buildPin(context, x: 750, y: 700, roomKey: 'room_paleontology', color: Colors.amber, icon: Icons.pest_control_rodent_outlined), // SALA I
+                      _buildPin(context, x: 750, y: 450, roomKey: 'room_zoology', color: Colors.greenAccent, icon: Icons.pets), // SALA II
+                      _buildPin(context, x: 750, y: 150, roomKey: 'room_instruments', color: Colors.orangeAccent, icon: Icons.audiotrack), // SALA III
+                      _buildPin(context, x: 500, y: 350, roomKey: 'room_geology', color: Colors.blueAccent, icon: Icons.diamond), // SALA IV (Corredor)
+                      _buildPin(context, x: 420, y: 320, roomKey: 'room_dark_camera', color: Colors.purpleAccent, icon: Icons.camera_rear), // SALA V
+                      _buildPin(context, x: 420, y: 440, roomKey: 'room_anatomy', color: Colors.redAccent, icon: Icons.accessibility_new), // SALA VI
+                      _buildPin(context, x: 300, y: 700, roomKey: 'room_physics', color: Colors.cyanAccent, icon: Icons.science), // SALA VII
+                      _buildPin(context, x: 250, y: 900, roomKey: 'room_storage', color: Colors.grey, icon: Icons.inventory_2_outlined), // SALA VIII
                     ],
                   ),
                 ),
@@ -265,4 +267,77 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
       ),
     );
   }
+}
+
+class MuseumMapPainter extends CustomPainter {
+  final bool isDark;
+  final Color accentColor;
+
+  MuseumMapPainter({required this.isDark, required this.accentColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint wallPaint = Paint()
+      ..color = isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0
+      ..strokeCap = StrokeCap.round;
+
+    final Paint fillPaint = Paint()
+      ..color = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)
+      ..style = PaintingStyle.fill;
+
+    // --- SALAS LADO DERECHO (I, II, III) ---
+    _drawRoom(canvas, wallPaint, fillPaint, 650, 600, 250, 200, "I");   // Anatomía/Paleo
+    _drawRoom(canvas, wallPaint, fillPaint, 650, 350, 250, 200, "II");  // Biodiversidad
+    _drawRoom(canvas, wallPaint, fillPaint, 650, 100, 200, 200, "III"); // Instrumental
+
+    // --- PASILLO CENTRAL (IV) ---
+    _drawRoom(canvas, wallPaint, fillPaint, 480, 100, 100, 700, "IV");  // Cristalografía
+
+    // --- SALAS LADO IZQUIERDO (V, VI, VII) ---
+    _drawRoom(canvas, wallPaint, fillPaint, 380, 300, 100, 100, "V");   // Cámara Oscura
+    _drawRoom(canvas, wallPaint, fillPaint, 380, 420, 100, 100, "VI");  // Sala Auzoux
+    _drawRoom(canvas, wallPaint, fillPaint, 150, 550, 330, 300, "VII"); // Física/Química
+
+    // --- ALMACÉN (VIII) ---
+    _drawRoom(canvas, wallPaint, fillPaint, 50, 880, 400, 80, "VIII");  // Almacén
+
+    // Flecha de Entrada
+    _drawEntranceArrow(canvas, wallPaint, 530, 850);
+  }
+
+  void _drawRoom(Canvas canvas, Paint wallPaint, Paint fillPaint, double x, double y, double w, double h, String label) {
+    final rect = Rect.fromLTWH(x, y, w, h);
+    canvas.drawRect(rect, fillPaint);
+    canvas.drawRect(rect, wallPaint);
+
+    // Dibujar Número Romano de la sala
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(
+          color: isDark ? Colors.white38 : Colors.black26,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: ui.TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, Offset(x + w / 2 - textPainter.width / 2, y + h / 2 - textPainter.height / 2));
+  }
+
+  void _drawEntranceArrow(Canvas canvas, Paint paint, double x, double y) {
+    final path = Path()
+      ..moveTo(x, y)
+      ..lineTo(x, y - 40)
+      ..moveTo(x - 10, y - 20)
+      ..lineTo(x, y - 40)
+      ..lineTo(x + 10, y - 20);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
