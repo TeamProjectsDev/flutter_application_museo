@@ -64,7 +64,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage('https://images.unsplash.com/photo-1554907984-15263bfd63bd?q=80&w=1000&auto=format&fit=crop'),
+                image: AssetImage('assets/images/auth_background.png'),
                 fit: BoxFit.cover,
               ),
             ),
