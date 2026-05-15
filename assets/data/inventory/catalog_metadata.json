@@ -103,6 +103,45 @@
     "dimensions": "22 × 15 cm",
     "accessionNo": "MS-ANT-C01"
   },
+  "oropimente_lamelar.glb": {
+    "name": "Oropimente Lamelar",
+    "subtitle": "Mineral de Arsénico hojoso",
+    "category": "GEOLOGÍA / MINERALOGÍA",
+    "description": "Mineral de trisulfuro de arsénico con una característica estructura lamelar o hojosa. Destaca por su color amarillo limón intenso y su exfoliación perfecta.",
+    "history": "Históricamente utilizado como pigmento ('auripigmentum') y en alquimia. Este ejemplar muestra las láminas flexibles pero inelásticas propias de su hábito cristalino.",
+    "room": "room_archaeology",
+    "date": "S. XIX",
+    "origin": "Distrito Minero de Quiruvilca, Perú",
+    "material": "Trisulfuro de Arsénico (As2S3)",
+    "dimensions": "14 × 9 cm",
+    "accessionNo": "MS-GEO-O01"
+  },
+  "fluorita_verde.glb": {
+    "name": "Fluorita Verde",
+    "subtitle": "Fluoruro de Calcio Cristalizado",
+    "category": "GEOLOGÍA / MINERALOGÍA",
+    "description": "Cristal de fluorita de color verde esmeralda con hábito cúbico. Presenta un brillo vítreo y es famosa por su capacidad de fluorescencia bajo luz ultravioleta.",
+    "history": "Procedente de los yacimientos clásicos de Asturias. La fluorita es el mineral que dio nombre al fenómeno de la fluorescencia.",
+    "room": "room_archaeology",
+    "date": "S. XIX",
+    "origin": "Mina La Collada, Asturias, España",
+    "material": "Fluoruro de Calcio (CaF2)",
+    "dimensions": "12 × 11 cm",
+    "accessionNo": "MS-GEO-F01"
+  },
+  "forma_karstica_alita.glb": {
+    "name": "Forma Kárstica en Halita (Alita)",
+    "subtitle": "Modelado por Disolución de Sal",
+    "category": "GEOLOGÍA / GEOMORFOLOGÍA",
+    "description": "Ejemplar que muestra el proceso de karstificación en halita (sal común). La alta solubilidad del mineral genera estructuras únicas de disolución rápida.",
+    "history": "Este tipo de formaciones son comunes en domos salinos y diapiros. Muestra cómo el agua esculpe la roca salina creando conductos y galerías.",
+    "room": "room_archaeology",
+    "date": "Actual",
+    "origin": "Montaña de Sal de Cardona, Barcelona",
+    "material": "Halita / Cloruro de Sodio (NaCl)",
+    "dimensions": "18 × 15 cm",
+    "accessionNo": "MS-GEO-H01"
+  },
   "360_entrada_hall_v1.jpg": {
     "name": "Entrada / Hall (Vista Principal)",
     "subtitle": "Visita Virtual 360°",
