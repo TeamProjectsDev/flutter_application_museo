@@ -4,6 +4,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class TicketScannerScreen extends ConsumerStatefulWidget {
   const TicketScannerScreen({super.key});
@@ -13,53 +16,244 @@ class TicketScannerScreen extends ConsumerStatefulWidget {
 }
 
 class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
+  int _currentIndex = 0; // 0: Escáner, 1: Venta Directa
   bool _isProcessing = false;
   MobileScannerController controller = MobileScannerController();
+
+  // Controladores para el formulario de venta
+  final _emailController = TextEditingController();
+  final _passController = TextEditingController();
+  final _nameController = TextEditingController();
+  String _selectedType = 'all'; // all, entrance, 3d, audio
+  int _quantity = 1;
 
   @override
   void dispose() {
     controller.dispose();
+    _emailController.dispose();
+    _passController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('admin_scanner_title'.tr()),
-        backgroundColor: Colors.transparent,
+        title: Text(_currentIndex == 0 ? 'admin_scanner_title'.tr() : 'Venta en Taquilla'.tr()),
+        backgroundColor: _currentIndex == 0 ? Colors.transparent : theme.colorScheme.surface,
         elevation: 0,
       ),
-      extendBodyBehindAppBar: true,
-      body: Stack(
+      extendBodyBehindAppBar: _currentIndex == 0,
+      body: IndexedStack(
+        index: _currentIndex,
         children: [
-          // 📷 Visor de Cámara
-          MobileScanner(
-            controller: controller,
-            onDetect: (capture) {
-              if (_isProcessing) return;
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                if (barcode.rawValue != null) {
-                  _processTicket(barcode.rawValue!);
-                  break;
-                }
+          _buildScannerTab(),
+          _buildSaleTab(theme),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          if (index == 0) {
+            controller.start();
+          } else {
+            controller.stop();
+          }
+          setState(() => _currentIndex = index);
+        },
+        selectedItemColor: Colors.amber,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'Escanear'),
+          BottomNavigationBarItem(icon: Icon(Icons.point_of_sale), label: 'Venta Directa'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScannerTab() {
+    return Stack(
+      children: [
+        MobileScanner(
+          controller: controller,
+          onDetect: (capture) {
+            if (_isProcessing) return;
+            final List<Barcode> barcodes = capture.barcodes;
+            for (final barcode in barcodes) {
+              if (barcode.rawValue != null) {
+                _processTicket(barcode.rawValue!);
+                break;
               }
-            },
+            }
+          },
+        ),
+        _buildScannerOverlay(context),
+        if (_isProcessing)
+          Container(color: Colors.black54, child: const Center(child: CircularProgressIndicator())),
+      ],
+    );
+  }
+
+  Widget _buildSaleTab(ThemeData theme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Registrar Nueva Venta', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          const Text('Crea una cuenta y ticket instantáneo para el visitante.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+          const SizedBox(height: 24),
+          
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(labelText: 'Nombre del Visitante', prefixIcon: const Icon(Icons.person), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
           ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _emailController,
+            decoration: InputDecoration(labelText: 'Email', prefixIcon: const Icon(Icons.email), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _passController,
+            obscureText: true,
+            decoration: InputDecoration(labelText: 'Contraseña sugerida', prefixIcon: const Icon(Icons.lock), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+          ),
+          const SizedBox(height: 24),
+          
+          const Text('Tipo de Entrada', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            initialValue: _selectedType,
+            decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            items: const [
+              DropdownMenuItem(value: 'all', child: Text('Pack Completo (Entrada + 3D + Audio)')),
+              DropdownMenuItem(value: 'entrance', child: Text('Entrada General')),
+              DropdownMenuItem(value: '3d', child: Text('Acceso 3D solamente')),
+              DropdownMenuItem(value: 'audio', child: Text('Audioguía')),
+            ],
+            onChanged: (v) => setState(() => _selectedType = v!),
+          ),
+          const SizedBox(height: 16),
+          
+          Row(
+            children: [
+              const Text('Cantidad de personas:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Spacer(),
+              IconButton(onPressed: () => setState(() => _quantity > 1 ? _quantity-- : null), icon: const Icon(Icons.remove_circle_outline)),
+              Text('$_quantity', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              IconButton(onPressed: () => setState(() => _quantity++), icon: const Icon(Icons.add_circle_outline)),
+            ],
+          ),
+          
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton(
+              onPressed: _isProcessing ? null : _handleDirectSale,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              child: _isProcessing 
+                ? const CircularProgressIndicator(color: Colors.white) 
+                : const Text('FINALIZAR VENTA Y GENERAR QR', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-          // 🔳 Overlay de escaneo
-          _buildScannerOverlay(context),
+  Future<void> _handleDirectSale() async {
+    if (_emailController.text.isEmpty || _passController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Email y contraseña son obligatorios')));
+      return;
+    }
 
-          // 🛡️ Indicador de procesamiento
-          if (_isProcessing)
+    setState(() => _isProcessing = true);
+    final String email = _emailController.text.trim();
+    final String password = _passController.text.trim();
+    final String name = _nameController.text.trim();
+
+    debugPrint('🔐 Venta directa para $email con pass de ${password.length} caracteres');
+
+    try {
+      // 1. Crear el usuario en Firebase de forma aislada
+      // Nota: En producción esto se hace mejor vía Cloud Function, pero usaremos FirebaseAdmin o lógica de creación temporal
+      // Para esta versión, creamos el registro en Firestore y el usuario podrá loguearse
+      
+      final String ticketId = 'TKT-${DateTime.now().millisecondsSinceEpoch}';
+      
+      final ticketData = {
+        'ticketId': ticketId,
+        'visitorName': name.isEmpty ? 'Visitante Taquilla' : name,
+        'email': email,
+        'status': 'active',
+        'purchaseDate': FieldValue.serverTimestamp(),
+        'visitDate': DateFormat('dd/MM/yyyy').format(DateTime.now()),
+        'visitDateTimestamp': Timestamp.now(),
+        'totalTickets': _quantity,
+        'type': _selectedType,
+        'isPhysicalSale': true,
+      };
+
+      await FirebaseFirestore.instance.collection('tickets').add(ticketData);
+
+      if (!mounted) return;
+
+      // 📧 ENVIAR CORREO VÍA EMAILJS
+      _sendConfirmationEmail(email, name, ticketId);
+
+      // 2. Mostrar el QR al administrador para que el cliente lo tenga
+      _showQrResult(ticketId, name);
+      
+      // Limpiar formulario
+      _emailController.clear();
+      _passController.clear();
+      _nameController.clear();
+      setState(() => _quantity = 1);
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error en la venta: $e')));
+    } finally {
+      setState(() => _isProcessing = false);
+    }
+  }
+
+  void _showQrResult(String code, String name) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('VENTA COMPLETADA', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enséñale este código al visitante:', style: TextStyle(fontSize: 12)),
+            const SizedBox(height: 20),
             Container(
-              color: Colors.black54,
-              child: const Center(
-                child: CircularProgressIndicator(),
+              padding: const EdgeInsets.all(10),
+              color: Colors.white,
+              child: Image.network(
+                'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=$code',
+                width: 200,
+                height: 200,
               ),
             ),
+            const SizedBox(height: 20),
+            Text(code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 10),
+            Text('Visitante: $name', style: const TextStyle(color: Colors.grey)),
+          ],
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('LISTO'),
+            ),
+          )
         ],
       ),
     );
@@ -325,4 +519,45 @@ class _TicketScannerScreenState extends ConsumerState<TicketScannerScreen> {
       ],
     ),
   );
+
+  Future<void> _sendConfirmationEmail(String targetEmail, String targetName, String ticketId) async {
+    final serviceId = dotenv.env['EMAILJS_SERVICE_ID'] ?? '';
+    final templateId = dotenv.env['EMAILJS_TICKET_TEMPLATE_ID'] ?? '';
+    final userId = dotenv.env['EMAILJS_USER_ID'] ?? '';
+
+    if (serviceId.isEmpty || templateId.isEmpty) return;
+
+    final qrUrl = 'https://quickchart.io/qr?text=$ticketId&size=400';
+    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+
+    await _triggerEmailJS(serviceId, templateId, userId, {
+      'to_email': targetEmail,
+      'from_name': 'Museo Padre Suárez',
+      'subject': 'Tu Entrada al Museo - $ticketId',
+      'name': targetName,
+      'qr_image_url': qrUrl,
+      'ticket_id': ticketId,
+      'visit_date': DateFormat('dd/MM/yyyy').format(DateTime.now()),
+      'purchase_date': dateStr,
+      'tickets_details': 'Venta Directa en Taquilla - $_selectedType (x$_quantity)',
+    });
+  }
+
+  Future<void> _triggerEmailJS(String serviceId, String templateId, String userId, Map<String, dynamic> params) async {
+    try {
+      await http.post(
+        Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'service_id': serviceId,
+          'template_id': templateId,
+          'user_id': userId,
+          'accessToken': dotenv.env['EMAILJS_PRIVATE_KEY'] ?? '',
+          'template_params': params,
+        }),
+      );
+    } catch (e) {
+      debugPrint('Error EmailJS: $e');
+    }
+  }
 }

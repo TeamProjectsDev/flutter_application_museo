@@ -203,8 +203,12 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
       GoRoute(
         path: '/admin/scanner',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) =>
-            const TicketScannerScreen(), // We will create this next
+        builder: (context, state) => const TicketScannerScreen(),
+        redirect: (context, state) {
+          final authState = ref.read(authProvider);
+          if (!authState.isAdmin) return '/home';
+          return null;
+        },
       ),
       GoRoute(
         path: '/payment',
