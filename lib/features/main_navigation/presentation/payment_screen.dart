@@ -63,9 +63,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     if (widget.stripeSuccess) {
       _isProcessing = true;
     }
-    
+
     FirebaseAnalytics.instance.logEvent(name: 'view_payment_screen');
-    
+
     // 🕵️‍♂️ DETECCIÓN DE ÉXITO (Doble seguridad: Parámetro o URL real)
     bool isActuallySuccess = widget.stripeSuccess;
     if (kIsWeb) {
@@ -80,7 +80,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('El pago fue cancelado o no se pudo completar. Inténtalo de nuevo.'),
+            content: Text(
+                'El pago fue cancelado o no se pudo completar. Inténtalo de nuevo.'),
             backgroundColor: Colors.orange,
           ),
         );
@@ -147,8 +148,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         debugPrint('Error parseando fecha guardada: $e');
       }
     }
-    
-    debugPrint('👉 [PaymentScreen] Datos recuperados: $savedName, $savedEmail, Total=$savedTotal, Pieza=$savedPrintPiece, Fecha=$savedDate');
+
+    debugPrint(
+        '👉 [PaymentScreen] Datos recuperados: $savedName, $savedEmail, Total=$savedTotal, Pieza=$savedPrintPiece, Fecha=$savedDate');
 
     // Procesamos el pedido de forma asíncrona
     Future.delayed(const Duration(seconds: 1), () async {
@@ -162,13 +164,18 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
         // 🔐 CERROJO DE SEGURIDAD: Si estamos en éxito pero no hay rastro del pedido en la "caja fuerte"
         // es que alguien ha intentado entrar escribiendo la URL a mano o los datos no se guardaron.
-        if (widget.stripeSuccess && (savedTotal == null || savedName == null || savedTickets == null)) {
-          debugPrint('🚨 [Seguridad] Fallo de recuperación de datos. Total=$savedTotal, Name=$savedName, Tickets=${savedTickets != null}');
+        if (widget.stripeSuccess &&
+            (savedTotal == null || savedName == null || savedTickets == null)) {
+          debugPrint(
+              '🚨 [Seguridad] Fallo de recuperación de datos. Total=$savedTotal, Name=$savedName, Tickets=${savedTickets != null}');
           if (mounted) {
-             context.go('/shop');
-             ScaffoldMessenger.of(context).showSnackBar(
-               const SnackBar(content: Text('Error: No se pudieron recuperar los datos del pago. Revisa tu historial de pedidos.'), backgroundColor: Colors.red),
-             );
+            context.go('/shop');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text(
+                      'Error: No se pudieron recuperar los datos del pago. Revisa tu historial de pedidos.'),
+                  backgroundColor: Colors.red),
+            );
           }
           return;
         }
@@ -190,15 +197,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         final effectiveTickets = savedTickets ?? widget.ticketsJson;
 
         await _processOrderWithData(effectiveTotal, effectiveTickets);
-        
+
         // Limpiamos la caja fuerte después de usarla
         await prefs.clear();
-
       } catch (e) {
         debugPrint('❌ Error en el proceso automático: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al procesar: $e'), backgroundColor: Colors.red),
+            SnackBar(
+                content: Text('Error al procesar: $e'),
+                backgroundColor: Colors.red),
           );
         }
       }
@@ -219,23 +227,25 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final paymentState = ref.watch(paymentProvider);
-    
+
     // 🛡️ Blindaje de datos: Priorizamos lo que hay en los controladores o lo recuperado
     // para que la pantalla no se vea vacía ($0.00) tras el refresco de Stripe
     Map<String, dynamic> tickets = {};
 
     try {
-      final String sourceJson = (_recoveredTicketsJson != null && _recoveredTicketsJson!.length > 5)
-          ? _recoveredTicketsJson!
-          : (widget.ticketsJson.length > 5 ? widget.ticketsJson : "{}");
+      final String sourceJson =
+          (_recoveredTicketsJson != null && _recoveredTicketsJson!.length > 5)
+              ? _recoveredTicketsJson!
+              : (widget.ticketsJson.length > 5 ? widget.ticketsJson : "{}");
       tickets = json.decode(sourceJson);
     } catch (_) {
       tickets = {};
     }
-    
-    final bool isOnly3D = (int.tryParse(tickets['general']?.toString() ?? '0') ?? 0) == 0 &&
-                         (int.tryParse(tickets['student']?.toString() ?? '0') ?? 0) == 0;
-    
+
+    final bool isOnly3D =
+        (int.tryParse(tickets['general']?.toString() ?? '0') ?? 0) == 0 &&
+            (int.tryParse(tickets['student']?.toString() ?? '0') ?? 0) == 0;
+
     final isTester = int.tryParse(dotenv.env['TESTER'] ?? '0') == 1;
 
     return Scaffold(
@@ -243,197 +253,232 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         title: Text('checkout_title'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: _isProcessing 
-            ? null 
-            : () {
-                if (GoRouter.of(context).canPop()) {
-                  context.pop();
-                } else {
-                  context.go('/home');
-                }
-              },
+          onPressed: _isProcessing
+              ? null
+              : () {
+                  if (GoRouter.of(context).canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/home');
+                  }
+                },
         ),
       ),
       body: Stack(
         children: [
           SingleChildScrollView(
-            physics: _isProcessing ? const NeverScrollableScrollPhysics() : null,
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('checkout_title'.tr(),
-                  style: theme.textTheme.displayLarge?.copyWith(fontSize: 32)),
-              const SizedBox(height: 8),
-              Text('checkout_desc'.tr(),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.6))),
-              const SizedBox(height: 40),
+            physics:
+                _isProcessing ? const NeverScrollableScrollPhysics() : null,
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('checkout_title'.tr(),
+                      style:
+                          theme.textTheme.displayLarge?.copyWith(fontSize: 32)),
+                  const SizedBox(height: 8),
+                  Text('checkout_desc'.tr(),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.6))),
+                  const SizedBox(height: 40),
 
-              // 💳 Payment Details Form
-              _buildPaymentForm(theme, isOnly3D),
+                  // 💳 Payment Details Form
+                  _buildPaymentForm(theme, isOnly3D),
 
-              const SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
-              // 📊 Checkout Order Summary
-              _buildCheckoutSummary(theme, tickets),
+                  // 📊 Checkout Order Summary
+                  _buildCheckoutSummary(theme, tickets),
 
-              const SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
-              // 🔒 Confirm Button or Warning
-              Builder(
-                builder: (context) {
-                  final configState = ref.watch(configProvider);
-                  final config = configState.config;
-                  final currentUser = FirebaseAuth.instance.currentUser;
-                  
-                  if (configState.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                  // 🔒 Confirm Button or Warning
+                  Builder(
+                    builder: (context) {
+                      final configState = ref.watch(configProvider);
+                      final config = configState.config;
+                      final currentUser = FirebaseAuth.instance.currentUser;
 
-                  // 🚩 Comprobación 0: Usuario Autenticado
-                  if (currentUser == null) {
-                    return Column(
-                      children: [
-                        _buildWarningBox(theme, 'auth_required_checkout'.tr(), Icons.account_circle),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: () => context.push('/auth'),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: theme.colorScheme.primary),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                      if (configState.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      // 🚩 Comprobación 0: Usuario Autenticado
+                      if (currentUser == null) {
+                        return Column(
+                          children: [
+                            _buildWarningBox(
+                                theme,
+                                'auth_required_checkout'.tr(),
+                                Icons.account_circle),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton(
+                                onPressed: () => context.push('/auth'),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                      color: theme.colorScheme.primary),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                child: Text('auth_login'.tr().toUpperCase()),
+                              ),
                             ),
-                            child: Text('auth_login'.tr().toUpperCase()),
+                          ],
+                        );
+                      }
+
+                      // 🚩 Comprobación 1: Cierre Global
+                      if (config != null && !config.isGlobalOpen) {
+                        return _buildWarningBox(
+                            theme, 'museum_closed_global'.tr(), Icons.lock);
+                      }
+
+                      // 🚩 Comprobación 2: Estado del día seleccionado
+                      if (_selectedDate != null && config != null) {
+                        final dateKey =
+                            DateFormat('yyyy-MM-dd').format(_selectedDate!);
+                        final override = config.calendarOverrides[dateKey];
+
+                        if (override != null) {
+                          if (override.status == DayStatus.closed) {
+                            return _buildWarningBox(
+                                theme,
+                                override.reason ?? 'museum_closed_day'.tr(),
+                                Icons.event_busy);
+                          }
+                          if (override.status == DayStatus.fullyBooked) {
+                            return _buildWarningBox(theme,
+                                'museum_full_day'.tr(), Icons.people_outline);
+                          }
+                          if (override.status == DayStatus.event) {
+                            return _buildWarningBox(
+                                theme,
+                                override.reason ?? 'museum_event_day'.tr(),
+                                Icons.stars);
+                          }
+                        }
+                      }
+
+                      // 🚩 Comprobación 3: Aforo Máximo (Priorizar aforo especial del día)
+                      Map<String, dynamic> ticketsMap = {};
+                      try {
+                        ticketsMap = json.decode(widget.ticketsJson.isEmpty
+                            ? '{}'
+                            : widget.ticketsJson);
+                      } catch (_) {}
+
+                      final int gReq = int.tryParse(
+                              ticketsMap['general']?.toString() ?? '0') ??
+                          0;
+                      final int sReq = int.tryParse(
+                              ticketsMap['student']?.toString() ?? '0') ??
+                          0;
+                      final int totalRequested = gReq + sReq;
+
+                      debugPrint(
+                          '📊 [PaymentScreen] Comprobando aforo: Solicitados=$totalRequested (G:$gReq, S:$sReq)');
+
+                      if (config != null) {
+                        int effectiveCapacity = config.maxDailyCapacity;
+
+                        // Si el día tiene un aforo personalizado, usamos ese
+                        if (_selectedDate != null) {
+                          final dateKey =
+                              DateFormat('yyyy-MM-dd').format(_selectedDate!);
+                          final override = config.calendarOverrides[dateKey];
+                          if (override != null &&
+                              override.customCapacity != null) {
+                            effectiveCapacity = override.customCapacity!;
+                          }
+                        }
+
+                        debugPrint(
+                            '🏛️ [PaymentScreen] Aforo efectivo para hoy: $effectiveCapacity');
+
+                        if (totalRequested > effectiveCapacity) {
+                          debugPrint('🚨 [PaymentScreen] ¡AFORO EXCEDIDO!');
+                          return _buildWarningBox(
+                              theme,
+                              'museum_capacity_exceeded'
+                                  .tr(args: [effectiveCapacity.toString()]),
+                              Icons.groups_outlined);
+                        }
+                      }
+
+                      // 🚩 Comprobación 4: Audioguías vs Visitantes
+                      final int audioRequested = int.tryParse(
+                              ticketsMap['audio']?.toString() ?? '0') ??
+                          0;
+                      if (audioRequested > totalRequested &&
+                          totalRequested > 0) {
+                        return _buildWarningBox(
+                            theme,
+                            'shop_error_audio_limit'
+                                .tr(args: [totalRequested.toString()]),
+                            Icons.headset_mic_outlined);
+                      }
+
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: (paymentState.isLoading ||
+                                  _isProcessing ||
+                                  _nameController.text.trim().isEmpty ||
+                                  !_emailController.text.contains('@') ||
+                                  (!isOnly3D &&
+                                      _selectedDate == null &&
+                                      !isTester))
+                              ? null
+                              : _handlePayment,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.black,
                           ),
+                          child: (paymentState.isLoading || _isProcessing)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.black)
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('checkout_confirm'.tr(),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16)),
+                                    const SizedBox(width: 8),
+                                    const Icon(Icons.check_circle, size: 18),
+                                  ],
+                                ),
                         ),
-                      ],
-                    );
-                  }
-
-                  // 🚩 Comprobación 1: Cierre Global
-                  if (config != null && !config.isGlobalOpen) {
-                    return _buildWarningBox(theme, 'museum_closed_global'.tr(), Icons.lock);
-                  }
-
-                  // 🚩 Comprobación 2: Estado del día seleccionado
-                  if (_selectedDate != null && config != null) {
-                    final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate!);
-                    final override = config.calendarOverrides[dateKey];
-                    
-                    if (override != null) {
-                      if (override.status == DayStatus.closed) {
-                        return _buildWarningBox(theme, override.reason ?? 'museum_closed_day'.tr(), Icons.event_busy);
-                      }
-                      if (override.status == DayStatus.fullyBooked) {
-                        return _buildWarningBox(theme, 'museum_full_day'.tr(), Icons.people_outline);
-                      }
-                      if (override.status == DayStatus.event) {
-                        return _buildWarningBox(theme, override.reason ?? 'museum_event_day'.tr(), Icons.stars);
-                      }
-                    }
-                  }
-
-                  // 🚩 Comprobación 3: Aforo Máximo (Priorizar aforo especial del día)
-                  Map<String, dynamic> ticketsMap = {};
-                  try {
-                    ticketsMap = json.decode(widget.ticketsJson.isEmpty ? '{}' : widget.ticketsJson);
-                  } catch (_) {}
-
-                  final int gReq = int.tryParse(ticketsMap['general']?.toString() ?? '0') ?? 0;
-                  final int sReq = int.tryParse(ticketsMap['student']?.toString() ?? '0') ?? 0;
-                  final int totalRequested = gReq + sReq;
-                  
-                  debugPrint('📊 [PaymentScreen] Comprobando aforo: Solicitados=$totalRequested (G:$gReq, S:$sReq)');
-
-                  if (config != null) {
-                    int effectiveCapacity = config.maxDailyCapacity;
-                    
-                    // Si el día tiene un aforo personalizado, usamos ese
-                    if (_selectedDate != null) {
-                      final dateKey = DateFormat('yyyy-MM-dd').format(_selectedDate!);
-                      final override = config.calendarOverrides[dateKey];
-                      if (override != null && override.customCapacity != null) {
-                        effectiveCapacity = override.customCapacity!;
-                      }
-                    }
-
-                    debugPrint('🏛️ [PaymentScreen] Aforo efectivo para hoy: $effectiveCapacity');
-
-                    if (totalRequested > effectiveCapacity) {
-                      debugPrint('🚨 [PaymentScreen] ¡AFORO EXCEDIDO!');
-                      return _buildWarningBox(
-                        theme, 
-                        'museum_capacity_exceeded'.tr(args: [effectiveCapacity.toString()]), 
-                        Icons.groups_outlined
                       );
-                    }
-                  }
-
-                  // 🚩 Comprobación 4: Audioguías vs Visitantes
-                  final int audioRequested = int.tryParse(ticketsMap['audio']?.toString() ?? '0') ?? 0;
-                  if (audioRequested > totalRequested && totalRequested > 0) {
-                    return _buildWarningBox(
-                      theme, 
-                      'shop_error_audio_limit'.tr(args: [totalRequested.toString()]), 
-                      Icons.headset_mic_outlined
-                    );
-                  }
-
-                  return SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: (paymentState.isLoading ||
-                              _isProcessing ||
-                              _nameController.text.trim().isEmpty ||
-                              !_emailController.text.contains('@') ||
-                              (!isOnly3D && _selectedDate == null && !isTester))
-                          ? null
-                          : _handlePayment,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: Colors.black,
-                      ),
-                      child: (paymentState.isLoading || _isProcessing)
-                          ? const CircularProgressIndicator(color: Colors.black)
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text('checkout_confirm'.tr(),
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 16)),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.check_circle, size: 18),
-                              ],
-                            ),
-                    ),
-                  );
-                },
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Text('checkout_secure'.tr(),
+                        style: TextStyle(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.4),
+                            fontSize: 11)),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Center(
-                child: Text('checkout_secure'.tr(),
-                    style:
-                        TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 11)),
-              ),
-            ],
+            ),
           ),
-        ),
+          if (_isProcessing)
+            Container(
+              color: Colors.black.withValues(alpha: 0.5),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
-      if (_isProcessing)
-        Container(
-          color: Colors.black.withValues(alpha: 0.5),
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
-    ],
-  ),
-);
+    );
   }
 
   Widget _buildPaymentForm(ThemeData theme, bool isOnly3D) {
@@ -462,7 +507,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             ),
             const SizedBox(height: 24),
             _buildFieldLabel('checkout_cardholder'.tr()),
-            _buildSimpleField(controller: _nameController, hint: 'p. ej. Alberto Ortiz'),
+            _buildSimpleField(
+                controller: _nameController, hint: 'p. ej. Alberto Ortiz'),
             const SizedBox(height: 20),
             _buildFieldLabel('checkout_email'.tr()),
             _buildSimpleField(
@@ -470,34 +516,34 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             if (!isOnly3D) ...[
               const SizedBox(height: 20),
               _buildFieldLabel('VISIT DATE'),
-            InkWell(
-              onTap: _selectDate,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _selectedDate == null
-                          ? 'SELECT DATE'
-                          : DateFormat('dd/MM/yyyy').format(_selectedDate!),
-                      style: TextStyle(
-                          color: _selectedDate == null
-                              ? theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.2)
-                              : theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.7),
-                          fontSize: 14),
-                    ),
-                    Icon(Icons.calendar_today,
-                        size: 16,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+              InkWell(
+                onTap: _selectDate,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _selectedDate == null
+                            ? 'SELECT DATE'
+                            : DateFormat('dd/MM/yyyy').format(_selectedDate!),
+                        style: TextStyle(
+                            color: _selectedDate == null
+                                ? theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.2)
+                                : theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.7),
+                            fontSize: 14),
+                      ),
+                      Icon(Icons.calendar_today,
+                          size: 16,
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.3)),
                     ],
                   ),
                 ),
@@ -514,10 +560,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(label,
           style: TextStyle(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.6), // Subido de 0.4 a 0.6 para legibilidad
+              color: Theme.of(context).colorScheme.onSurface.withValues(
+                  alpha: 0.6), // Subido de 0.4 a 0.6 para legibilidad
               fontSize: 10,
               fontWeight: FontWeight.bold,
               letterSpacing: 1)),
@@ -572,17 +616,28 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           if ((int.tryParse(tickets['general']?.toString() ?? '0') ?? 0) > 0)
             _summaryRow(
                 '${'shop_item_general_title'.tr()} x${tickets['general']}',
-                ((int.tryParse(tickets['general']?.toString() ?? '0') ?? 0) * 25.0).toStringAsFixed(2)),
+                ((int.tryParse(tickets['general']?.toString() ?? '0') ?? 0) *
+                        25.0)
+                    .toStringAsFixed(2)),
           if ((int.tryParse(tickets['student']?.toString() ?? '0') ?? 0) > 0)
             _summaryRow(
                 '${'shop_item_student_title'.tr()} x${tickets['student']}',
-                ((int.tryParse(tickets['student']?.toString() ?? '0') ?? 0) * 15.0).toStringAsFixed(2)),
+                ((int.tryParse(tickets['student']?.toString() ?? '0') ?? 0) *
+                        15.0)
+                    .toStringAsFixed(2)),
           if ((int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0) > 0)
-            _summaryRow('${'shop_item_audio_title'.tr()} x${tickets['audio']}',
-                ((int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0) * 8.0).toStringAsFixed(2)),
+            _summaryRow(
+                '${'shop_item_audio_title'.tr()} x${tickets['audio']}',
+                ((int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0) * 8.0)
+                    .toStringAsFixed(2)),
           if ((int.tryParse(tickets['print']?.toString() ?? '0') ?? 0) > 0)
-            _summaryRow('3D Print (${widget.printPieceName ?? 'Pieza'}) ${tickets['print']}mm',
-                (10.0 + (int.tryParse(tickets['print']?.toString() ?? '0') ?? 0) * 0.2).toStringAsFixed(2)),
+            _summaryRow(
+                '3D Print (${widget.printPieceName ?? 'Pieza'}) ${tickets['print']}mm',
+                (10.0 +
+                        (int.tryParse(tickets['print']?.toString() ?? '0') ??
+                                0) *
+                            0.2)
+                    .toStringAsFixed(2)),
           const Divider(color: Colors.white10, height: 32),
           _summaryRow('shop_subtotal'.tr(), widget.subtotal, isSmall: true),
           _summaryRow('shop_fee'.tr(), widget.fees, isSmall: true),
@@ -613,8 +668,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           Expanded(
             child: Text(label,
                 style: TextStyle(
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: isSmall ? 0.5 : 0.8), // Subido de 0.3/0.7
+                    color: theme.colorScheme.onSurface.withValues(
+                        alpha: isSmall ? 0.5 : 0.8), // Subido de 0.3/0.7
                     fontSize: isSmall ? 11 : 13)),
           ),
           Text('\$$value',
@@ -642,7 +697,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('pending_name', _nameController.text.trim());
       await prefs.setString('pending_email', _emailController.text.trim());
-      await prefs.setString('pending_date', _selectedDate != null ? DateFormat('yyyy-MM-dd').format(_selectedDate!) : "");
+      await prefs.setString(
+          'pending_date',
+          _selectedDate != null
+              ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+              : "");
       await prefs.setString('pending_total', widget.total);
       await prefs.setString('pending_subtotal', widget.subtotal);
       await prefs.setString('pending_fees', widget.fees);
@@ -656,11 +715,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         amountInCents: (double.parse(widget.total) * 100).toInt(),
         currency: 'eur',
         // 🔗 URL de retorno segura vinculada a tu proyecto Firebase (Sin almohadilla para mejor soporte de Deep Links en Android)
-        successUrl: kIsWeb 
-            ? '${Uri.base.origin}/#/payment/success' 
+        successUrl: kIsWeb
+            ? '${Uri.base.origin}/#/payment/success'
             : 'https://${dotenv.env['FIREBASE_PROJECT_ID']}.web.app/payment/success',
-        cancelUrl: kIsWeb 
-            ? '${Uri.base.origin}/#/payment/cancel' 
+        cancelUrl: kIsWeb
+            ? '${Uri.base.origin}/#/payment/cancel'
             : 'https://${dotenv.env['FIREBASE_PROJECT_ID']}.web.app/payment/cancel',
       );
 
@@ -673,10 +732,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           await redirectToUrl(stripeUrl);
         } else {
           // En móviles usamos el lanzador estándar
-          await launchUrlString(stripeUrl, mode: LaunchMode.externalApplication);
+          await launchUrlString(stripeUrl,
+              mode: LaunchMode.externalApplication);
         }
       } else {
-        debugPrint('🚨 [PaymentScreen] Error: No se pudo generar la URL de Stripe');
+        debugPrint(
+            '🚨 [PaymentScreen] Error: No se pudo generar la URL de Stripe');
       }
     } catch (e) {
       ref.read(paymentProvider.notifier).setLoading(false);
@@ -705,15 +766,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child:
-                  Text('shop_tester_cancel'.tr(), style: const TextStyle(color: Colors.grey))),
+              child: Text('shop_tester_cancel'.tr(),
+                  style: const TextStyle(color: Colors.grey))),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               _processOrder();
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content:
-                      Text('shop_tester_success'.tr()),
+                  content: Text('shop_tester_success'.tr()),
                   backgroundColor: Colors.green));
               context.pop();
             },
@@ -773,9 +833,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     try {
       // 📦 RECUPERAR EL NOMBRE DE LA PIEZA DE LA CAJA FUERTE (Prioridad máxima)
       final prefs = await SharedPreferences.getInstance();
-      final finalPieceName = prefs.getString('pending_print_piece') ?? widget.printPieceName ?? 'Pieza Museo';
-      
-      debugPrint('📦 [PaymentScreen] Nombre final de la pieza para Firestore: $finalPieceName');
+      final finalPieceName = prefs.getString('pending_print_piece') ??
+          widget.printPieceName ??
+          'Pieza Museo';
+
+      debugPrint(
+          '📦 [PaymentScreen] Nombre final de la pieza para Firestore: $finalPieceName');
 
       // 1. Guardar COMPRA INTEGRAL en Firestore para el Admin
       await FirebaseFirestore.instance.collection('purchases').add({
@@ -786,10 +849,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         'visitDate': dateStr,
         'purchaseDate': FieldValue.serverTimestamp(),
         'items': {
-          'general_tickets': int.tryParse(tickets['general']?.toString() ?? '0') ?? 0,
-          'student_tickets': int.tryParse(tickets['student']?.toString() ?? '0') ?? 0,
-          'audio_guides': int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0,
-          'print_3d_height': int.tryParse(tickets['print']?.toString() ?? '0') ?? 0,
+          'general_tickets':
+              int.tryParse(tickets['general']?.toString() ?? '0') ?? 0,
+          'student_tickets':
+              int.tryParse(tickets['student']?.toString() ?? '0') ?? 0,
+          'audio_guides':
+              int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0,
+          'print_3d_height':
+              int.tryParse(tickets['print']?.toString() ?? '0') ?? 0,
           'print_3d_piece': finalPieceName,
         },
         'totalAmount': total,
@@ -798,37 +865,44 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       debugPrint('✅ Compra guardada en Firestore');
 
       // 2. Procesar Entradas (Email con QR al usuario y notificación a admin)
-      final int generalCount = int.tryParse(tickets['general']?.toString() ?? '0') ?? 0;
-      final int studentCount = int.tryParse(tickets['student']?.toString() ?? '0') ?? 0;
-      final int printCount = int.tryParse(tickets['print']?.toString() ?? '0') ?? 0;
-      final int audioCount = int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0;
+      final int generalCount =
+          int.tryParse(tickets['general']?.toString() ?? '0') ?? 0;
+      final int studentCount =
+          int.tryParse(tickets['student']?.toString() ?? '0') ?? 0;
+      final int printCount =
+          int.tryParse(tickets['print']?.toString() ?? '0') ?? 0;
+      final int audioCount =
+          int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0;
 
       if (generalCount > 0 || studentCount > 0) {
         debugPrint('🎟️ Procesando tickets...');
         await _sendTicketEmail(targetEmail, targetName, orderId, tickets);
       }
 
-          // 3. Procesar Impresión 3D (Registro en cola y notificación)
-          if (printCount > 0) {
-            debugPrint('🖨️ Procesando impresión 3D...');
-            final prefs = await SharedPreferences.getInstance();
-            final savedPieceName = prefs.getString('pending_print_piece') ?? widget.printPieceName ?? 'Pieza Museo';
+      // 3. Procesar Impresión 3D (Registro en cola y notificación)
+      if (printCount > 0) {
+        debugPrint('🖨️ Procesando impresión 3D...');
+        final prefs = await SharedPreferences.getInstance();
+        final savedPieceName = prefs.getString('pending_print_piece') ??
+            widget.printPieceName ??
+            'Pieza Museo';
 
-            await FirebaseFirestore.instance.collection('print_requests').add({
-              'orderId': orderId,
-              'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest',
-              'pieceName': savedPieceName,
-              'height': printCount,
-              'customerName': targetName,
-              'customerEmail': targetEmail,
-              'status': 'pendiente',
-              'timestamp': FieldValue.serverTimestamp(),
-              'notes': 'Tamaño: ${printCount}mm | Ref: $orderId', // 📐 Añadida la altura a las notas
-            });
+        await FirebaseFirestore.instance.collection('print_requests').add({
+          'orderId': orderId,
+          'userId': FirebaseAuth.instance.currentUser?.uid ?? 'guest',
+          'pieceName': savedPieceName,
+          'height': printCount,
+          'customerName': targetName,
+          'customerEmail': targetEmail,
+          'status': 'pendiente',
+          'timestamp': FieldValue.serverTimestamp(),
+          'notes':
+              'Tamaño: ${printCount}mm | Ref: $orderId', // 📐 Añadida la altura a las notas
+        });
 
-          await _sendPrintRequestEmail(
-              targetEmail, targetName, printCount.toString(), orderId, savedPieceName);
-        }
+        await _sendPrintRequestEmail(targetEmail, targetName,
+            printCount.toString(), orderId, savedPieceName);
+      }
 
       // 4. Procesar Audio-Guías (Guardar en colección propia por seguridad)
       if (audioCount > 0) {
@@ -851,7 +925,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       if (mounted) {
         debugPrint('🎊 ¡Proceso completado con éxito! Mostrando factura...');
         setState(() => _isProcessing = false);
-        
+
         // 🚀 USAR POST FRAME CALLBACK PARA EVITAR ERRORES DE NAVEGACIÓN
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
@@ -859,12 +933,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           }
         });
       }
-
     } catch (e) {
       debugPrint('❌ ERROR en el proceso de pedido: $e');
       if (mounted) {
         setState(() => _isProcessing = false);
-        
+
         // 💡 Si el error es de permisos en 3D_prints o audioguías, pero la compra se guardó,
         // podríamos considerarlo un éxito parcial, pero para seguridad del usuario,
         // mostramos el error y le pedimos que contacte con soporte.
@@ -905,8 +978,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         templateId.isNotEmpty &&
         targetEmail.isNotEmpty) {
       final List<String> ticketsList = [];
-      final int general = int.tryParse(tickets['general']?.toString() ?? '0') ?? 0;
-      final int student = int.tryParse(tickets['student']?.toString() ?? '0') ?? 0;
+      final int general =
+          int.tryParse(tickets['general']?.toString() ?? '0') ?? 0;
+      final int student =
+          int.tryParse(tickets['student']?.toString() ?? '0') ?? 0;
       final int audio = int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0;
 
       if (general > 0) {
@@ -923,7 +998,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
           : 'admin_v2_status_pendiente'.tr();
       final ticketId = 'TK-$orderId';
-      final expeditionDate = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+      final expeditionDate =
+          DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
 
       // 🎫 El QR solo debe contener el ID puro para que el escáner lo encuentre en Firestore
       final qrUrl = 'https://quickchart.io/qr?text=$ticketId&size=400';
@@ -936,9 +1012,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           'visitorName': targetName,
           'visitorEmail': targetEmail,
           'visitDate': dateStr,
-          'visitDateTimestamp': _selectedDate != null 
-              ? Timestamp.fromDate(_selectedDate!) 
-              : null,
+          'visitDateTimestamp':
+              _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
           'items': {
             'general': general,
             'student': student,
@@ -956,11 +1031,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       await _triggerEmailJS(serviceId, templateId, userId, {
         'to_email': targetEmail,
         'from_name': 'app_title'.tr(),
-        'subject': 'email_ticket_subject'.tr(args: [orderId]), 
-        'name': targetName,            // {{name}}
-        'qr_image_url': qrUrl,         // {{qr_image_url}}
-        'ticket_id': orderId,          // {{ticket_id}}
-        'visit_date': dateStr,         // {{visit_date}}
+        'subject': 'email_ticket_subject'.tr(args: [orderId]),
+        'name': targetName, // {{name}}
+        'qr_image_url': qrUrl, // {{qr_image_url}}
+        'ticket_id': orderId, // {{ticket_id}}
+        'visit_date': dateStr, // {{visit_date}}
         'purchase_date': expeditionDate, // {{purchase_date}}
         'tickets_details': ticketsList.join('\n'),
       });
@@ -981,13 +1056,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         'to_email': dotenv.env['ADMIN_EMAIL'] ?? targetEmail,
         'name': targetName,
         'item_name': '$pieceName (${height}mm) - Ref: $orderId',
-        'user_notes': 'Solicitud de impresión 3D para $pieceName. Altura: ${height}mm. Pedido $orderId.',
+        'user_notes':
+            'Solicitud de impresión 3D para $pieceName. Altura: ${height}mm. Pedido $orderId.',
       });
     }
   }
 
-  Future<void> _triggerEmailJS(String serviceId, String templateId, String userId,
-      Map<String, dynamic> params) async {
+  Future<void> _triggerEmailJS(String serviceId, String templateId,
+      String userId, Map<String, dynamic> params) async {
     final adminEmailsStr = dotenv.env['ADMIN_EMAIL'] ?? '';
     final List<String> recipients = [params['to_email']];
 
@@ -1014,7 +1090,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             'service_id': serviceId,
             'template_id': templateId,
             'user_id': userId,
-            'accessToken': dotenv.env['EMAILJS_PRIVATE_KEY'] ?? '', // 🔐 Clave privada para modo estricto
+            'accessToken': dotenv.env['EMAILJS_PRIVATE_KEY'] ??
+                '', // 🔐 Clave privada para modo estricto
             'template_params': finalParams,
           }),
         );
@@ -1072,17 +1149,20 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 decoration: BoxDecoration(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
+                  border: Border.all(
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.1)),
                 ),
                 child: Column(
                   children: [
-                    _buildInvoiceRow('invoice_visit_date'.tr(), visitDate, theme,
+                    _buildInvoiceRow(
+                        'invoice_visit_date'.tr(), visitDate, theme,
                         isBold: true),
                     const Divider(height: 24),
                     ..._buildInvoiceItems(tickets, theme),
                     const Divider(height: 24),
-                    _buildInvoiceRow('invoice_total_paid'.tr(), '$total €', theme,
+                    _buildInvoiceRow(
+                        'invoice_total_paid'.tr(), '$total €', theme,
                         color: goldColor, isBold: true, fontSize: 18),
                   ],
                 ),
@@ -1129,15 +1209,28 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   List<Widget> _buildInvoiceItems(
       Map<String, dynamic> tickets, ThemeData theme) {
     final List<Widget> items = [];
-    final int general = int.tryParse(tickets['general']?.toString() ?? '0') ?? 0;
-    final int student = int.tryParse(tickets['student']?.toString() ?? '0') ?? 0;
+    final int general =
+        int.tryParse(tickets['general']?.toString() ?? '0') ?? 0;
+    final int student =
+        int.tryParse(tickets['student']?.toString() ?? '0') ?? 0;
     final int audio = int.tryParse(tickets['audio']?.toString() ?? '0') ?? 0;
     final int print3d = int.tryParse(tickets['print']?.toString() ?? '0') ?? 0;
 
-    if (general > 0) items.add(_buildInvoiceRow('shop_item_general_title'.tr(), 'x$general', theme));
-    if (student > 0) items.add(_buildInvoiceRow('shop_item_student_title'.tr(), 'x$student', theme));
-    if (audio > 0) items.add(_buildInvoiceRow('shop_item_audio_title'.tr(), 'x$audio', theme));
-    if (print3d > 0) items.add(_buildInvoiceRow('admin_v2_label_prints'.tr(), 'x1', theme));
+    if (general > 0) {
+      items.add(
+          _buildInvoiceRow('shop_item_general_title'.tr(), 'x$general', theme));
+    }
+    if (student > 0) {
+      items.add(
+          _buildInvoiceRow('shop_item_student_title'.tr(), 'x$student', theme));
+    }
+    if (audio > 0) {
+      items.add(
+          _buildInvoiceRow('shop_item_audio_title'.tr(), 'x$audio', theme));
+    }
+    if (print3d > 0) {
+      items.add(_buildInvoiceRow('admin_v2_label_prints'.tr(), 'x1', theme));
+    }
 
     return items;
   }
@@ -1183,12 +1276,17 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               children: [
                 Text(
                   'museum_unavailable'.tr(),
-                  style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   message,
-                  style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 12),
+                  style: TextStyle(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                      fontSize: 12),
                 ),
               ],
             ),

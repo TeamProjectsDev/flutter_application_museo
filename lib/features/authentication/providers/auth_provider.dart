@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// Un estado básico para la autenticación real con Firebase
 class AuthState {
@@ -55,7 +56,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       await FirebaseAnalytics.instance.logLogin(loginMethod: 'email');
     } on FirebaseAuthException catch (e) {
-      state = AuthState(isAuthenticated: false, error: e.message);
+      state = AuthState(isAuthenticated: false, error: _mapError(e.code));
       rethrow;
     }
   }
@@ -113,8 +114,38 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await _auth.signOut();
     await FirebaseAnalytics.instance.logEvent(name: 'logout');
   }
+
+  String _mapError(String code) {
+    switch (code) {
+      case 'invalid-credential':
+      case 'wrong-password':
+      case 'user-not-found':
+        return 'auth_error_invalid_credentials'.tr();
+      case 'invalid-email':
+        return 'auth_error_invalid_email'.tr();
+      case 'user-disabled':
+        return 'auth_error_user_disabled'.tr();
+      case 'email-already-in-use':
+        return 'auth_error_email_exists'.tr();
+      case 'weak-password':
+        return 'auth_error_weak_password'.tr();
+      case 'network-request-failed':
+        return 'auth_error_network'.tr();
+      default:
+        return 'common_error'.tr();
+    }
+  }
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier();
+});
+
+// 🔔 NUEVO: Un Listenable para que el Router sepa cuándo refrescar sin reiniciarse
+final authListenableProvider = Provider<Listenable>((ref) {
+  final notifier = ValueNotifier<AuthState>(ref.watch(authProvider));
+  ref.listen(authProvider, (_, next) {
+    notifier.value = next;
+  });
+  return notifier;
 });

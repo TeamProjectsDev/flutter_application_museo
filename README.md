@@ -171,8 +171,16 @@ La app está preconfigurada de fábrica para enviar estadísticas de uso super c
   * `donation_..._success` / `ticket_..._success`: Sabrás si el usuario completó el flujo de pago con éxito usando dinero de verdad (`stripe`) o si fue una demo (`mock`).
   * `ecommerce_error`: Se dispara de forma invisible si hay fallos en Firestore guardando un pedido físico.
 
-**🔐 Gestión Administrativa y Seguridad**
-La aplicación incluye un sistema de administración dinámico y profesional:
+**🔐 Gestión Administrativa, Taquilla y Estadísticas**
+La aplicación incluye un ecosistema de administración dinámico y profesional:
+* **Taquilla Digital (POS)**: Permite realizar ventas físicas en el museo integradas con el perfil digital del usuario.
+    *   **Sincronización por Email**: Al introducir el correo en taquilla, el pedido (Tickets, 3D, Audioguías) aparece automáticamente en el perfil del usuario.
+    *   **Registro de Usuarios Express**: Permite registrar nuevos usuarios desde la propia taquilla durante la venta.
+    *   **Gestión de Audioguías**: Genera registros individuales para que cada visitante pueda usar su audioguía en su móvil.
+* **Panel de Estadísticas Inteligente (Real-time)**: 
+    *   **Agregación Dual**: Suma automáticamente las ventas web y las ventas de taquilla (integrando colecciones `tickets` y `purchases`).
+    *   **Métricas Clave**: Visualización en una sola línea de Ingresos Totales, Entradas Vendidas, Audioguías Entregadas e Impresiones 3D.
+    *   **Control de Producción**: Seguimiento del estado de las impresiones 3D (Pendiente, Imprimiendo, Listo).
 * **Admin Smart Scanner (v2026)**: Validación inteligente por colores:
     *   🟢 **Válida**: Entrada para hoy, se marca como usada al instante.
     *   🟠 **Futuro**: Detecta tickets para fechas próximas y avisa sin consumirlos.

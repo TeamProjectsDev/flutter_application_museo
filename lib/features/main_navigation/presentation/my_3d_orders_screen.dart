@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 
+import 'package:rxdart/rxdart.dart';
+
 class My3DOrdersScreen extends StatefulWidget {
   const My3DOrdersScreen({super.key});
 
@@ -18,15 +20,46 @@ class _My3DOrdersScreenState extends State<My3DOrdersScreen> {
   void initState() {
     super.initState();
     FirebaseAnalytics.instance.logEvent(name: 'view_3d_orders');
+    _initOrdersStream();
+  }
+
+  void _initOrdersStream() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      _ordersStream = FirebaseFirestore.instance
-          .collection('print_requests')
-          .where('userId', isEqualTo: user.uid)
-          .snapshots()
-          .map((s) => s.docs)
-          .asBroadcastStream();
+    if (user == null) {
+      return;
     }
+
+    final userEmail = user.email?.toLowerCase();
+
+    final controller = BehaviorSubject<List<DocumentSnapshot>>.seeded([]);
+    final Map<String, List<DocumentSnapshot>> resultsMap = {};
+
+    void updateResults(String key, List<DocumentSnapshot> docs) {
+      resultsMap[key] = docs;
+      final allDocs = resultsMap.values.expand((l) => l).toList();
+      final seenIds = <String>{};
+      final uniqueDocs = allDocs.where((doc) {
+        if (seenIds.contains(doc.id)) return false;
+        seenIds.add(doc.id);
+        return true;
+      }).toList();
+      
+      if (!controller.isClosed) controller.add(uniqueDocs);
+    }
+
+    FirebaseFirestore.instance
+        .collection('print_requests')
+        .where('userId', isEqualTo: user.uid)
+        .snapshots()
+        .listen((s) => updateResults('id', s.docs));
+
+    FirebaseFirestore.instance
+        .collection('print_requests')
+        .where('customerEmail', isEqualTo: userEmail)
+        .snapshots()
+        .listen((s) => updateResults('email', s.docs));
+
+    _ordersStream = controller.stream;
   }
 
   @override

@@ -62,13 +62,19 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
               ),
               const SizedBox(height: 40),
 
-              // 🎟️ Ticket Types
               _buildTicketItem(
                 title: 'shop_item_general_title'.tr(),
                 desc: 'shop_item_general_desc'.tr(),
                 price: 25.0,
                 quantity: _generalTickets,
-                onChanged: (val) => setState(() => _generalTickets = val),
+                onChanged: (val) {
+                  setState(() {
+                    _generalTickets = val;
+                    // Auto-ajuste de audioguías si superan el nuevo total
+                    final maxAllowed = _generalTickets + _studentTickets;
+                    if (_audioGuides > maxAllowed) _audioGuides = maxAllowed;
+                  });
+                },
                 isPopular: true,
               ),
               const SizedBox(height: 16),
@@ -77,7 +83,14 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 desc: 'shop_item_student_desc'.tr(),
                 price: 15.0,
                 quantity: _studentTickets,
-                onChanged: (val) => setState(() => _studentTickets = val),
+                onChanged: (val) {
+                  setState(() {
+                    _studentTickets = val;
+                    // Auto-ajuste de audioguías si superan el nuevo total
+                    final maxAllowed = _generalTickets + _studentTickets;
+                    if (_audioGuides > maxAllowed) _audioGuides = maxAllowed;
+                  });
+                },
               ),
               const SizedBox(height: 16),
               _buildTicketItem(
@@ -85,7 +98,12 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 desc: 'shop_item_audio_desc'.tr(),
                 price: 8.0,
                 quantity: _audioGuides,
-                onChanged: (val) => setState(() => _audioGuides = val),
+                onChanged: (val) {
+                  final maxAllowed = _generalTickets + _studentTickets;
+                  if (val <= maxAllowed) {
+                    setState(() => _audioGuides = val);
+                  }
+                },
                 icon: Icons.headphones_outlined,
               ),
 

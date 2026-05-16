@@ -262,7 +262,6 @@
   "admin_scanner_label_general": "General",
   "admin_scanner_label_student": "Student/Reduced",
   "admin_scanner_label_audio": "Audioguide",
-  "common_error": "Error",
   "common_attention": "ATTENTION!",
   "common_visitor": "Visitor",
   "common_museum_entrance": "Museum Entrance",
@@ -278,5 +277,12 @@
   "auth_continue_google": "Continue with Google",
   "auth_enter_guest": "Enter as Guest",
   "auth_fill_fields": "Please fill all fields.",
-  "auth_user": "User"
-}
+  "auth_user": "User",
+  "auth_error_invalid_credentials": "Invalid credentials. Please check your email and password.",
+  "auth_error_invalid_email": "The email format is invalid.",
+  "auth_error_user_disabled": "This user account has been disabled.",
+  "auth_error_email_exists": "An account already exists with this email address.",
+  "auth_error_weak_password": "The password is too weak (minimum 6 characters).",
+  "auth_error_network": "Network error. Please check your internet connection.",
+  "common_error": "An unexpected error occurred. Please try again."
+}

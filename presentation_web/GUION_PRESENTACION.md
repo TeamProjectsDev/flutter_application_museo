@@ -45,9 +45,9 @@
 
 ## Bloque 3: Blindaje, Calidad y Futuro (3:00 min)
 
-### 11. Panel de Administración Dinámico (40s)
-- **Mensaje:** "No es solo una app para visitantes; es una herramienta de gestión profesional. Hemos desarrollado un Panel Administrativo oculto que permite controlar en tiempo real el aforo, el estado de apertura y las excepciones del calendario mediante Firestore Sync."
-- **Clave:** Destacar que los cambios se reflejan instantáneamente en todos los móviles de los usuarios.
+### 11. Panel de Administración y Taquilla POS (40s)
+- **Mensaje:** "No es solo una app para visitantes; es una herramienta de gestión 360º. Hemos desarrollado una Taquilla Digital (POS) que sincroniza ventas físicas con perfiles digitales y un Panel de Estadísticas en tiempo real que fusiona los ingresos de la web y el museo físico mediante RxDart."
+- **Clave:** Destacar la omnicanalidad y la sincronización total del usuario.
 
 ### 12. Seguridad y Blindaje (40s)
 - **Mensaje:** "La seguridad es prioridad. Implementamos reglas granulares en Firestore. Los datos de configuración están blindados: solo el administrador autenticado puede modificar los ajustes críticos del museo."
@@ -61,8 +61,8 @@
 ### 15. Calidad de Software y SEO (30s)
 - **Mensaje:** "Aplicamos estándares profesionales: **CI/CD con GitHub Actions** para tests automáticos y un SEO técnico optimizado para visibilidad web."
 
-### 16. Roadmap v2.0 (30s)
-- **Mensaje:** "El futuro pasa por la Realidad Virtual con Meta Quest y la implementación de una guía interactiva basada en Inteligencia Artificial."
+### 16. Asistente de IA y Futuro (30s)
+- **Mensaje:** "Ya hemos integrado una Guía Interactiva basada en IA (Groq) con razonamiento contextual del catálogo. El futuro pasa por expandir esta IA a tótems físicos y la inmersión total con Realidad Virtual."
 
 ---
 

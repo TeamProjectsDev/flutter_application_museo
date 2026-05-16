@@ -92,8 +92,13 @@ class AdminOrdersScreen extends ConsumerWidget {
         double totalRevenue = 0;
 
         for (final p in purchases) {
-          totalTickets += (p.items['general_tickets'] as int? ?? 0) + (p.items['student_tickets'] as int? ?? 0);
-          totalAudio += (p.items['audio_guides'] as int? ?? 0);
+          // Entradas Generales (buscar ambos nombres posibles)
+          totalTickets += (p.items['general_tickets'] as int? ?? 0) + (p.items['general'] as int? ?? 0);
+          // Entradas Estudiante (buscar ambos nombres posibles)
+          totalTickets += (p.items['student_tickets'] as int? ?? 0) + (p.items['student'] as int? ?? 0);
+          // Audioguías (buscar ambos nombres posibles)
+          totalAudio += (p.items['audio_guides'] as int? ?? 0) + (p.items['audio'] as int? ?? 0);
+          
           totalRevenue += double.tryParse(p.totalAmount) ?? 0;
         }
 
@@ -108,17 +113,17 @@ class AdminOrdersScreen extends ConsumerWidget {
             Text('Resumen de Operaciones', style: theme.textTheme.displayMedium?.copyWith(fontSize: 18)),
             const SizedBox(height: 20),
             GridView.count(
-              crossAxisCount: 2,
+              crossAxisCount: 4,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.1,
               children: [
                 _buildStatCard(context, 'Entradas', totalTickets.toString(), Icons.confirmation_num, theme.colorScheme.primary),
                 _buildStatCard(context, 'Audio Guías', totalAudio.toString(), Icons.headset_mic, Colors.purpleAccent),
                 _buildStatCard(context, 'Impresiones', totalPrints.toString(), Icons.print, Colors.blue),
-                _buildStatCard(context, 'Ingresos', '${totalRevenue.toStringAsFixed(2)}€', Icons.euro_symbol, Colors.green),
+                _buildStatCard(context, 'Ingresos', '${totalRevenue.toStringAsFixed(0)}€', Icons.euro_symbol, Colors.green),
               ],
             ),
             const SizedBox(height: 32),

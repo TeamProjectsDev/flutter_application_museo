@@ -98,30 +98,24 @@
         </section>
 
         <section id="data">
-            <h2><span>03</span> Arquitectura de Datos</h2>
-            <p>Estrategia híbrida: Firestore para datos en tiempo real y Cloudinary para activos multimedia.</p>
+            <h2><span>03</span> Arquitectura de Datos y Sincronización</h2>
+            <p>Estrategia híbrida: Firestore para datos en tiempo real y Cloudinary para activos multimedia. Sincronización avanzada entre ventas físicas y perfiles digitales.</p>
             <div class="grid">
                 <div class="card">
-                    <h3>Firestore (Cerebro NoSQL)</h3>
+                    <h3>Firestore (Estructura Unificada)</h3>
                     <table class="dtable">
                         <thead><tr><th>Colección</th><th>Propósito</th></tr></thead>
                         <tbody>
-                            <tr><td><code>users/</code></td><td>Perfiles, rangos y progreso</td></tr>
-                            <tr><td><code>tickets/</code></td><td>Entradas digitales y validación QR</td></tr>
-                            <tr><td><code>print_requests/</code></td><td>Pedidos de la tienda 3D</td></tr>
-                            <tr><td><code>donations/</code></td><td>Registro de transacciones</td></tr>
+                            <tr><td><code>users/</code></td><td>Perfiles con búsqueda por email</td></tr>
+                            <tr><td><code>tickets/</code></td><td>Ventas web y maestros de pedido</td></tr>
+                            <tr><td><code>purchases/</code></td><td>Historial de ventas físicas (Legacy & POS)</td></tr>
+                            <tr><td><code>audio_guides/</code></td><td>Registros individuales para acceso móvil</td></tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="card">
-                    <h3>Cloudinary DAM (CDN)</h3>
-                    <table class="dtable">
-                        <thead><tr><th>Bucket</th><th>Contenido</th></tr></thead>
-                        <tbody>
-                            <tr><td><code>models/</code></td><td>Modelos 3D (.glb)</td></tr>
-                            <tr><td><code>images/</code></td><td>Texturas e iconos (.jpg, .png)</td></tr>
-                        </tbody>
-                    </table>
+                    <h3>Sincronización Dual-Stream</h3>
+                    <p>El panel de administración utiliza <code>Rx.combineLatest2</code> para fusionar flujos de datos de diferentes colecciones, permitiendo una visión única de ingresos e impacto.</p>
                 </div>
             </div>
         </section>
@@ -190,10 +184,14 @@ final userRankProvider = Provider<UserRank>((ref) {
         </section>
 
         <section id="admin">
-            <h2><span>08</span> Gestión Administrativa</h2>
+            <h2><span>08</span> Gestión Administrativa y POS</h2>
             <div class="card">
-                <h3>Control en Tiempo Real y Gamificación</h3>
-                <p>Implementación de un sistema de gestión dinámico para aforos y cierres globales. El sistema de gamificación utiliza un modelo de **Acceso Abierto**, donde todo el catálogo 3D/VR es visible desde el inicio, pero el **Rango de Usuario** (Explorador, Académico, Conservador) se desbloquea mediante la visita física y el escaneo de QRs (Check-ins) en el museo.</p>
+                <h3>Arquitectura de Taquilla (Point of Sale)</h3>
+                <p>Implementación de un sistema de venta directa que utiliza una <strong>instancia secundaria de Firebase</strong> para el registro de usuarios sin cerrar la sesión del administrador. La validación de usuarios existentes se realiza mediante índices de Firestore por email para evitar métodos obsoletos de enumeración.</p>
+            </div>
+            <div class="card">
+                <h3>Panel de Estadísticas</h3>
+                <p>Algoritmos de agregación reactiva que normalizan datos heterogéneos (formatos antiguos y nuevos de tickets) para ofrecer KPIs precisos de ingresos y visitantes.</p>
             </div>
         </section>
 

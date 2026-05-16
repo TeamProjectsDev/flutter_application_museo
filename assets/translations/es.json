@@ -278,5 +278,11 @@
   "auth_continue_google": "Continuar con Google",
   "auth_enter_guest": "Entrar como Invitado",
   "auth_fill_fields": "Por favor, rellena todos los campos.",
-  "auth_user": "Usuario"
+  "auth_user": "Usuario",
+  "auth_error_invalid_credentials": "Credenciales inválidas. Comprueba tu email y contraseña.",
+  "auth_error_invalid_email": "El formato del correo electrónico no es válido.",
+  "auth_error_user_disabled": "Esta cuenta de usuario ha sido deshabilitada.",
+  "auth_error_email_exists": "Ya existe una cuenta con este correo electrónico.",
+  "auth_error_weak_password": "La contraseña es demasiado débil (mínimo 6 caracteres).",
+  "auth_error_network": "Error de red. Comprueba tu conexión a internet."
 }

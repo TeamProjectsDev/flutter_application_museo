@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:rxdart/rxdart.dart';
 
 class DigitalTicket {
   final String id;
@@ -87,22 +88,36 @@ class Purchase {
 }
 
 final purchasesStreamProvider = StreamProvider<List<Purchase>>((ref) {
-  return FirebaseFirestore.instance
+  final ticketsStream = FirebaseFirestore.instance
       .collection('tickets')
-      .snapshots()
-      .map(
-        (snapshot) {
-          final all = snapshot.docs.map((doc) => Purchase.fromFirestore(doc)).toList();
-          // Filtrar y ordenar en memoria para evitar errores de índice en Firestore
-          final filtered = all.where((p) {
-            final data = snapshot.docs.firstWhere((d) => d.id == p.id).data();
-            return data['type'] == 'order_master';
-          }).toList();
-          
-          filtered.sort((a, b) => b.purchaseDate.compareTo(a.purchaseDate));
-          return filtered;
-        },
-      );
+      .where('type', isEqualTo: 'order_master')
+      .snapshots();
+
+  final purchasesStream = FirebaseFirestore.instance
+      .collection('purchases')
+      .snapshots();
+
+  return Rx.combineLatest2<QuerySnapshot, QuerySnapshot, List<Purchase>>(
+    ticketsStream,
+    purchasesStream,
+    (s1, s2) {
+      final List<Purchase> results = [];
+      
+      // 1. Procesar de la colección 'tickets' (Ventas Online)
+      for (var doc in s1.docs) {
+        results.add(Purchase.fromFirestore(doc));
+      }
+      
+      // 2. Procesar de la colección 'purchases' (Ventas Físicas)
+      for (var doc in s2.docs) {
+        results.add(Purchase.fromFirestore(doc));
+      }
+      
+      // Ordenar por fecha descendente
+      results.sort((a, b) => b.purchaseDate.compareTo(a.purchaseDate));
+      return results;
+    },
+  );
 });
 
 final ticketsStreamProvider = StreamProvider<List<DigitalTicket>>((ref) {

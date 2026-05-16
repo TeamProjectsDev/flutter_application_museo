@@ -48,9 +48,6 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
   final hasSelectedLanguage = prefs.getBool('has_selected_language') ?? false;
   final analytics = FirebaseAnalytics.instance;
 
-  // Observar el estado de autenticación para reaccionar a cambios
-  ref.watch(authProvider);
-
   String initialRoute = '/welcome';
   if (hasSelectedLanguage && hasSeenOnboarding) {
     initialRoute = '/home';
@@ -58,6 +55,7 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
+    refreshListenable: ref.watch(authListenableProvider),
     initialLocation: (Uri.base.toString().contains('payment/success') ||
             Uri.base.path.contains('payment/success'))
         ? '/payment/success'
@@ -77,25 +75,28 @@ final routerProvider = FutureProvider<GoRouter>((ref) async {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     },
     redirect: (context, state) {
-      // 🛡️ Segundo nivel de seguridad: Si hay error crítico en el estado, forzamos Home
       if (state.error != null) return '/home';
       final authState = ref.read(authProvider);
       final String loc = state.uri.path;
 
-      // 🕵️‍♂️ LOG DE EMERGENCIA: Ver qué está pasando realmente
-      debugPrint('🔗 [Router] Ruta: $loc | URI: ${state.uri.toString()}');
-
-      // Pantallas que NO requieren estar autenticado (o son públicas)
+      // Pantallas públicas
       final bool isPublic = loc == '/language' ||
           loc == '/onboarding' ||
           loc == '/welcome' ||
           loc == '/auth' ||
           loc.startsWith('/payment');
 
+      // 🛡️ Si ya está en una pantalla pública y no está logueado, lo dejamos ahí
+      if (!authState.isAuthenticated && isPublic) {
+        return null; 
+      }
+
+      // 🛡️ Si no está logueado y la ruta no es pública, al welcome
       if (!authState.isAuthenticated && !isPublic) {
         return '/welcome';
       }
 
+      // 🛡️ Si ya está logueado e intenta ir a auth o welcome, a home
       if (authState.isAuthenticated && (loc == '/welcome' || loc == '/auth')) {
         return '/home';
       }
