@@ -45,14 +45,30 @@ class AdminOrdersScreen extends ConsumerWidget {
             return AnimatedBuilder(
               animation: tabController,
               builder: (context, child) {
-                // Solo mostramos el botón de escaneo si estamos en la pestaña de Tickets (índice 2)
+                // Solo mostramos los botones si estamos en la pestaña de Tickets (índice 2)
                 if (tabController.index == 2) {
-                  return FloatingActionButton.extended(
-                    onPressed: () => context.push('/admin/scanner'),
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    icon: const Icon(Icons.qr_code_scanner),
-                    label: Text('admin_scanner_title'.tr().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      FloatingActionButton.extended(
+                        heroTag: 'sale_btn',
+                        onPressed: () => context.push('/admin/sale'),
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        icon: const Icon(Icons.add_shopping_cart),
+                        label: const Text('NUEVA VENTA', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(height: 12),
+                      FloatingActionButton.extended(
+                        heroTag: 'scanner_btn',
+                        onPressed: () => context.push('/admin/scanner'),
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        icon: const Icon(Icons.qr_code_scanner),
+                        label: Text('admin_scanner_title'.tr().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ],
                   );
                 }
                 return const SizedBox.shrink();
