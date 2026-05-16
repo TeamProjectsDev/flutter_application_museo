@@ -1,4 +1,4 @@
-# ⚠️ Seguridad — Claves y Secretos
+# âš ï¸ Seguridad â€” Claves y Secretos
 # Estos archivos contienen claves de API, Stripe, Firebase, etc.
 # NUNCA deben subirse a un repositorio remoto.
 .env
@@ -6,14 +6,14 @@ env_config
 .env.local
 .env.production
 .env.staging
-# .env.example se SÍ se sube (contiene la plantilla vacía sin valores reales)
+# .env.example se SÃ se sube (contiene la plantilla vacÃ­a sin valores reales)
 !.env.example
 android/app/google-services.json
 
 # Miscellaneous
 *.class
 *.lock
-# Excepción: pubspec.lock SÍ debe estar en el repo para versiones consistentes
+# ExcepciÃ³n: pubspec.lock SÃ debe estar en el repo para versiones consistentes
 !pubspec.lock
 *.log
 *.pyc
@@ -130,6 +130,6 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
-# ?? Auditor�a Temporal (Inventario)
+# ?? Auditoría Temporal (Inventario)
 temp_360/
 temp_3d/
