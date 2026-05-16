@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../providers/catalog_provider.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -41,6 +42,10 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
     final Color bgColor = isDark ? const Color(0xFF080E26) : Colors.white;
     final Color textColor = isDark ? Colors.white : Colors.black87;
     final Color iconColor = isDark ? Colors.blueAccent : theme.colorScheme.primary;
+    
+    // Obtener estado del catálogo para calcular ocupación de salas
+    final catalogState = ref.watch(catalogProvider);
+    final items = catalogState.items;
 
     if (context.locale.languageCode.isEmpty) {
       return Scaffold(backgroundColor: bgColor, body: const Center(child: CircularProgressIndicator()));
@@ -100,14 +105,14 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
                         ),
                       ),
                     ),
-                    _buildPin(context, x: 662, y: 607, roomKey: 'room_paleontology', color: Colors.amber, icon: Icons.pest_control_rodent_outlined),
-                    _buildPin(context, x: 700, y: 420, roomKey: 'room_zoology', color: Colors.greenAccent, icon: Icons.pets),
-                    _buildPin(context, x: 662, y: 170, roomKey: 'room_instruments', color: Colors.orangeAccent, icon: Icons.audiotrack),
-                    _buildPin(context, x: 550, y: 520, roomKey: 'room_geology', color: Colors.blueAccent, icon: Icons.diamond),
-                    _buildPin(context, x: 483, y: 320, roomKey: 'room_dark_camera', color: Colors.purpleAccent, icon: Icons.camera_rear),
-                    _buildPin(context, x: 465, y: 420, roomKey: 'room_anatomy', color: Colors.redAccent, icon: Icons.accessibility_new),
-                    _buildPin(context, x: 380, y: 640, roomKey: 'room_physics', color: Colors.cyanAccent, icon: Icons.science),
-                    _buildPin(context, x: 320, y: 840, roomKey: 'room_storage', color: Colors.grey, icon: Icons.inventory_2_outlined),
+                    _buildPin(context, items, x: 662, y: 607, roomKey: 'room_paleontology', color: Colors.amber, icon: Icons.pest_control_rodent_outlined),
+                    _buildPin(context, items, x: 700, y: 420, roomKey: 'room_zoology', color: Colors.greenAccent, icon: Icons.pets),
+                    _buildPin(context, items, x: 662, y: 170, roomKey: 'room_instruments', color: Colors.orangeAccent, icon: Icons.audiotrack),
+                    _buildPin(context, items, x: 550, y: 520, roomKey: 'room_geology', color: Colors.blueAccent, icon: Icons.diamond),
+                    _buildPin(context, items, x: 483, y: 320, roomKey: 'room_dark_camera', color: Colors.purpleAccent, icon: Icons.camera_rear),
+                    _buildPin(context, items, x: 465, y: 420, roomKey: 'room_anatomy', color: Colors.redAccent, icon: Icons.accessibility_new),
+                    _buildPin(context, items, x: 380, y: 640, roomKey: 'room_physics', color: Colors.cyanAccent, icon: Icons.science),
+                    _buildPin(context, items, x: 320, y: 840, roomKey: 'room_storage', color: Colors.grey, icon: Icons.inventory_2_outlined),
                   ],
                 ),
               ),
@@ -118,49 +123,64 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildPin(BuildContext context, {
+  Widget _buildPin(BuildContext context, List<CatalogItem> items, {
     required double x, 
     required double y, 
     required String roomKey, 
     required Color color,
     required IconData icon,
   }) {
+    // Contar items en esta sala con seguridad contra nulos
+    final int count = items.where((i) => i.room == roomKey).length;
+    final bool isEmpty = count == 0;
+    final Color pinColor = isEmpty ? Colors.grey.shade400 : color;
+
     return Positioned(
       left: x - 60,
       top: y - 60,
       child: GestureDetector(
-        onTap: () => _showRoomDetails(context, roomKey.tr(), '${roomKey}_desc'.tr(), color, roomKey),
+        onTap: () => _showRoomDetails(context, roomKey.tr(), '${roomKey}_desc'.tr(), pinColor, roomKey, count),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ScaleTransition(
-              scale: _pulseAnimation,
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
+            if (!isEmpty)
+              ScaleTransition(
+                scale: _pulseAnimation,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: pinColor.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundColor: pinColor,
+                    child: Icon(icon, size: 20, color: Colors.white),
+                  ),
                 ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(6),
                 child: CircleAvatar(
                   radius: 20,
-                  backgroundColor: color,
-                  child: Icon(icon, size: 20, color: Colors.white),
+                  backgroundColor: pinColor,
+                  child: Icon(icon, size: 20, color: Colors.white.withValues(alpha: 0.7)),
                 ),
               ),
-            ),
             const SizedBox(height: 6),
             Container(
               constraints: const BoxConstraints(maxWidth: 150),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.8),
+                color: Colors.black.withValues(alpha: isEmpty ? 0.4 : 0.8),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
+                border: Border.all(color: pinColor.withValues(alpha: 0.5), width: 2),
               ),
               child: Text(
                 roomKey.tr(),
-                style: const TextStyle(
-                  color: Colors.white, 
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: isEmpty ? 0.6 : 1.0), 
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
@@ -173,7 +193,8 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
     );
   }
 
-  void _showRoomDetails(BuildContext context, String title, String info, Color color, String roomKey) {
+  void _showRoomDetails(BuildContext context, String title, String info, Color color, String roomKey, int itemCount) {
+    final bool isEmpty = itemCount == 0;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color currentBgColor = isDark ? const Color(0xFF080E26) : Colors.white;
     final Color titleColor = isDark ? Colors.white : Colors.black87;
@@ -226,15 +247,34 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
               width: double.infinity,
               height: 55,
               child: ElevatedButton.icon(
-                onPressed: () {
+                onPressed: isEmpty ? null : () {
                   Navigator.pop(context);
                   context.go('/collection?room=$roomKey');
                 },
-                icon: const Icon(Icons.explore_outlined),
-                label: Text('map_explore_objects'.tr().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+                icon: Icon(isEmpty ? Icons.lock_outline : Icons.explore_outlined),
+                label: Text(
+                  isEmpty 
+                    ? 'PRÓXIMAMENTE'.toUpperCase()
+                    : 'map_explore_objects'.tr().toUpperCase(), 
+                  style: const TextStyle(fontWeight: FontWeight.bold)
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isEmpty ? Colors.grey : color, 
+                  foregroundColor: Colors.white, 
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
+                ),
               ),
             ),
+            if (isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Center(
+                  child: Text(
+                    'Esta sala no dispone de contenido digital todavía.',
+                    style: TextStyle(fontSize: 12, color: descColor.withValues(alpha: 0.5), fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
