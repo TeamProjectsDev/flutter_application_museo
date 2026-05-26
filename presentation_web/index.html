@@ -1,458 +1,665 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presentación — Museo Padre Suárez</title>
+    <title>Museo Padre Suárez — Digital Experience</title>
     <link rel="icon" type="image/png" href="media/favicon.png">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome for professional icons -->
+
+    <!-- Google Fonts - Elegantes y modernas -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Playfair+Display:wght@700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Custom Styles -->
+
+    <!-- Estilos -->
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
-    <!-- Capas de fondo decorativas -->
-    <div class="bg-glow" style="top: -10%; left: -10%;"></div>
-    <div class="bg-glow" style="bottom: -10%; right: -10%;"></div>
+    <!-- Fondo dinámico con gradientes -->
+    <div class="background-glow-1"></div>
+    <div class="background-glow-2"></div>
 
-    <!-- Indicadores de estado -->
+    <!-- Barra de progreso superior -->
     <div class="progress-bar" id="progress"></div>
-    <div class="slide-num" id="slideNum">1 / 20</div>
 
-    <main class="slides-container">
-        
+    <!-- Indicador de slide y table of contents -->
+    <div class="top-controls">
+        <div class="slide-counter"><span id="current-slide">1</span><span>/</span><span id="total-slides">19</span>
+        </div>
+        <button class="toc-toggle" onclick="toggleTableOfContents()" title="Índice">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- TABLE OF CONTENTS SIDEBAR (DRAWER) -->
+    <div class="toc-drawer" id="tocDrawer">
+        <div class="toc-header">
+            <h3>Índice de Contenidos</h3>
+            <button class="toc-close" onclick="toggleTableOfContents()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <nav class="toc-content" id="tocContent">
+            <!-- Se rellena con JavaScript -->
+        </nav>
+    </div>
+
+    <!-- OVERLAY para cerrar TOC -->
+    <div class="toc-overlay" id="tocOverlay" onclick="toggleTableOfContents()"></div>
+
+    <!-- SLIDES CONTAINER -->
+    <main class="slides-container" id="slidesContainer">
+
         <!-- SLIDE 1: PORTADA -->
-        <section class="slide active">
-            <div class="side-layout">
-                <div class="side-content" style="text-align: center;">
-                    <p style="text-transform: uppercase; letter-spacing: 4px; margin-bottom: 1rem; color: var(--accent);">Proyecto Final DAM</p>
-                    <h1 style="font-size: 3.5rem;">Museo Padre Suárez <br> <span style="color: var(--primary);">Digital Experience</span></h1>
-                    <p style="font-size: 1.2rem; margin-bottom: 2rem;">Transformando el patrimonio histórico en una experiencia interactiva de nueva generación.</p>
-                    <div style="font-weight: bold; opacity: 0.7;">Alberto Ortiz Sánchez</div>
-                </div>
-                <div class="side-media">
-                    <img src="media/portada.png" alt="Museo Portada">
+        <section class="slide" data-slide="1">
+            <div class="slide-content">
+                <div class="hero-grid">
+                    <div class="hero-text">
+                        <p class="tag">Proyecto Final DAM</p>
+                        <h1>Museo Padre Suárez<br><span class="accent">Digital Experience</span></h1>
+                        <p class="subtitle">Transformando el patrimonio histórico en una experiencia interactiva de
+                            nueva generación.</p>
+                        <p class="author">Alberto Ortiz Sánchez</p>
+                    </div>
+                    <div class="hero-image">
+                        <img src="media/portada.png" alt="Museo Portada">
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 2: ÍNDICE -->
-        <section class="slide">
-            <h2>Índice Interactivo</h2>
-            <div style="text-align: left; width: 100%; max-width: 850px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                <ul class="index-list" style="list-style: none; font-size: 1rem; line-height: 2;">
-                    <li onclick="goToSlide(2)">01. El Desafío y la Solución</li>
-                    <li onclick="goToSlide(4)">02. Catálogo y Propuesta</li>
-                    <li onclick="goToSlide(5)">03. Arquitectura de Sistemas</li>
-                    <li onclick="goToSlide(7)">04. Ticketing Avanzado (v2.0)</li>
-                    <li onclick="goToSlide(10)">05. Gestión Pro y Taquilla POS</li>
-                </ul>
-                <ul class="index-list" style="list-style: none; font-size: 1rem; line-height: 2;">
-                    <li onclick="goToSlide(11)">06. Realidad Aumentada (AR)</li>
-                    <li onclick="goToSlide(12)">07. Seguridad y Recuperación</li>
-                    <li onclick="goToSlide(13)">08. Gamificación y Pagos</li>
-                    <li onclick="goToSlide(15)">09. Calidad y Recursos</li>
-                    <li onclick="goToSlide(17)">10. 🤖 Asistente IA (Groq)</li>
-                </ul>
+        <!-- SLIDE 2: ÍNDICE INTERACTIVO PARTE I -->
+        <section class="slide" data-slide="2">
+            <div class="slide-content">
+                <h2>Índice Interactivo — Parte I</h2>
+                <div class="toc-grid">
+                    <div class="toc-card" onclick="goToSlide(4)">
+                        <div class="toc-icon"><i class="fas fa-lightbulb"></i></div>
+                        <h4>El Desafío</h4>
+                        <p>Problemas del museo tradicional</p>
+                        <span class="toc-badge">01</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(5)">
+                        <div class="toc-icon"><i class="fas fa-rocket"></i></div>
+                        <h4>La Propuesta</h4>
+                        <p>Ecosistema digital Flutter + AR</p>
+                        <span class="toc-badge">02</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(6)">
+                        <div class="toc-icon"><i class="fas fa-book-open"></i></div>
+                        <h4>Catálogo Digital</h4>
+                        <p>Fichas técnicas y colección</p>
+                        <span class="toc-badge">03</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(7)">
+                        <div class="toc-icon"><i class="fas fa-cube"></i></div>
+                        <h4>Arquitectura</h4>
+                        <p>Infraestructura y servicios cloud</p>
+                        <span class="toc-badge">04</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(8)">
+                        <div class="toc-icon"><i class="fas fa-layer-group"></i></div>
+                        <h4>Gestión de Estado</h4>
+                        <p>Arquitectura reactiva con Riverpod</p>
+                        <span class="toc-badge">05</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(9)">
+                        <div class="toc-icon"><i class="fas fa-ticket"></i></div>
+                        <h4>Ticketing y Reservas</h4>
+                        <p>Automatización con EmailJS</p>
+                        <span class="toc-badge">06</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(10)">
+                        <div class="toc-icon"><i class="fas fa-clipboard-check"></i></div>
+                        <h4>Validación de Acceso</h4>
+                        <p>Escaneo de códigos QR</p>
+                        <span class="toc-badge">07</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(11)">
+                        <div class="toc-icon"><i class="fas fa-vr-cardboard"></i></div>
+                        <h4>Realidad Aumentada</h4>
+                        <p>Inmersión 3D con SceneView</p>
+                        <span class="toc-badge">08</span>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- SLIDE 3: EL PROBLEMA -->
-        <section class="slide">
-            <h2>El Desafío del Museo Histórico</h2>
-            <div class="grid">
-                <div class="feature-card">
-                    <i class="fa-solid fa-bank" style="color: var(--primary);"></i>
-                    <h3 style="color: var(--primary);">Estatismo Cultural</h3>
-                    <p style="font-size: 0.9rem;">Dificultad para atraer al público digital nativo mediante vitrinas convencionales.</p>
+        <!-- SLIDE 3: ÍNDICE INTERACTIVO PARTE II -->
+        <section class="slide" data-slide="3">
+            <div class="slide-content">
+                <h2>Índice Interactivo — Parte II</h2>
+                <div class="toc-grid">
+                    <div class="toc-card" onclick="goToSlide(12)">
+                        <div class="toc-icon"><i class="fas fa-toolbox"></i></div>
+                        <h4>Panel Admin</h4>
+                        <p>Gestión 360º y Taquilla POS</p>
+                        <span class="toc-badge">09</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(13)">
+                        <div class="toc-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h4>Seguridad</h4>
+                        <p>Reglas Firebase y SSL</p>
+                        <span class="toc-badge">10</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(14)">
+                        <div class="toc-icon"><i class="fas fa-gamepad"></i></div>
+                        <h4>Gamificación</h4>
+                        <p>Rangos de fidelización y Stripe</p>
+                        <span class="toc-badge">11</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(15)">
+                        <div class="toc-icon"><i class="fas fa-sync-alt"></i></div>
+                        <h4>Integración CI/CD</h4>
+                        <p>Github Actions y calidad</p>
+                        <span class="toc-badge">12</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(16)">
+                        <div class="toc-icon"><i class="fas fa-book"></i></div>
+                        <h4>Gestión y Recursos</h4>
+                        <p>Metodología Trello y Docs</p>
+                        <span class="toc-badge">13</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(17)">
+                        <div class="toc-icon"><i class="fas fa-robot"></i></div>
+                        <h4>Asistente IA</h4>
+                        <p>Groq Cloud y respuestas reales</p>
+                        <span class="toc-badge">14</span>
+                    </div>
+                    <div class="toc-card" onclick="goToSlide(18)">
+                        <div class="toc-icon"><i class="fas fa-route"></i></div>
+                        <h4>Roadmap v2.0</h4>
+                        <p>Meta Quest e IA Guide</p>
+                        <span class="toc-badge">15</span>
+                    </div>
                 </div>
-                <div class="feature-card">
-                    <i class="fa-solid fa-arrow-trend-down" style="color: var(--accent);"></i>
-                    <h3 style="color: var(--accent);">Pérdida de Retención</h3>
-                    <p style="font-size: 0.9rem;">Falta de incentivos para el descubrimiento activo durante y después de la visita.</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fa-solid fa-database" style="color: #ef4444;"></i>
-                    <h3 style="color: #ef4444;">Barrera de Datos</h3>
-                    <p style="font-size: 0.9rem;">Información técnica valiosa pero inaccesible por formato y densidad.</p>
+            </div>
+        </section>
+
+        <!-- SLIDE 3: EL DESAFÍO -->
+        <section class="slide" data-slide="4">
+            <div class="slide-content">
+                <h2>El Desafío del Museo Histórico</h2>
+                <div class="challenge-grid">
+                    <div class="challenge-card">
+                        <div class="icon-wrapper primary">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h3>Estatismo Cultural</h3>
+                        <p>Dificultad para atraer al público digital nativo mediante vitrinas convencionales.</p>
+                    </div>
+                    <div class="challenge-card">
+                        <div class="icon-wrapper accent-icon">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <h3>Pérdida de Retención</h3>
+                        <p>Falta de incentivos para el descubrimiento activo durante y después de la visita.</p>
+                    </div>
+                    <div class="challenge-card">
+                        <div class="icon-wrapper danger">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h3>Barrera de Datos</h3>
+                        <p>Información técnica valiosa pero inaccesible por formato y densidad.</p>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- SLIDE 4: LA PROPUESTA -->
-        <section class="slide">
-            <div class="side-layout">
-                <div class="side-media">
-                    <img src="media/app.png" alt="App Showcase">
-                </div>
-                <div class="side-content">
-                    <h2>La Propuesta: Flutter + AR</h2>
-                    <div style="background: var(--card); padding: 2rem; border-radius: 30px; border-top: 5px solid var(--primary);">
-                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--primary);">Ecosistema Digital Unificado</h3>
-                        <p>Uso de <strong>Flutter</strong> para ofrecer una experiencia fluida y consistente en iOS, Android y Web, integrando tecnologías de <strong>Realidad Aumentada</strong> y <strong>Gamificación</strong> en un solo producto.</p>
+        <section class="slide" data-slide="5">
+            <div class="slide-content">
+                <div class="two-column">
+                    <div class="col-image">
+                        <img src="media/app.png" alt="App Showcase">
+                    </div>
+                    <div class="col-text">
+                        <h2>La Propuesta: Flutter + AR</h2>
+                        <div class="highlight-box">
+                            <h3>Ecosistema Digital Unificado</h3>
+                            <p>Uso de <strong>Flutter</strong> para ofrecer una experiencia fluida y consistente en iOS,
+                                Android y Web, integrando tecnologías de <strong>Realidad Aumentada</strong> y
+                                <strong>Gamificación</strong> en un solo producto.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- SLIDE 5: CATÁLOGO DIGITAL -->
-        <section class="slide">
-            <div class="side-layout">
-                <div class="side-content">
-                    <h2>Catálogo Digital e Interactivo</h2>
-                    <div style="background: var(--card); padding: 2rem; border-radius: 30px; border-right: 5px solid var(--accent);">
-                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent);">Patrimonio al Alcance</h3>
-                        <p>Visualización detallada de la colección histórica mediante fichas técnicas dinámicas, optimizadas para una carga rápida y una navegación intuitiva entre piezas únicas.</p>
+        <section class="slide" data-slide="6">
+            <div class="slide-content">
+                <div class="two-column reverse">
+                    <div class="col-text">
+                        <h2>Catálogo Digital e Interactivo</h2>
+                        <div class="highlight-box accent-border">
+                            <h3>Patrimonio al Alcance</h3>
+                            <p>Visualización detallada de la colección histórica mediante fichas técnicas dinámicas,
+                                optimizadas para una carga rápida y una navegación intuitiva entre piezas únicas.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="side-media">
-                    <img src="media/collection.png" alt="Museum Collection">
+                    <div class="col-image">
+                        <img src="media/collection.png" alt="Museum Collection">
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- SLIDE 6: ARQUITECTURA -->
-        <section class="slide">
-            <h2>Arquitectura del Sistema</h2>
-            <div style="width: 100%; max-width: 900px; margin-top: 1rem;">
-                <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="300" y="100" width="200" height="100" rx="15" fill="rgba(99, 102, 241, 0.2)" stroke="var(--primary)" stroke-width="3"/>
-                    <text x="400" y="155" text-anchor="middle" fill="white" font-weight="bold" font-size="20">Flutter Mobile App</text>
-                    <rect x="30" y="50" width="220" height="70" rx="10" fill="rgba(255,255,255,0.05)" stroke="white" stroke-width="1"/>
-                    <text x="140" y="90" text-anchor="middle" fill="white" font-size="15">Firebase (Auth/Push)</text>
-                    <rect x="30" y="180" width="220" height="70" rx="10" fill="rgba(255,255,255,0.05)" stroke="white" stroke-width="1"/>
-                    <text x="140" y="220" text-anchor="middle" fill="white" font-size="15">Cloudinary (DAM)</text>
-                    <rect x="550" y="115" width="220" height="70" rx="10" fill="rgba(251, 191, 36, 0.1)" stroke="var(--accent)" stroke-width="1"/>
-                    <text x="660" y="155" text-anchor="middle" fill="var(--accent)" font-size="15">Stripe Checkout</text>
-                    <path d="M 250 85 L 300 120" stroke="white" stroke-width="2" stroke-dasharray="5,5"/>
-                    <path d="M 250 215 L 300 180" stroke="white" stroke-width="2" stroke-dasharray="5,5"/>
-                    <path d="M 500 150 L 550 150" stroke="var(--accent)" stroke-width="2"/>
-                </svg>
+        <section class="slide" data-slide="7">
+            <div class="slide-content">
+                <h2>Arquitectura del Sistema</h2>
+                <div class="architecture-diagram">
+                    <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Flutter App -->
+                        <rect x="300" y="100" width="200" height="100" rx="15" fill="rgba(99, 102, 241, 0.2)"
+                            stroke="var(--primary)" stroke-width="3" />
+                        <text x="400" y="155" text-anchor="middle" fill="white" font-weight="bold"
+                            font-size="20">Flutter Mobile App</text>
+
+                        <!-- Firebase -->
+                        <rect x="30" y="50" width="220" height="70" rx="10" fill="rgba(255,255,255,0.05)" stroke="white"
+                            stroke-width="1" />
+                        <text x="140" y="90" text-anchor="middle" fill="white" font-size="15">Firebase
+                            (Auth/Push)</text>
+
+                        <!-- Cloudinary -->
+                        <rect x="30" y="180" width="220" height="70" rx="10" fill="rgba(255,255,255,0.05)"
+                            stroke="white" stroke-width="1" />
+                        <text x="140" y="220" text-anchor="middle" fill="white" font-size="15">Cloudinary (DAM)</text>
+
+                        <!-- Stripe -->
+                        <rect x="550" y="115" width="220" height="70" rx="10" fill="rgba(251, 191, 36, 0.1)"
+                            stroke="var(--accent)" stroke-width="1" />
+                        <text x="660" y="155" text-anchor="middle" fill="var(--accent)" font-size="15">Stripe
+                            Checkout</text>
+
+                        <!-- Connections -->
+                        <path d="M 250 85 L 300 120" stroke="white" stroke-width="2" stroke-dasharray="5,5" />
+                        <path d="M 250 215 L 300 180" stroke="white" stroke-width="2" stroke-dasharray="5,5" />
+                        <path d="M 500 150 L 550 150" stroke="var(--accent)" stroke-width="2" />
+                    </svg>
+                </div>
             </div>
         </section>
 
-        <!-- SLIDE 6: GESTIÓN DE ESTADO (DEEP DIVE) -->
-        <section class="slide">
-            <h2>Gestión de Estado (Riverpod)</h2>
-            <div class="grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="feature-card" style="text-align: left;">
-                    <h3 style="color: var(--primary);">StateNotifier</h3>
-                    <p style="font-size: 0.9rem;">Lógica reactiva que separa completamente la vista de los datos, facilitando el mantenimiento.</p>
-                </div>
-                <div class="feature-card" style="text-align: left;">
-                    <h3 style="color: var(--accent);">Providers</h3>
-                    <p style="font-size: 0.9rem;">Inyección de dependencias segura y eficiente para servicios de Autenticación, DB y Pagos.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE 7: SISTEMA DE TICKETING (EmailJS) -->
-        <section class="slide">
-            <div class="side-layout">
-                <div class="side-content">
-                    <h2>Reservas y Ticketing (EmailJS)</h2>
-                    <div class="grid" style="grid-template-columns: 1fr; gap: 1rem;">
-                        <div class="feature-card" style="padding: 1.5rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-paper-plane" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;"></i>
-                            <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>EmailJS Automation:</strong> Envío de confirmaciones instantáneas.</p>
-                        </div>
-                        <div class="feature-card" style="padding: 1.5rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-qrcode" style="color: var(--accent); font-size: 1.5rem; margin-bottom: 0;"></i>
-                            <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Ticket QR:</strong> Entradas digitales enviadas al email.</p>
-                        </div>
+        <!-- SLIDE 7: GESTIÓN DE ESTADO -->
+        <section class="slide" data-slide="8">
+            <div class="slide-content">
+                <h2>Gestión de Estado (Riverpod)</h2>
+                <div class="feature-grid-2">
+                    <div class="feature-item">
+                        <h3>StateNotifier</h3>
+                        <p>Lógica reactiva que separa completamente la vista de los datos, facilitando el mantenimiento
+                            y escalabilidad del código.</p>
+                        <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
                     </div>
-                </div>
-                <div class="side-media">
-                    <img src="media/ticket.png" alt="Ticketing QR">
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE 8: FLUJO DE VALIDACIÓN QR -->
-        <section class="slide">
-            <h2>Validación de Acceso</h2>
-            <div style="background: var(--card); padding: 2.5rem; border-radius: 30px; border-left: 10px solid var(--primary); width: 100%; max-width: 900px;">
-                <ul style="list-style: none; text-align: left; line-height: 2; font-size: 1.2rem;">
-                    <li>📅 1. Reserva efectuada en la App</li>
-                    <li>🚀 2. EmailJS dispara el ticket al correo</li>
-                    <li>📷 3. Escaneo del QR en la entrada del museo</li>
-                    <li>✅ 4. Validación y activación de experiencia real</li>
-                </ul>
-            </div>
-        </section>
-
-        <!-- SLIDE 9: REALIDAD AUMENTADA (DEEP DIVE) -->
-        <section class="slide">
-            <div class="side-layout">
-                <div class="side-media">
-                    <img src="media/ar.png" alt="AR Experience">
-                </div>
-                <div class="side-content">
-                    <h2>Realidad Aumentada Inmersiva</h2>
-                    <div class="grid" style="grid-template-columns: 1fr; gap: 1rem;">
-                        <div class="feature-card" style="padding: 1.5rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-vr-cardboard" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;"></i>
-                            <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>SceneView:</strong> Iluminación y sombras 3D en tiempo real.</p>
-                        </div>
-                        <div class="feature-card" style="padding: 1.5rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-ruler-combined" style="color: #f43f5e; font-size: 1.5rem; margin-bottom: 0;"></i>
-                            <p style="font-size: 0.9rem; margin-bottom: 0;"><strong>Escalado 1:1:</strong> Fidelidad absoluta en dimensiones.</p>
-                        </div>
+                    <div class="feature-item">
+                        <h3>Providers</h3>
+                        <p>Inyección de dependencias segura y eficiente para servicios de Autenticación, Base de Datos y
+                            Pagos.</p>
+                        <div class="feature-icon"><i class="fas fa-puzzle-piece"></i></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 10: PANEL ADMINISTRATIVO Y POS -->
-        <section class="slide">
-            <div class="side-layout">
-                <div class="side-media">
-                    <img src="media/admin.png" alt="Admin Panel Sync" style="border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+        <!-- SLIDE 8: TICKETING -->
+        <section class="slide" data-slide="9">
+            <div class="slide-content">
+                <div class="two-column">
+                    <div class="col-text">
+                        <h2>Reservas y Ticketing (EmailJS)</h2>
+                        <div class="ticketing-steps">
+                            <div class="step">
+                                <div class="step-num">1</div>
+                                <div>
+                                    <h4>Reserva en App</h4>
+                                    <p>Usuario selecciona fecha y cantidad</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">2</div>
+                                <div>
+                                    <h4>EmailJS Automation</h4>
+                                    <p>Confirmación instantánea en email</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-num">3</div>
+                                <div>
+                                    <h4>Ticket QR Digital</h4>
+                                    <p>Entrada generada en la app</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-image">
+                        <img src="media/ticket.png" alt="Ticketing QR">
+                    </div>
                 </div>
-                <div class="side-content">
-                    <h2>Gestión Pro y Taquilla POS</h2>
-                    <div style="background: var(--card); padding: 2rem; border-radius: 30px; border-left: 10px solid var(--primary); text-align: left;">
-                        <p style="margin-bottom: 1rem;">Ecosistema unificado de administración física y digital mediante sincronización avanzada.</p>
-                        <ul style="list-style: none; font-size: 0.9rem; line-height: 2;">
-                            <li><i class="fa-solid fa-cash-register" style="color: var(--primary);"></i> <strong>Taquilla (POS):</strong> Venta física vinculada al email del usuario.</li>
-                            <li><i class="fa-solid fa-chart-line" style="color: var(--accent);"></i> <strong>Estadísticas:</strong> KPIs de ingresos y visitantes en tiempo real.</li>
-                            <li><i class="fa-solid fa-users-gear" style="color: #10b981;"></i> <strong>Aforo Dinámico:</strong> Control de capacidad web y presencial.</li>
+            </div>
+        </section>
+
+        <!-- SLIDE 9: FLUJO VALIDACIÓN -->
+        <section class="slide" data-slide="10">
+            <div class="slide-content">
+                <h2>Validación de Acceso</h2>
+                <div class="validation-flow">
+                    <div class="flow-item">
+                        <div class="flow-circle">📅</div>
+                        <p><strong>Reserva efectuada</strong> en la App</p>
+                    </div>
+                    <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="flow-item">
+                        <div class="flow-circle">🚀</div>
+                        <p><strong>EmailJS</strong> dispara el ticket</p>
+                    </div>
+                    <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="flow-item">
+                        <div class="flow-circle">📷</div>
+                        <p><strong>Escaneo QR</strong> en entrada</p>
+                    </div>
+                    <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="flow-item">
+                        <div class="flow-circle">✅</div>
+                        <p><strong>Validación</strong> confirmada</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 10: AR IMMERSIVE -->
+        <section class="slide" data-slide="11">
+            <div class="slide-content">
+                <div class="two-column reverse">
+                    <div class="col-image">
+                        <img src="media/ar.png" alt="AR Experience">
+                    </div>
+                    <div class="col-text">
+                        <h2>Realidad Aumentada Inmersiva</h2>
+                        <div class="ar-features">
+                            <div class="ar-feature">
+                                <i class="fas fa-vr-cardboard"></i>
+                                <h4>SceneView</h4>
+                                <p>Iluminación y sombras 3D en tiempo real</p>
+                            </div>
+                            <div class="ar-feature">
+                                <i class="fas fa-ruler-combined"></i>
+                                <h4>Escalado 1:1</h4>
+                                <p>Fidelidad absoluta en dimensiones</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 11: ADMIN PANEL -->
+        <section class="slide" data-slide="12">
+            <div class="slide-content">
+                <div class="two-column">
+                    <div class="col-image">
+                        <img src="media/security.png" alt="Admin Panel">
+                    </div>
+                    <div class="col-text">
+                        <h2>Panel Administrativo Profesional</h2>
+                        <div class="admin-features">
+                            <div class="admin-feature">
+                                <i class="fas fa-users"></i>
+                                <h4>Gestión de Usuarios</h4>
+                                <p>Roles, permisos y auditoría</p>
+                            </div>
+                            <div class="admin-feature">
+                                <i class="fas fa-print"></i>
+                                <h4>Impresoras 3D</h4>
+                                <p>Monitoreo de pedidos y producción</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 12: SEGURIDAD -->
+        <section class="slide" data-slide="13">
+            <div class="slide-content">
+                <h2>Seguridad y Recuperación</h2>
+                <div class="security-grid">
+                    <div class="security-card">
+                        <i class="fas fa-lock"></i>
+                        <h3>Encriptación SSL/TLS</h3>
+                        <p>Todas las conexiones protegidas</p>
+                    </div>
+                    <div class="security-card">
+                        <i class="fas fa-shield"></i>
+                        <h3>Firebase Security</h3>
+                        <p>Reglas de base de datos avanzadas</p>
+                    </div>
+                    <div class="security-card">
+                        <i class="fas fa-database"></i>
+                        <h3>Backups Automáticos</h3>
+                        <p>Recuperación en minutos</p>
+                    </div>
+                    <div class="security-card">
+                        <i class="fas fa-bug"></i>
+                        <h3>Crashlytics</h3>
+                        <p>Monitoreo de errores en tiempo real</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 13: GAMIFICACIÓN Y PAGOS -->
+        <section class="slide" data-slide="14">
+            <div class="slide-content">
+                <div class="two-column">
+                    <div class="col-text">
+                        <h2>Gamificación y Sistema de Pagos</h2>
+                        <div class="gamification-box">
+                            <h3>Rangos por Colección</h3>
+                            <div class="rank-table">
+                                <div class="rank-row">
+                                    <span>Visitante</span><span class="rank-badge gray">0</span>
+                                </div>
+                                <div class="rank-row">
+                                    <span>Explorador</span><span class="rank-badge bronze">1–2</span>
+                                </div>
+                                <div class="rank-row">
+                                    <span>Académico</span><span class="rank-badge silver">3–5</span>
+                                </div>
+                                <div class="rank-row">
+                                    <span>Conservador Jefe</span><span class="rank-badge gold">6+</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 1.5rem;"><strong>Stripe Checkout:</strong> Pasarela de pagos profesional y
+                            segura integrada.</p>
+                    </div>
+                    <div class="col-image">
+                        <img src="media/profile.png" alt="User Profile">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 14: CI/CD -->
+        <section class="slide" data-slide="15">
+            <div class="slide-content">
+                <h2>Calidad y Automatización (CI/CD)</h2>
+                <div class="cicd-box">
+                    <div class="cicd-section">
+                        <h3>GitHub Actions Pipeline</h3>
+                        <div class="pipeline">
+                            <div class="pipeline-stage">
+                                <i class="fas fa-search"></i>
+                                <p>Flutter Analyze</p>
+                            </div>
+                            <div class="pipeline-arrow">→</div>
+                            <div class="pipeline-stage">
+                                <i class="fas fa-vial"></i>
+                                <p>Flutter Test</p>
+                            </div>
+                            <div class="pipeline-arrow">→</div>
+                            <div class="pipeline-stage">
+                                <i class="fas fa-cog"></i>
+                                <p>Build APK</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 15: RECURSOS -->
+        <section class="slide" data-slide="16">
+            <div class="slide-content">
+                <h2>Gestión y Recursos</h2>
+                <div class="resources-grid">
+                    <a href="https://github.com/TeamProjectsDev/flutter_application_museo.git" target="_blank"
+                        class="resource-card">
+                        <i class="fab fa-github"></i>
+                        <h3>GitHub</h3>
+                        <p>Control de versiones y CI/CD</p>
+                    </a>
+                    <a href="https://trello.com/invite/b/69f2388cbabd30ddc327ba4d/ATTIe3a67b5d853695cc29015db60479ce91566040F8/museo"
+                        target="_blank" class="resource-card">
+                        <i class="fab fa-trello"></i>
+                        <h3>Trello</h3>
+                        <p>Gestión de Sprints</p>
+                    </a>
+                    <a href="https://stitch.withgoogle.com/projects/4937481282756923604" target="_blank"
+                        class="resource-card">
+                        <i class="fas fa-pen-nib"></i>
+                        <h3>Diseño</h3>
+                        <p>Prototipado UX/UI</p>
+                    </a>
+                    <a href="https://museo-padre-suarez.infinityfreeapp.com" target="_blank" class="resource-card">
+                        <i class="fas fa-book"></i>
+                        <h3>Documentación</h3>
+                        <p>GDD/TDD completo</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 16: ASISTENTE IA -->
+        <section class="slide" data-slide="17">
+            <div class="slide-content">
+                <div class="two-column reverse">
+                    <div class="col-image">
+                        <img src="media/ai_assistant_hero.png" alt="AI Assistant">
+                    </div>
+                    <div class="col-text">
+                        <h2>🤖 Asistente Virtual IA</h2>
+                        <div class="ai-box">
+                            <p class="ai-tech">Powered by <span class="accent">Groq · 500 T/s</span></p>
+                            <div class="ai-features-list">
+                                <div class="ai-item">
+                                    <i class="fas fa-search"></i>
+                                    <div>
+                                        <strong>Tool Calling</strong>
+                                        <p>Búsqueda eficiente de piezas</p>
+                                    </div>
+                                </div>
+                                <div class="ai-item">
+                                    <i class="fas fa-book"></i>
+                                    <div>
+                                        <strong>Catálogo Completo</strong>
+                                        <p>Conocimiento total del museo</p>
+                                    </div>
+                                </div>
+                                <div class="ai-item">
+                                    <i class="fas fa-file-alt"></i>
+                                    <div>
+                                        <strong>Markdown Renderizado</strong>
+                                        <p>Respuestas formateadas</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 17: ROADMAP -->
+        <section class="slide" data-slide="18">
+            <div class="slide-content">
+                <h2>Roadmap v2.0</h2>
+                <div class="roadmap-grid">
+                    <div class="roadmap-section">
+                        <h3>Innovación</h3>
+                        <ul class="roadmap-list">
+                            <li><i class="fas fa-rocket"></i> Soporte para Meta Quest</li>
+                            <li><i class="fas fa-microphone"></i> IA Guide Multilingüe</li>
+                        </ul>
+                    </div>
+                    <div class="roadmap-section">
+                        <h3>Crecimiento</h3>
+                        <ul class="roadmap-list">
+                            <li><i class="fas fa-shopping-bag"></i> Tienda Merchandising 3D</li>
+                            <li><i class="fas fa-building"></i> Expansión Museística</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 11: SEGURIDAD (DEEP DIVE) -->
-        <section class="slide">
-            <div class="side-layout">
-                <div class="side-content">
-                    <h2>Seguridad y Blindaje</h2>
-                    <div class="grid" style="grid-template-columns: 1fr; gap: 1rem;">
-                        <div class="feature-card" style="padding: 1.5rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-shield-halved" style="color: var(--primary); font-size: 1.5rem; margin-bottom: 0;"></i>
-                            <div style="text-align: left;">
-                                <h3 style="color: var(--primary); margin: 0; font-size: 1rem;">Row Level Security (RLS)</h3>
-                                <p style="font-size: 0.8rem; margin: 0;">Optimización automática de activos con Cloudinary f_auto,q_auto.</p>
-                            </div>
-                        </div>
-                        <div class="feature-card" style="padding: 1.5rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-user-lock" style="color: var(--accent); font-size: 1.5rem; margin-bottom: 0;"></i>
-                            <div style="text-align: left;">
-                                <h3 style="color: var(--accent); margin: 0; font-size: 1rem;">Auth Guard</h3>
-                                <p style="font-size: 0.8rem; margin: 0;">Middleware robusto mediante Firebase Auth.</p>
-                            </div>
-                        </div>
-                        <div class="feature-card" style="padding: 1.5rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-key" style="color: #10b981; font-size: 1.5rem; margin-bottom: 0;"></i>
-                            <div style="text-align: left;">
-                                <h3 style="color: #10b981; margin: 0; font-size: 1rem;">Data Encryption</h3>
-                                <p style="font-size: 0.8rem; margin: 0;">AES-256 en local y TLS 1.3 en tránsito.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="side-media">
-                    <img src="media/security.png" alt="Supabase Security Policies" style="border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
-                </div>
-            </div>
-        </section>
+        <!-- SLIDE 19: CIERRE -->
+        <section class="slide" data-slide="19">
+            <div class="slide-content closing">
+                <h1>¿Preguntas?</h1>
+                <p class="closing-subtitle">Muchas gracias por su atención.</p>
 
-        <!-- SLIDE 12: GAMIFICACIÓN -->
-        <section class="slide">
-            <div class="side-layout">
-                <div class="side-media">
-                    <img src="media/profile.png" alt="User Profile & Ranks" style="border-radius: 30px; border: 5px solid var(--accent); max-height: 500px; width: auto;">
-                </div>
-                <div class="side-content">
-                    <h2>Gamificación: Sistema de Rangos</h2>
-                    <div style="background: var(--card); padding: 2rem; border-radius: 30px; border-left: 10px solid var(--accent); text-align: left;">
-                        <p style="margin-bottom: 1.5rem;">Fomentamos la retención mediante un sistema de progresión que premia la curiosidad y la interacción con el patrimonio.</p>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 1.5rem;">🥉</span> <strong>Visitante</strong></div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 1.5rem;">🥈</span> <strong>Explorador</strong></div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 1.5rem;">🥇</span> <strong>Académico</strong></div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;"><span style="font-size: 1.5rem;">👑</span> <strong style="color: var(--accent);">Conservador</strong></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE 12: PAGOS Y SOSTENIBILIDAD -->
-        <section class="slide">
-            <h2>Pagos y Sostenibilidad</h2>
-            <div class="grid">
-                <div class="feature-card">
-                    <i class="fa-solid fa-heart" style="color: var(--primary);"></i>
-                    <h3 style="color: var(--primary);">Donaciones</h3>
-                    <p style="font-size: 0.9rem;">Integración fluida con <strong>Stripe Checkout</strong> para soporte al museo.</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fa-solid fa-calendar-check" style="color: var(--accent);"></i>
-                    <h3 style="color: var(--accent);">Suscripciones</h3>
-                    <p style="font-size: 0.9rem;">Gestión de compras segura y moderna mediante <strong>Stripe Checkout</strong>.</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fa-solid fa-file-shield" style="color: #10b981;"></i>
-                    <h3 style="color: #10b981;">Compliance</h3>
-                    <p style="font-size: 0.9rem;">Cumplimiento estricto de <strong>RGPD</strong> y normativas bancarias europeas (PSD2).</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE 14: CALIDAD Y SEO -->
-        <section class="slide">
-            <div class="side-layout">
-                <div class="side-media">
-                    <img src="media/ci.png" alt="CI/CD Pipeline" style="border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
-                </div>
-                <div class="side-content">
-                    <h2>Calidad de Software y SEO</h2>
-                    <div class="grid" style="grid-template-columns: 1fr; gap: 1rem;">
-                        <div class="feature-card" style="padding: 1rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-code-branch" style="color: var(--primary); font-size: 1.5rem;"></i>
-                            <p style="font-size: 0.8rem; margin: 0;"><strong>CI/CD Pipelines:</strong> GitHub Actions para análisis estático y tests.</p>
-                        </div>
-                        <div class="feature-card" style="padding: 1rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-magnifying-glass-chart" style="color: var(--accent); font-size: 1.5rem;"></i>
-                            <p style="font-size: 0.8rem; margin: 0;"><strong>Technical SEO:</strong> Marcado JSON-LD y Sitemap dinámico.</p>
-                        </div>
-                        <div class="feature-card" style="padding: 1rem; text-align: left; display: flex; align-items: center; gap: 1rem;">
-                            <i class="fa-solid fa-gauge-high" style="color: #ec4899; font-size: 1.5rem;"></i>
-                            <p style="font-size: 0.8rem; margin: 0;"><strong>Lighthouse 100/100:</strong> Optimización total de rendimiento y accesibilidad.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE: ASISTENTE DE IA (GROQ) -->
-        <section class="slide">
-            <div class="side-layout">
-                <div class="side-media">
-                    <img src="media/ai_assistant_hero.png" alt="Asistente Virtual AI - Groq" style="border-radius: 20px; box-shadow: 0 20px 50px rgba(99,102,241,0.4);">
-                </div>
-                <div class="side-content">
-                    <h2>🤖 Asistente Virtual IA</h2>
-                    <div style="background: var(--card); padding: 2rem; border-radius: 30px; border-left: 10px solid var(--primary); text-align: left;">
-                        <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary);">Powered by <span style="color: var(--accent);">Groq · 500 T/s</span></h3>
-                        <ul style="list-style: none; font-size: 0.9rem; line-height: 2.2;">
-                            <li>🔍 <strong>Tool Calling:</strong> Busca detalles de piezas solo cuando se necesitan</li>
-                            <li>📚 <strong>Conocimiento:</strong> Catálogo completo + funcionalidades de la app</li>
-                            <li>💬 <strong>Markdown:</strong> Respuestas con negrita, listas y formato</li>
-                            <li>🌙 <strong>Adaptativo:</strong> Modo Claro y Oscuro automático</li>
-                            <li>🌍 <strong>Multidioma:</strong> Español e Inglés</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE 14: ROADMAP -->
-        <section class="slide">
-            <h2>Roadmap v2.0</h2>
-            <div class="grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="feature-card" style="text-align: left;">
-                    <h3 style="color: var(--accent);">Innovación</h3>
-                    <ul style="list-style: none; font-size: 0.9rem; line-height: 2;">
-                        <li>🚀 Soporte para Meta Quest</li>
-                        <li>🗣️ IA Guide Multilingüe</li>
-                    </ul>
-                </div>
-                <div class="feature-card" style="text-align: left;">
-                    <h3 style="color: var(--primary);">Crecimiento</h3>
-                    <ul style="list-style: none; font-size: 0.9rem; line-height: 2;">
-                        <li>🛒 Tienda Merchandising 3D</li>
-                        <li>🏛️ Expansión a Red Museística</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE 16: RECURSOS DEL PROYECTO -->
-        <section class="slide">
-            <h2>Gestión y Recursos</h2>
-            <div class="side-layout">
-                <div class="side-media" style="flex: 1.5;">
-                    <img src="media/trello.png" alt="Trello Board" style="border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
-                </div>
-                <div class="side-content" style="display: flex; flex-direction: column; gap: 1rem;">
-                    <a href="https://github.com/TeamProjectsDev/flutter_application_museo.git" target="_blank" class="feature-card" style="text-decoration: none; color: inherit; padding: 1.5rem; display: flex; align-items: center; gap: 1rem;">
-                        <i class="fa-brands fa-github" style="color: var(--primary); font-size: 2rem;"></i>
-                        <div style="text-align: left;">
-                            <h3 style="color: var(--primary); margin: 0;">GitHub</h3>
-                            <p style="font-size: 0.8rem; margin: 0;">Control de versiones y CI/CD.</p>
-                        </div>
+                <div class="closing-buttons">
+                    <a href="https://github.com/TeamProjectsDev/flutter_application_museo.git" target="_blank"
+                        class="btn-primary">
+                        <i class="fab fa-github"></i> GitHub
                     </a>
-                    <a href="https://trello.com/invite/b/69f2388cbabd30ddc327ba4d/ATTIe3a67b5d853695cc29015db60479ce91566040F8/museo" target="_blank" class="feature-card" style="text-decoration: none; color: inherit; padding: 1.5rem; display: flex; align-items: center; gap: 1rem;">
-                        <i class="fa-brands fa-trello" style="color: var(--accent); font-size: 2rem;"></i>
-                        <div style="text-align: left;">
-                            <h3 style="color: var(--accent); margin: 0;">Trello</h3>
-                            <p style="font-size: 0.8rem; margin: 0;">Gestión de Sprints y Backlog.</p>
-                        </div>
+                    <a href="https://trello.com/invite/b/69f2388cbabd30ddc327ba4d/ATTIe3a67b5d853695cc29015db60479ce91566040F8/museo"
+                        target="_blank" class="btn-secondary">
+                        <i class="fab fa-trello"></i> Trello
                     </a>
-                    <a href="https://stitch.withgoogle.com/projects/4937481282756923604" target="_blank" class="feature-card" style="text-decoration: none; color: inherit; padding: 1.5rem; display: flex; align-items: center; gap: 1rem;">
-                        <i class="fa-solid fa-pen-nib" style="color: #f43f5e; font-size: 2rem;"></i>
-                        <div style="text-align: left;">
-                            <h3 style="color: #f43f5e; margin: 0;">Diseño</h3>
-                            <p style="font-size: 0.8rem; margin: 0;">Prototipado UX/UI en Stitch.</p>
-                        </div>
+                    <a href="https://stitch.withgoogle.com/projects/4937481282756923604" target="_blank"
+                        class="btn-tertiary">
+                        <i class="fas fa-pen-nib"></i> Diseño
+                    </a>
+                    <a href="https://museo-padre-suarez.infinityfreeapp.com" target="_blank" class="btn-success">
+                        <i class="fas fa-book"></i> Docs
                     </a>
                 </div>
-            </div>
-        </section>
 
-        <!-- SLIDE 16: CONCLUSIÓN -->
-        <section class="slide">
-            <h2>Conclusión</h2>
-            <div style="background: var(--card); padding: 3rem; border-radius: 40px; width: 100%; max-width: 900px; text-align: center;">
-                <h3 style="font-size: 2.2rem; margin-bottom: 1.2rem;">"El futuro de la historia es digital"</h3>
-                <p style="font-size: 1.2rem;">Este proyecto demuestra que la tecnología es el puente necesario para conectar el patrimonio histórico con las nuevas generaciones de forma segura y atractiva.</p>
-            </div>
-        </section>
-
-        <!-- SLIDE 17: CIERRE -->
-        <section class="slide">
-            <h1 style="font-size: 5rem; margin-bottom: 0.5rem;">¿Preguntas?</h1>
-            <p style="font-size: 1.8rem; color: var(--primary); font-weight: bold; margin-bottom: 3rem;">Muchas gracias por su atención.</p>
-            
-            <!-- Botones de recursos finales -->
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; max-width: 800px; margin: 0 auto;">
-                <a href="https://github.com/TeamProjectsDev/flutter_application_museo.git" target="_blank" class="accent-pill" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 50px; font-weight: bold;">
-                    <i class="fa-brands fa-github"></i> GitHub
-                </a>
-                <a href="https://trello.com/invite/b/69f2388cbabd30ddc327ba4d/ATTIe3a67b5d853695cc29015db60479ce91566040F8/museo" target="_blank" class="accent-pill" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 50px; font-weight: bold; border-color: var(--primary); color: var(--primary); background: rgba(99, 102, 241, 0.1);">
-                    <i class="fa-brands fa-trello"></i> Trello
-                </a>
-                <a href="https://stitch.withgoogle.com/projects/4937481282756923604" target="_blank" class="accent-pill" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 50px; font-weight: bold; border-color: #f43f5e; color: #f43f5e; background: rgba(244, 63, 94, 0.1);">
-                    <i class="fa-solid fa-pen-nib"></i> Diseño
-                </a>
-                <a href="https://museo-padre-suarez.infinityfreeapp.com" target="_blank" class="accent-pill" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 50px; font-weight: bold; border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.1);">
-                    <i class="fa-solid fa-book"></i> Documentación
-                </a>
-            </div>
-
-            <div style="margin-top: 4rem; text-align: center; opacity: 0.5;">
-                <p style="font-size: 1rem;">Alberto Ortiz Sánchez — Proyecto DAM 2026</p>
+                <p class="closing-credit">Alberto Ortiz Sánchez — Proyecto DAM 2026</p>
             </div>
         </section>
 
     </main>
 
-    <!-- Controles de navegación -->
-    <div class="controls">
-        <button class="btn" onclick="prevSlide()" aria-label="Anterior">←</button>
-        <button class="btn" onclick="nextSlide()" aria-label="Siguiente">→</button>
+    <!-- CONTROLES DE NAVEGACIÓN -->
+    <div class="navigation">
+        <button class="nav-btn prev" onclick="prevSlide()" aria-label="Anterior">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="nav-btn next" onclick="nextSlide()" aria-label="Siguiente">
+            <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
 
-    <!-- Custom Script -->
+    <!-- KEYBOARD HINT -->
+    <div class="keyboard-hint">
+        <span><kbd>←</kbd><kbd>→</kbd> Navegar</span>
+        <span><kbd>T</kbd> Índice</span>
+    </div>
+
+    <!-- SCRIPT -->
     <script src="js/presentation.js"></script>
 </body>
+
 </html>
